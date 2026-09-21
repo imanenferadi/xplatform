@@ -12,15 +12,28 @@ export default function LoginPage() {
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [codeError, setCodeError] = useState("");
 
   function submitPhone(e: React.FormEvent) {
     e.preventDefault();
-    if (phone.length < 10) return;
+    // Accept Persian or Latin digits, ignore spaces/dashes people naturally type.
+    const digitsOnly = phone.replace(/[^\d۰-۹]/g, "");
+    if (digitsOnly.length < 10) {
+      setPhoneError("شماره موبایل باید حداقل ۱۰ رقم باشد.");
+      return;
+    }
+    setPhoneError("");
     setStep("otp");
   }
 
   function submitOtp(e: React.FormEvent) {
     e.preventDefault();
+    const digitsOnly = code.replace(/[^\d۰-۹]/g, "");
+    if (digitsOnly.length < 4) {
+      setCodeError("کد ۴ رقمی را کامل وارد کن.");
+      return;
+    }
     // Mock auth — any 4-digit code works.
     router.push("/onboarding");
   }
@@ -48,7 +61,11 @@ export default function LoginPage() {
                   dir="ltr"
                   className="text-left"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    if (phoneError) setPhoneError("");
+                  }}
+                  error={phoneError}
                   autoFocus
                 />
                 <Button type="submit" size="lg" className="w-full">
@@ -70,7 +87,11 @@ export default function LoginPage() {
                   dir="ltr"
                   className="text-center tracking-[0.5em]"
                   value={code}
-                  onChange={(e) => setCode(e.target.value)}
+                  onChange={(e) => {
+                    setCode(e.target.value);
+                    if (codeError) setCodeError("");
+                  }}
+                  error={codeError}
                   maxLength={4}
                   autoFocus
                 />
