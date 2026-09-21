@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { AlertCircle, MessageCircle, CalendarClock } from "lucide-react";
+import { AlertCircle, MessageCircle, CalendarClock, Moon } from "lucide-react";
 import { MentorShell } from "@/components/app/MentorShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
-import { mentorStudents } from "@/lib/mock-data";
+import { mentorStudents, nightlyCheckIns, moodLabels } from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
 
 const statusMeta = {
@@ -32,6 +32,42 @@ export default function MentorDashboardPage() {
           <SmallStat icon={CalendarClock} label="جلسات امروز" value="۲" />
           <SmallStat icon={MessageCircle} label="پیام بی‌پاسخ" value="۳" />
           <SmallStat icon={AlertCircle} label="نیاز به بازبینی برنامه" value="۱" />
+        </div>
+
+        {/* Nightly check-ins — this replaces reading the Telegram group */}
+        <h2 className="mb-3 mt-6 flex items-center gap-1.5 text-sm font-bold text-text-900">
+          <Moon size={15} className="text-blue-600" />
+          چک‌این‌های دیشب
+        </h2>
+        <div className="space-y-2">
+          {nightlyCheckIns.map((ci) => {
+            const student = mentorStudents.find((s) => s.id === ci.studentId);
+            if (!student) return null;
+            return (
+              <Link key={ci.id} href={`/mentor/students/${ci.studentId}`}>
+                <Card interactive className={!ci.mentorSeen ? "border-blue-600/30" : undefined}>
+                  <CardContent className="flex items-center gap-3 py-3">
+                    <Avatar name={student.name} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-sm font-medium text-text-900">
+                          {student.name}
+                        </span>
+                        <span className="text-xs text-text-500">{ci.date}</span>
+                        {!ci.mentorSeen && <Badge tone="info">جدید</Badge>}
+                      </div>
+                      <div className="truncate text-xs text-text-500">
+                        {ci.note || (ci.entries.length === 0 ? "یادداشتی ننوشته" : "بدون یادداشت")}
+                      </div>
+                    </div>
+                    <span className="shrink-0 text-lg" title={moodLabels[ci.mood]}>
+                      {moodLabels[ci.mood].split(" ").pop()}
+                    </span>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
 
         <h2 className="mb-3 mt-6 text-sm font-bold text-text-900">دانش‌آموزان</h2>

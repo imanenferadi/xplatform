@@ -7,9 +7,9 @@ import {
   MessageCircle,
   Bot,
   BarChart3,
+  Moon as MoonIcon,
   User,
   Home,
-  Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/Logo";
@@ -19,6 +19,7 @@ import { Avatar } from "@/components/ui/Avatar";
 const sidebarLinks = [
   { href: "/dashboard", label: "امروز", icon: Home },
   { href: "/dashboard/plan", label: "برنامه", icon: CalendarDays },
+  { href: "/dashboard/checkin", label: "چک‌این شب", icon: MoonIcon },
   { href: "/mentors/sara-mohammadi", label: "مشاور من", icon: User },
   { href: "/chat", label: "پیام‌ها", icon: MessageCircle },
   { href: "/dashboard/ai", label: "معلم AI", icon: Bot },
@@ -28,9 +29,9 @@ const sidebarLinks = [
 const bottomNavLinks = [
   { href: "/dashboard", label: "امروز", icon: Home },
   { href: "/dashboard/plan", label: "برنامه", icon: CalendarDays },
+  { href: "/dashboard/checkin", label: "چک‌این", icon: MoonIcon },
   { href: "/mentors/sara-mohammadi", label: "مشاور", icon: User },
-  { href: "/dashboard/ai", label: "AI", icon: Bot },
-  { href: "/chat", label: "بیشتر", icon: Menu },
+  { href: "/chat", label: "پیام‌ها", icon: MessageCircle },
 ];
 
 export function StudentShell({ children }: { children: React.ReactNode }) {

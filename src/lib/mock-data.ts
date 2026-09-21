@@ -176,6 +176,144 @@ export const studentPlan = {
   streakDays: 4,
 };
 
+// ---------------------------------------------------------------------
+// Exam-driven weekly cycle (§ real konkur-mentoring workflow)
+//
+// The actual workflow this maps to: students take a bi-weekly mock exam
+// (Kanoon/"قلمچی", Gaj, or others — kept free-text on purpose, not a
+// hardcoded enum, since mentors use whichever one a student is enrolled
+// in) and get a رشته/major-specific "کارنامه" (score sheet) broken down
+// per subject. The mentor reads that sheet next to the subject's
+// "ضریب" (weight coefficient for the student's target major) to decide
+// what the coming week's plan should prioritize — a subject that's both
+// weak AND high-coefficient matters far more than a weak low-coefficient
+// one. That reasoning should be visible in the UI, not just the numbers.
+// ---------------------------------------------------------------------
+
+export type ExamSubjectResult = {
+  subject: Subject;
+  correct: number;
+  wrong: number;
+  unanswered: number;
+  percentage: number; // "درصد" — the number Iranian students actually track
+};
+
+export type ExamResult = {
+  id: string;
+  examProvider: string; // "قلمچی" | "گاج" | "ماز" | ... — student's actual exam service
+  examName: string;
+  date: string; // Persian date string, e.g. "۲۹ شهریور ۱۴۰۵"
+  subjects: ExamSubjectResult[];
+  overallPercentage: number;
+  nationalRank?: number; // "تراز"-adjacent rank among all participants nationwide
+};
+
+// Two consecutive bi-weekly exams for the demo student, so the UI can show
+// a trend (improving/declining) per subject, not just a single snapshot.
+export const examResults: ExamResult[] = [
+  {
+    id: "exam-2",
+    examProvider: "قلمچی",
+    examName: "آزمون جامع شماره ۵",
+    date: "۲۹ شهریور ۱۴۰۵",
+    overallPercentage: 61,
+    nationalRank: 8400,
+    subjects: [
+      { subject: "ریاضی", correct: 18, wrong: 4, unanswered: 3, percentage: 72 },
+      { subject: "فیزیک", correct: 14, wrong: 6, unanswered: 5, percentage: 56 },
+      { subject: "شیمی", correct: 9, wrong: 10, unanswered: 6, percentage: 36 },
+      { subject: "زیست", correct: 16, wrong: 5, unanswered: 4, percentage: 64 },
+    ],
+  },
+  {
+    id: "exam-1",
+    examProvider: "قلمچی",
+    examName: "آزمون جامع شماره ۴",
+    date: "۱۵ شهریور ۱۴۰۵",
+    overallPercentage: 55,
+    nationalRank: 11200,
+    subjects: [
+      { subject: "ریاضی", correct: 16, wrong: 6, unanswered: 3, percentage: 64 },
+      { subject: "فیزیک", correct: 13, wrong: 7, unanswered: 5, percentage: 52 },
+      { subject: "شیمی", correct: 7, wrong: 11, unanswered: 7, percentage: 28 },
+      { subject: "زیست", correct: 15, wrong: 6, unanswered: 4, percentage: 60 },
+    ],
+  },
+];
+
+export const targetMajor = {
+  name: "پزشکی — تجربی",
+  coefficients: [
+    { subject: "زیست" as Subject, coefficient: 4 },
+    { subject: "شیمی" as Subject, coefficient: 3 },
+    { subject: "فیزیک" as Subject, coefficient: 2 },
+    { subject: "ریاضی" as Subject, coefficient: 2 },
+  ],
+};
+
+/** Weak-subject × coefficient reasoning the mentor's plan should surface. */
+export function examDrivenPriorities() {
+  const latest = examResults[0];
+  return latest.subjects
+    .map((s) => {
+      const coeff = targetMajor.coefficients.find((c) => c.subject === s.subject)?.coefficient ?? 1;
+      return { ...s, coefficient: coeff, impact: (100 - s.percentage) * coeff };
+    })
+    .sort((a, b) => b.impact - a.impact);
+}
+
+export type NightlyCheckIn = {
+  id: string;
+  date: string; // "امشب", "دیشب", or a Persian date
+  studentId: string;
+  entries: { subject: Subject; topic: string; minutes: number }[];
+  mood: "great" | "ok" | "tired" | "struggled";
+  note: string;
+  mentorSeen: boolean;
+};
+
+export const moodLabels: Record<NightlyCheckIn["mood"], string> = {
+  great: "عالی بودم 💪",
+  ok: "خوب بود 🙂",
+  tired: "خسته بودم 😪",
+  struggled: "سخت گذشت 😞",
+};
+
+// Check-ins for the mentor's students — this feed is what replaces the
+// mentor's Telegram group in the current real-world workflow.
+export const nightlyCheckIns: NightlyCheckIn[] = [
+  {
+    id: "ci-1",
+    date: "امشب",
+    studentId: "3",
+    entries: [
+      { subject: "زیست", topic: "فیزیولوژی گیاهی", minutes: 50 },
+      { subject: "شیمی", topic: "تست‌زنی فصل ۲", minutes: 40 },
+    ],
+    mood: "great",
+    note: "امروز خیلی خوب پیش رفت، شیمی رو کامل تموم کردم.",
+    mentorSeen: false,
+  },
+  {
+    id: "ci-2",
+    date: "دیشب",
+    studentId: "2",
+    entries: [{ subject: "ریاضی", topic: "مثلثات", minutes: 35 }],
+    mood: "tired",
+    note: "امروز مدرسه فوق‌العاده داشتیم، کم رسیدم بخونم.",
+    mentorSeen: false,
+  },
+  {
+    id: "ci-3",
+    date: "۳ روز پیش",
+    studentId: "1",
+    entries: [],
+    mood: "struggled",
+    note: "",
+    mentorSeen: true,
+  },
+];
+
 export const chatMessages = [
   { id: 1, from: "mentor" as const, text: "سلام! برنامه‌ی این هفته رو دیدی؟ از فردا شیمی آلی رو شروع می‌کنیم.", time: "۰۹:۱۲" },
   { id: 2, from: "student" as const, text: "سلام سارا جان، دیدم. یه سوال داشتم از فصل ۲ شیمی که گیر کردم", time: "۱۴:۰۳" },
