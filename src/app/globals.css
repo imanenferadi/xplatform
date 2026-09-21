@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------- */
+/* X — Design Tokens                                                      */
+/* Source of truth: visual kit palette, filled out with the design doc's  */
+/* semantic colors where the kit didn't specify one.                      */
+/* ---------------------------------------------------------------------- */
+
+:root {
+  /* Brand core (from visual kit) */
+  --x-navy-900: #0f2d58;
+  --x-blue-600: #3b82f6;
+  --x-blue-300: #a7cfff;
+  --x-blue-100: #ebf1ff;
+  --x-yellow-400: #fdd365;
+
+  /* Semantic accents (filled from spec — kit didn't define these) */
+  --x-cyan-500: #25a8b8;
+  --x-mint-500: #37b58a;
+  --x-red-500: #e85d68;
+  --x-orange-500: #f29a4a;
+
+  /* Surfaces & text — light mode */
+  --x-surface: #ffffff;
+  --x-background: #f7f9fc;
+  --x-surface-2: #f1f4f9;
+  --x-border: #e4e9f0;
+  --x-text-900: #0f2d58;
+  --x-text-700: #344054;
+  --x-text-500: #667085;
+  --x-text-on-primary: #ffffff;
+
+  /* Radius */
+  --x-radius-sm: 10px;
+  --x-radius-md: 14px;
+  --x-radius-lg: 18px;
+  --x-radius-xl: 24px;
+  --x-radius-pill: 999px;
+
+  /* Shadows — deliberately subtle, per design doc (no shadow-xl everywhere) */
+  --x-shadow-sm: 0 1px 2px rgba(15, 45, 88, 0.05);
+  --x-shadow-md: 0 4px 16px rgba(15, 45, 88, 0.07);
+  --x-shadow-lg: 0 8px 32px rgba(15, 45, 88, 0.1);
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"],
+:root.dark {
+  --x-background: #09111f;
+  --x-surface: #101b2d;
+  --x-surface-2: #15243a;
+  --x-border: #24344c;
+  --x-text-900: #f7faff;
+  --x-text-700: #dbe3ee;
+  --x-text-500: #aab7c9;
+  --x-text-on-primary: #ffffff;
+
+  --x-blue-600: #5c8ef7;
+  --x-blue-300: #3a5a8c;
+  --x-blue-100: #17253f;
+  --x-cyan-500: #45c2d0;
+  --x-mint-500: #4ac49a;
+  --x-yellow-400: #f4c95d;
+  --x-red-500: #ef7885;
+  --x-orange-500: #f5ab6a;
+
+  --x-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --x-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.32);
+  --x-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.4);
+
+  color-scheme: dark;
+}
+
+/* Respect system preference when no explicit choice has been made yet */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --x-background: #09111f;
+    --x-surface: #101b2d;
+    --x-surface-2: #15243a;
+    --x-border: #24344c;
+    --x-text-900: #f7faff;
+    --x-text-700: #dbe3ee;
+    --x-text-500: #aab7c9;
+    --x-text-on-primary: #ffffff;
+
+    --x-blue-600: #5c8ef7;
+    --x-blue-100: #17253f;
+    --x-cyan-500: #45c2d0;
+    --x-mint-500: #4ac49a;
+    --x-yellow-400: #f4c95d;
+    --x-red-500: #ef7885;
+    --x-orange-500: #f5ab6a;
+
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --font-sans: var(--font-vazirmatn);
+
+  --color-navy-900: var(--x-navy-900);
+  --color-blue-600: var(--x-blue-600);
+  --color-blue-300: var(--x-blue-300);
+  --color-blue-100: var(--x-blue-100);
+  --color-yellow-400: var(--x-yellow-400);
+  --color-cyan-500: var(--x-cyan-500);
+  --color-mint-500: var(--x-mint-500);
+  --color-red-500: var(--x-red-500);
+  --color-orange-500: var(--x-orange-500);
+
+  --color-surface: var(--x-surface);
+  --color-surface-2: var(--x-surface-2);
+  --color-background: var(--x-background);
+  --color-border: var(--x-border);
+  --color-text-900: var(--x-text-900);
+  --color-text-700: var(--x-text-700);
+  --color-text-500: var(--x-text-500);
+  --color-text-on-primary: var(--x-text-on-primary);
+
+  --radius-x-sm: var(--x-radius-sm);
+  --radius-x-md: var(--x-radius-md);
+  --radius-x-lg: var(--x-radius-lg);
+  --radius-x-xl: var(--x-radius-xl);
+  --radius-x-pill: var(--x-radius-pill);
+
+  --shadow-x-sm: var(--x-shadow-sm);
+  --shadow-x-md: var(--x-shadow-md);
+  --shadow-x-lg: var(--x-shadow-lg);
+}
+
+* {
+  border-color: var(--x-border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--x-background);
+  color: var(--x-text-700);
+  font-feature-settings: "ss01" 1;
+}
+
+/* Persian text should never break mid-word for headings/short labels */
+h1, h2, h3, h4, .no-break {
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+/* Numbers in tables / metrics: force Latin digits + tabular alignment */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+::selection {
+  background: var(--x-blue-300);
+  color: var(--x-navy-900);
+}
+
+/* Reduced motion support (design doc §35 Accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

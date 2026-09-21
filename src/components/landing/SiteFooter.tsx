@@ -1,0 +1,50 @@
+import { Logo } from "@/components/brand/Logo";
+
+const columns = [
+  {
+    title: "محصول",
+    links: ["امکانات", "تعرفه‌ها", "مشاوران", "دمو زنده"],
+  },
+  {
+    title: "شرکت",
+    links: ["درباره ما", "بلاگ", "فرصت‌های همکاری"],
+  },
+  {
+    title: "پشتیبانی",
+    links: ["مرکز راهنما", "تماس با ما", "حریم خصوصی"],
+  },
+];
+
+export function SiteFooter() {
+  return (
+    <footer className="border-t border-border bg-surface">
+      <div className="mx-auto grid max-w-[1200px] gap-10 px-4 py-12 md:grid-cols-[1.2fr_2fr] md:px-8">
+        <div>
+          <Logo />
+          <p className="mt-3 max-w-xs text-sm text-text-500">
+            دستیار هوشمند مطالعه و کنکور — مشاور رتبه‌برتر واقعی، به‌علاوه‌ی ابزار هوشمند.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+          {columns.map((c) => (
+            <div key={c.title}>
+              <h4 className="mb-3 text-sm font-semibold text-text-900">{c.title}</h4>
+              <ul className="space-y-2">
+                {c.links.map((l) => (
+                  <li key={l}>
+                    <a href="#" className="text-sm text-text-500 hover:text-text-900">
+                      {l}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="border-t border-border py-5 text-center text-xs text-text-500">
+        © ۱۴۰۵ تمامی حقوق برای X محفوظ است.
+      </div>
+    </footer>
+  );
+}
