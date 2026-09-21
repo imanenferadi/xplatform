@@ -1,10 +1,12 @@
+import Link from "next/link";
 import { BadgeCheck, Star } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { buttonVariants } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/Card";
 
 const mentors = [
   {
+    id: "sara-mohammadi",
     name: "سارا محمدی",
     rank: "رتبه ۴۴۰",
     year: "کنکور ۱۴۰۳",
@@ -15,6 +17,7 @@ const mentors = [
       "شیمی نقطه‌ضعف توئه و شیمیِ سارا در کنکور ۹۲٪ بوده. او هم سال دهم از صفر شروع کرد.",
   },
   {
+    id: "amirhossein-rezaei",
     name: "امیرحسین رضایی",
     rank: "رتبه ۱۲۰",
     year: "کنکور ۱۴۰۴",
@@ -25,6 +28,7 @@ const mentors = [
       "الگوی تست‌زنی تو «سریع ولی نامطمئن» است. امیرحسین دقیقاً همین مشکل را با تحلیل زمان‌بندی حل کرد.",
   },
   {
+    id: "negar-ahmadi",
     name: "نگار احمدی",
     rank: "رتبه ۳۱۰",
     year: "کنکور ۱۴۰۳",
@@ -52,7 +56,7 @@ export function MatchingPreview() {
 
       <div className="grid gap-5 md:grid-cols-3">
         {mentors.map((m) => (
-          <Card key={m.name} interactive className="flex flex-col">
+          <Card key={m.id} interactive className="flex flex-col">
             <CardContent className="flex flex-1 flex-col">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
@@ -90,9 +94,9 @@ export function MatchingPreview() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" size="md">
+              <Link href={`/mentors/${m.id}`} className={buttonVariants({ className: "w-full", size: "md" })}>
                 مشاهده پروفایل
-              </Button>
+              </Link>
             </CardFooter>
           </Card>
         ))}

@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { Check } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { buttonVariants } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 
 const plans = [
@@ -79,13 +80,16 @@ export function PricingPreview() {
                 </li>
               ))}
             </ul>
-            <Button
-              variant={p.highlight ? "primary" : "secondary"}
-              className="mt-6 w-full"
-              size="md"
+            <Link
+              href="/checkout"
+              className={buttonVariants({
+                variant: p.highlight ? "primary" : "secondary",
+                size: "md",
+                className: "mt-6 w-full",
+              })}
             >
               {p.cta}
-            </Button>
+            </Link>
           </div>
         ))}
       </div>

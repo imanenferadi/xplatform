@@ -31,17 +31,29 @@ const sizes: Record<Size, string> = {
   icon: "h-11 w-11 rounded-x-md",
 };
 
+/**
+ * Returns the same classes <Button> renders with. Use this on a <Link> or
+ * other non-<button> element instead of nesting <Button> inside it — a
+ * <button> nested in an <a> is invalid HTML and breaks keyboard/tab order.
+ */
+export function buttonVariants({
+  variant = "primary",
+  size = "md",
+  className,
+}: {
+  variant?: Variant;
+  size?: Size;
+  className?: string;
+} = {}) {
+  return cn(base, variant !== "link" && sizes[size], variants[variant], className);
+}
+
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", ...props }, ref) => {
     return (
       <button
         ref={ref}
-        className={cn(
-          base,
-          variant !== "link" && sizes[size],
-          variants[variant],
-          className
-        )}
+        className={buttonVariants({ variant, size, className })}
         {...props}
       />
     );

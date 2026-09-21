@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
-import { Button } from "@/components/ui/Button";
+import { buttonVariants } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const links = [
@@ -32,12 +32,12 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button variant="ghost" size="md" className="hidden sm:inline-flex">
+          <Link href="/login" className={buttonVariants({ variant: "ghost", className: "hidden sm:inline-flex" })}>
             ورود
-          </Button>
-          <Button variant="primary" size="md">
+          </Link>
+          <Link href="/login" className={buttonVariants({ variant: "primary" })}>
             تعیین سطح رایگان
-          </Button>
+          </Link>
         </div>
       </div>
     </header>

@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/Button";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/Button";
 import { ArrowLeft } from "lucide-react";
 
 export function FinalCta() {
@@ -10,13 +11,16 @@ export function FinalCta() {
           همین امروز، بدون نیاز به نصب برنامه یا پرداخت هزینه، با شماره موبایلت وارد شو.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Button size="lg" variant="secondary" className="bg-white text-navy-900 hover:bg-blue-100">
+          <Link
+            href="/login"
+            className={buttonVariants({ size: "lg", variant: "secondary", className: "bg-white text-navy-900 hover:bg-blue-100" })}
+          >
             ورود به حساب کاربری
             <ArrowLeft size={18} />
-          </Button>
-          <Button size="lg" variant="ghost" className="text-white hover:bg-white/10">
+          </Link>
+          <a href="#pricing" className={buttonVariants({ size: "lg", variant: "ghost", className: "text-white hover:bg-white/10" })}>
             مشاهده‌ی تعرفه‌ها
-          </Button>
+          </a>
         </div>
       </div>
     </section>

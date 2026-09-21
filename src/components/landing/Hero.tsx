@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/Button";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ArrowLeft, Sparkles } from "lucide-react";
 
@@ -28,13 +29,13 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Button size="lg">
+            <Link href="/login" className={buttonVariants({ size: "lg" })}>
               تعیین سطح رایگان
               <ArrowLeft size={18} />
-            </Button>
-            <Button size="lg" variant="secondary">
+            </Link>
+            <Link href="/matching" className={buttonVariants({ size: "lg", variant: "secondary" })}>
               مشاورها را ببین
-            </Button>
+            </Link>
           </div>
 
           <p className="mt-4 text-sm text-text-500">

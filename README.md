@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# X — پلتفرم مشاوره و مطالعه‌ی کنکور
 
-## Getting Started
+هسته‌ی محصول: **تعیین سطح هوشمند → تطبیق با مشاور رتبه‌برتر → رابطه‌ی مستمر**.
+ابزارهای AI (برنامه‌ریز، معلم هوشمند، بانک تست) در خدمت این رابطه‌اند، نه جایگزین آن.
 
-First, run the development server:
+جزئیات کامل وضعیت پروژه، تصمیمات معماری، باگ‌های رفع‌شده و نقشه‌ی راه ادامه‌ی کار در
+[PROJECT_STATUS.md](./PROJECT_STATUS.md) است — قبل از هر تغییری آن را بخوان.
+
+سند محصول کامل در [platform-x-product-spec.md](./platform-x-product-spec.md).
+
+## اجرا
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+روی `http://localhost:3000` باز می‌شود.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run lint    # قبل از هر commit
+npm run build   # بررسی build تولید
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## استک
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · RTL کامل · حالت تاریک/روشن ·
+فونت Vazirmatn · lucide-react
