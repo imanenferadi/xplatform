@@ -18,6 +18,7 @@ import {
 } from "@/lib/mock-data";
 import { Sparkles, FileText, Upload, Moon, EyeOff, LineChart } from "lucide-react";
 import { TrendChart } from "@/components/ui/TrendChart";
+import { toPersianDigits } from "@/lib/utils";
 
 export function generateStaticParams() {
   return mentorStudents.map((s) => ({ id: s.id }));
@@ -142,11 +143,12 @@ export default async function StudentCaseFilePage({
                 <PlanRow
                   key={p.subject}
                   subject={p.subject}
-                  topic={`تمرکز روی ${p.subject} — درصد ${p.percentage}٪ × ضریب ${p.coefficient}`}
+                  topic={`درصد ${p.percentage}٪ × ضریب ${p.coefficient}`}
+                  hours={p.hours}
                   aiGenerated
                 />
               ))}
-            <PlanRow subject="—" topic="جلسه‌ی رفع اشکال با من" aiGenerated={false} />
+            <PlanRow subject="—" topic="جلسه‌ی رفع اشکال با من" hours={1} aiGenerated={false} />
           </div>
           <div className="mt-3 flex gap-2">
             <Button size="md">تأیید برنامه</Button>
@@ -232,10 +234,12 @@ function Section({
 function PlanRow({
   subject,
   topic,
+  hours,
   aiGenerated,
 }: {
   subject: string;
   topic: string;
+  hours?: number;
   aiGenerated: boolean;
 }) {
   return (
@@ -245,8 +249,15 @@ function PlanRow({
       }`}
     >
       <div>
-        <span className="font-medium text-text-900">{topic}</span>
-        {subject !== "—" && <span className="text-text-500"> — {subject}</span>}
+        <div className="flex items-center gap-2">
+          {subject !== "—" && <span className="font-medium text-text-900">{subject}</span>}
+          {hours != null && (
+            <span className="tnum rounded-x-sm bg-surface px-1.5 py-0.5 text-xs font-medium text-text-700">
+              {toPersianDigits(hours)} ساعت
+            </span>
+          )}
+        </div>
+        <span className="text-text-500">{topic}</span>
       </div>
       {aiGenerated && (
         <Badge tone="info">

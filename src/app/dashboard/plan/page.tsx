@@ -6,53 +6,79 @@ import { StudentShell } from "@/components/app/StudentShell";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { cn } from "@/lib/utils";
+import { cn, toPersianDigits } from "@/lib/utils";
 
-type Task = { subject: string; topic: string; done: boolean; aiGenerated: boolean };
+type Task = { subject: string; topic: string; hours: number; done: boolean; aiGenerated: boolean };
 
 // A rolling 7-day timebox — yesterday, today, and the next 5 days — instead
 // of dumping the whole month on the student at once. Only "today" (index 0)
 // is expanded by default; the rest are one tap away. Real day names are
 // still shown so it reads naturally, but the student always orients from
 // "امروز", not from a fixed weekday.
+//
+// Each task carries `hours` because that's literally how a mentor writes a
+// plan — "شنبه: ریاضی ۳، فیزیک ۲، شیمی ۱.۵" — not a vague topic with no
+// time budget attached.
 const timebox: { relativeLabel: string; dayName: string; tasks: Task[] }[] = [
   {
     relativeLabel: "دیروز",
     dayName: "یکشنبه",
     tasks: [
-      { subject: "فیزیک", topic: "حرکت‌شناسی", done: true, aiGenerated: true },
-      { subject: "شیمی", topic: "تست‌زنی فصل ۲", done: false, aiGenerated: false },
+      { subject: "فیزیک", topic: "حرکت‌شناسی", hours: 2, done: true, aiGenerated: true },
+      { subject: "شیمی", topic: "تست‌زنی فصل ۲", hours: 1.5, done: false, aiGenerated: false },
     ],
   },
   {
     relativeLabel: "امروز",
     dayName: "دوشنبه",
     tasks: [
-      { subject: "زیست", topic: "فیزیولوژی گیاهی", done: false, aiGenerated: true },
-      { subject: "شیمی", topic: "تست‌زنی فصل ۳", done: false, aiGenerated: true },
+      { subject: "ریاضی", topic: "مشتق و کاربردها", hours: 3, done: false, aiGenerated: false },
+      { subject: "فیزیک", topic: "حرکت‌شناسی — تست", hours: 2, done: false, aiGenerated: false },
+      { subject: "شیمی", topic: "تعادل شیمیایی", hours: 1.5, done: false, aiGenerated: true },
     ],
   },
   {
     relativeLabel: "فردا",
     dayName: "سه‌شنبه",
     tasks: [
-      { subject: "ریاضی", topic: "مرور نکات کنکوری", done: false, aiGenerated: true },
-      { subject: "شیمی", topic: "شیمی آلی — جلسه با مشاور", done: false, aiGenerated: false },
+      { subject: "ریاضی", topic: "مرور نکات کنکوری", hours: 2, done: false, aiGenerated: true },
+      { subject: "شیمی", topic: "شیمی آلی — جلسه با مشاور", hours: 1, done: false, aiGenerated: false },
     ],
   },
-  { relativeLabel: "پس‌فردا", dayName: "چهارشنبه", tasks: [{ subject: "فیزیک", topic: "تست جامع", done: false, aiGenerated: true }] },
-  { relativeLabel: "", dayName: "پنجشنبه", tasks: [{ subject: "ریاضی", topic: "فصل ۴ — انتگرال", done: false, aiGenerated: true }] },
-  { relativeLabel: "", dayName: "جمعه", tasks: [{ subject: "زیست", topic: "مرور هفته", done: false, aiGenerated: false }] },
-  { relativeLabel: "", dayName: "شنبه", tasks: [{ subject: "شیمی", topic: "آزمون دوهفته‌ای", done: false, aiGenerated: false }] },
+  {
+    relativeLabel: "پس‌فردا",
+    dayName: "چهارشنبه",
+    tasks: [{ subject: "فیزیک", topic: "تست جامع", hours: 2.5, done: false, aiGenerated: true }],
+  },
+  {
+    relativeLabel: "",
+    dayName: "پنجشنبه",
+    tasks: [{ subject: "ریاضی", topic: "فصل ۴ — انتگرال", hours: 2, done: false, aiGenerated: true }],
+  },
+  {
+    relativeLabel: "",
+    dayName: "جمعه",
+    tasks: [{ subject: "زیست", topic: "مرور هفته", hours: 1.5, done: false, aiGenerated: false }],
+  },
+  {
+    relativeLabel: "",
+    dayName: "شنبه",
+    tasks: [{ subject: "شیمی", topic: "آزمون دوهفته‌ای", hours: 3, done: false, aiGenerated: false }],
+  },
 ];
 
 const TODAY_INDEX = 1;
+
+function formatHours(h: number): string {
+  return toPersianDigits(Number.isInteger(h) ? h : h.toFixed(1));
+}
 
 export default function PlanPage() {
   const [behind, setBehind] = useState(false);
   const [selected, setSelected] = useState(TODAY_INDEX);
   const day = timebox[selected];
   const doneCount = day.tasks.filter((t) => t.done).length;
+  const totalHours = day.tasks.reduce((sum, t) => sum + t.hours, 0);
 
   return (
     <StudentShell>
@@ -103,7 +129,7 @@ export default function PlanPage() {
         </div>
 
         {/* Selected day detail */}
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between">
           <h2 className="text-sm font-bold text-text-900">
             {day.relativeLabel || day.dayName}
             {day.relativeLabel && <span className="font-normal text-text-500"> · {day.dayName}</span>}
@@ -112,6 +138,21 @@ export default function PlanPage() {
             {doneCount} از {day.tasks.length} انجام‌شده
           </span>
         </div>
+
+        {/* Compact mentor-style summary line — "ریاضی ۳ · فیزیک ۲ · شیمی ۱.۵"
+            exactly how a mentor actually writes the day's plan out. */}
+        <p className="mb-4 text-sm text-text-700">
+          {day.tasks.map((t, i) => (
+            <span key={i}>
+              {i > 0 && " · "}
+              {t.subject} <span className="tnum font-medium text-text-900">{formatHours(t.hours)}</span>
+            </span>
+          ))}
+          <span className="text-text-500">
+            {" "}
+            (جمعاً <span className="tnum">{formatHours(totalHours)}</span> ساعت)
+          </span>
+        </p>
 
         <div className="space-y-2">
           {day.tasks.map((t, i) => (
@@ -124,15 +165,20 @@ export default function PlanPage() {
                   )}
                 />
                 <div className="flex-1">
-                  <div
-                    className={cn(
-                      "text-sm font-medium",
-                      t.done ? "text-text-500 line-through" : "text-text-900"
-                    )}
-                  >
-                    {t.topic}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "text-sm font-medium",
+                        t.done ? "text-text-500 line-through" : "text-text-900"
+                      )}
+                    >
+                      {t.subject}
+                    </span>
+                    <span className="tnum rounded-x-sm bg-surface-2 px-1.5 py-0.5 text-xs font-medium text-text-700">
+                      {formatHours(t.hours)} ساعت
+                    </span>
                   </div>
-                  <div className="text-xs text-text-500">{t.subject}</div>
+                  <div className="text-xs text-text-500">{t.topic}</div>
                 </div>
                 {t.aiGenerated ? (
                   <Badge tone="info">

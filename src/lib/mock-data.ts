@@ -253,6 +253,12 @@ export const targetMajor = {
   ],
 };
 
+// A weekly study-hour budget allocated by priority rank — the highest-impact
+// subject gets the biggest block. This is what turns "شیمی ضعیفه" into an
+// actual number the student can put on their calendar, matching how a
+// mentor really writes a plan out ("ریاضی ۳، فیزیک ۲، شیمی ۱.۵").
+const HOURS_BY_PRIORITY_RANK = [3, 2, 1.5, 1];
+
 /** Weak-subject × coefficient reasoning the mentor's plan should surface. */
 export function examDrivenPriorities() {
   const latest = examResults[0];
@@ -261,7 +267,8 @@ export function examDrivenPriorities() {
       const coeff = targetMajor.coefficients.find((c) => c.subject === s.subject)?.coefficient ?? 1;
       return { ...s, coefficient: coeff, impact: (100 - s.percentage) * coeff };
     })
-    .sort((a, b) => b.impact - a.impact);
+    .sort((a, b) => b.impact - a.impact)
+    .map((s, i) => ({ ...s, hours: HOURS_BY_PRIORITY_RANK[i] ?? 1 }));
 }
 
 export type NightlyCheckIn = {
