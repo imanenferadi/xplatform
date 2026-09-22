@@ -8,6 +8,7 @@ import {
   Bot,
   BarChart3,
   Moon as MoonIcon,
+  Library,
   User,
   Home,
 } from "lucide-react";
@@ -23,6 +24,7 @@ const sidebarLinks = [
   { href: "/mentors/sara-mohammadi", label: "مشاور من", icon: User },
   { href: "/chat", label: "پیام‌ها", icon: MessageCircle },
   { href: "/dashboard/ai", label: "معلم AI", icon: Bot },
+  { href: "/dashboard/library", label: "کتابخونه", icon: Library },
   { href: "/dashboard/reports", label: "گزارش‌ها", icon: BarChart3 },
 ];
 

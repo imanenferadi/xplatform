@@ -113,6 +113,15 @@ export default function LoginPage() {
         <p className="mt-6 text-center text-xs text-text-500">
           با ورود، <Link href="#" className="text-blue-600 hover:underline">قوانین و حریم خصوصی</Link> را می‌پذیری.
         </p>
+
+        {/* Demo-only shortcut — a real product would route parents through
+            their own OTP + a linked-student flow, not a link on this page. */}
+        <p className="mt-3 text-center text-xs text-text-500">
+          والد هستی؟{" "}
+          <Link href="/parent" className="text-blue-600 hover:underline">
+            پنل والدین را ببین
+          </Link>
+        </p>
       </div>
     </div>
   );

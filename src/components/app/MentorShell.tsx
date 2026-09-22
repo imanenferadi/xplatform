@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, MessageCircle, CalendarDays, Wallet, User } from "lucide-react";
+import { LayoutDashboard, MessageCircle, CalendarDays, Wallet, User, Library } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
@@ -10,6 +10,7 @@ import { Avatar } from "@/components/ui/Avatar";
 const links = [
   { href: "/mentor", label: "داشبورد", icon: LayoutDashboard },
   { href: "/mentor/messages", label: "گفتگوها", icon: MessageCircle },
+  { href: "/mentor/library", label: "کتابخونه", icon: Library },
   { href: "/mentor/calendar", label: "تقویم", icon: CalendarDays },
   { href: "/mentor/earnings", label: "درآمد", icon: Wallet },
   { href: "/mentor/profile", label: "پروفایل من", icon: User },

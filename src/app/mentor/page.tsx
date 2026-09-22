@@ -4,17 +4,11 @@ import { MentorShell } from "@/components/app/MentorShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
-import { mentorStudents, nightlyCheckIns, moodLabels } from "@/lib/mock-data";
+import { mentorStudents, nightlyCheckIns, moodLabels, getRiskInfo } from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
 
-const statusMeta = {
-  danger: { tone: "danger" as const, label: "نیاز به توجه" },
-  warning: { tone: "warning" as const, label: "کمی عقب" },
-  success: { tone: "success" as const, label: "روی مسیر" },
-};
-
 export default function MentorDashboardPage() {
-  const needAttention = mentorStudents.filter((s) => s.status !== "success").length;
+  const needAttention = mentorStudents.filter((s) => getRiskInfo(s).level === "danger").length;
 
   return (
     <MentorShell>
@@ -74,9 +68,12 @@ export default function MentorDashboardPage() {
         <div className="space-y-2">
           {mentorStudents
             .slice()
-            .sort((a, b) => (a.status === "danger" ? -1 : b.status === "danger" ? 1 : 0))
+            .sort((a, b) => {
+              const order = { danger: 0, warning: 1, success: 2 };
+              return order[getRiskInfo(a).level] - order[getRiskInfo(b).level];
+            })
             .map((s) => {
-              const meta = statusMeta[s.status];
+              const risk = getRiskInfo(s);
               return (
                 <Link key={s.id} href={`/mentor/students/${s.id}`}>
                   <Card interactive>
@@ -85,10 +82,10 @@ export default function MentorDashboardPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="truncate text-sm font-medium text-text-900">{s.name}</span>
-                          <Badge tone={meta.tone}>{meta.label}</Badge>
+                          <Badge tone={risk.level}>{risk.label}</Badge>
                         </div>
                         <div className="mt-0.5 text-xs text-text-500">
-                          {s.grade} · آخرین چک‌این: {s.lastCheckIn}
+                          {risk.reason ?? `${s.grade} · آخرین چک‌این: ${s.lastCheckIn}`}
                         </div>
                       </div>
                       <div className="text-left">

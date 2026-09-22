@@ -1,6 +1,8 @@
 // Mock data for design/demo purposes only. Replace with real API calls
 // once the backend exists. Nothing here is persisted or fetched.
 
+import { toPersianDigits } from "./utils";
+
 export type Mentor = {
   id: string;
   name: string;
@@ -321,22 +323,35 @@ export const chatMessages = [
   { id: 4, from: "mentor" as const, text: "باشه بفرست ببینم. فردا سر جلسه هم روش کار می‌کنیم.", time: "۱۸:۴۰" },
 ];
 
-export const mentorStudents = [
+export type MentorStudent = {
+  id: string;
+  name: string;
+  grade: string;
+  lastCheckIn: string;
+  daysSinceCheckIn: number; // drives the at-risk rule, not the free-text label above
+  planCompletion: number;
+  unreadMessages: number;
+  /** Biggest percentage drop between this student's last two exams, if any. */
+  examDrop?: { subject: Subject; from: number; to: number };
+};
+
+export const mentorStudents: MentorStudent[] = [
   {
     id: "1",
     name: "امیرحسین رضایی",
     grade: "پایه دوازدهم — تجربی",
-    status: "danger" as const,
     lastCheckIn: "۳ روز پیش",
+    daysSinceCheckIn: 3,
     planCompletion: 45,
     unreadMessages: 2,
+    examDrop: { subject: "شیمی", from: 45, to: 36 },
   },
   {
     id: "2",
     name: "مریم صادقی",
     grade: "پایه یازدهم — ریاضی",
-    status: "warning" as const,
     lastCheckIn: "دیروز",
+    daysSinceCheckIn: 1,
     planCompletion: 68,
     unreadMessages: 0,
   },
@@ -344,10 +359,128 @@ export const mentorStudents = [
     id: "3",
     name: "علی نوری",
     grade: "پشت‌کنکوری — تجربی",
-    status: "success" as const,
     lastCheckIn: "امروز",
+    daysSinceCheckIn: 0,
     planCompletion: 92,
     unreadMessages: 1,
+  },
+];
+
+// ---------------------------------------------------------------------
+// Automatic at-risk detection — replaces manually-set status colors with
+// a rule computed from data we already collect (check-in gaps, study-hour
+// swings, exam drops), each with an explicit reason, not just a color.
+// ---------------------------------------------------------------------
+
+export type RiskLevel = "danger" | "warning" | "success";
+export type RiskInfo = { level: RiskLevel; label: string; reason: string | null };
+
+export function getRiskInfo(student: MentorStudent): RiskInfo {
+  if (student.daysSinceCheckIn >= 3) {
+    return {
+      level: "danger",
+      label: "نیاز به توجه",
+      reason: `${toPersianDigits(student.daysSinceCheckIn)} روز چک‌این نکرده`,
+    };
+  }
+  if (student.examDrop && student.examDrop.from - student.examDrop.to >= 5) {
+    const { subject, from, to } = student.examDrop;
+    return {
+      level: "danger",
+      label: "نیاز به توجه",
+      reason: `${subject} از ${toPersianDigits(from)}٪ به ${toPersianDigits(to)}٪ افت کرده`,
+    };
+  }
+  if (student.planCompletion < 60) {
+    return {
+      level: "warning",
+      label: "کمی عقب",
+      reason: `اجرای برنامه فقط ${toPersianDigits(student.planCompletion)}٪`,
+    };
+  }
+  return { level: "success", label: "روی مسیر", reason: null };
+}
+
+// ---------------------------------------------------------------------
+// Root-cause analysis ("مستر هوشمند") — cross-references the exam-driven
+// priority (weak% × coefficient) with the placement profile's weak
+// topics, so the mentor sees a *reason*, not just a number. Mentor-only:
+// never surface this reasoning on a student-facing page.
+// ---------------------------------------------------------------------
+
+export function rootCauseAnalysis() {
+  const priorities = examDrivenPriorities();
+  const weakest = priorities[0];
+  // crude topic match: topics whose name we associate with the weakest
+  // subject in this demo dataset (a real backend would tag topics by
+  // subject explicitly).
+  const relatedTopics = levelProfile.topics.weak.filter((t) =>
+    weakest.subject === "شیمی" ? t.includes("شیمی") || t.includes("تعادل") : true
+  );
+  return {
+    subject: weakest.subject,
+    percentage: weakest.percentage,
+    coefficient: weakest.coefficient,
+    likelyTopics: relatedTopics.length ? relatedTopics : levelProfile.topics.weak.slice(0, 2),
+  };
+}
+
+// ---------------------------------------------------------------------
+// Parent layer — read-only weekly report. No chat, no AI conversations,
+// no mentor's private notes. Just the three numbers + one human line.
+// ---------------------------------------------------------------------
+
+export const parentWeeklyReport = {
+  studentName: "ایمان",
+  weekLabel: "هفته‌ی ۲۹ شهریور تا ۵ مهر",
+  studyHours: studentPlan.weekCompletedHours,
+  studyHoursTarget: studentPlan.weekHours,
+  planCompletionPercent: 68,
+  trend: "improving" as "improving" | "steady" | "declining",
+  mentorNote:
+    "این هفته پیشرفت خوبی توی شیمی داشت. تمرکز هفته‌ی بعد رو می‌ذاریم روی فیزیک. اگه سوالی بود در خدمتم.",
+  mentorName: "سارا محمدی",
+};
+
+// ---------------------------------------------------------------------
+// Content library ("دانش‌سرا") — the mentor's own material (notes, voice
+// notes, recorded explanations), replacing files scattered across
+// Telegram. Not a public test bank — just this mentor's own content.
+// ---------------------------------------------------------------------
+
+export type ContentItem = {
+  id: string;
+  title: string;
+  type: "pdf" | "audio" | "video";
+  subject: Subject;
+  topic: string;
+  uploadedAt: string;
+};
+
+export const contentLibrary: ContentItem[] = [
+  {
+    id: "c1",
+    title: "جزوه‌ی جمع‌بندی شیمی آلی",
+    type: "pdf",
+    subject: "شیمی",
+    topic: "شیمی آلی",
+    uploadedAt: "۲۵ شهریور ۱۴۰۵",
+  },
+  {
+    id: "c2",
+    title: "توضیح صوتی حل تست‌های تعادل شیمیایی",
+    type: "audio",
+    subject: "شیمی",
+    topic: "تعادل شیمیایی",
+    uploadedAt: "۲۷ شهریور ۱۴۰۵",
+  },
+  {
+    id: "c3",
+    title: "ویدیوی حل مسائل حرکت‌شناسی",
+    type: "video",
+    subject: "فیزیک",
+    topic: "حرکت‌شناسی",
+    uploadedAt: "۱ مهر ۱۴۰۵",
   },
 ];
 

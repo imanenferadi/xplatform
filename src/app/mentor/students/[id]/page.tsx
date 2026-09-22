@@ -11,10 +11,12 @@ import {
   examResults,
   targetMajor,
   examDrivenPriorities,
+  rootCauseAnalysis,
   nightlyCheckIns,
   moodLabels,
+  getRiskInfo,
 } from "@/lib/mock-data";
-import { Sparkles, FileText, Upload, Moon } from "lucide-react";
+import { Sparkles, FileText, Upload, Moon, EyeOff } from "lucide-react";
 
 export function generateStaticParams() {
   return mentorStudents.map((s) => ({ id: s.id }));
@@ -28,6 +30,8 @@ export default async function StudentCaseFilePage({
   const { id } = await params;
   const student = mentorStudents.find((s) => s.id === id);
   if (!student) notFound();
+  const risk = getRiskInfo(student);
+  const rootCause = rootCauseAnalysis();
 
   return (
     <MentorShell>
@@ -38,12 +42,10 @@ export default async function StudentCaseFilePage({
             <h1 className="text-lg font-bold text-text-900">{student.name}</h1>
             <p className="text-xs text-text-500">{student.grade}</p>
           </div>
-          <Badge
-            tone={student.status === "danger" ? "danger" : student.status === "warning" ? "warning" : "success"}
-            className="mr-auto"
-          >
-            آخرین چک‌این: {student.lastCheckIn}
-          </Badge>
+          <div className="mr-auto text-left">
+            <Badge tone={risk.level}>{risk.label}</Badge>
+            {risk.reason && <p className="mt-1 text-xs text-text-500">{risk.reason}</p>}
+          </div>
         </div>
 
         {/* Latest Kanoon/Gaj report card — arrives from the exam provider itself,
@@ -81,6 +83,31 @@ export default async function StudentCaseFilePage({
                 </div>
                 <ProgressBar value={s.value} />
               </div>
+            ))}
+          </div>
+        </Section>
+
+        {/* Root-cause analysis ("مستر هوشمند") — mentor-only. Never surface
+            this reasoning on a student-facing page; the student only sees
+            the resulting plan, not the diagnosis behind it. */}
+        <Section
+          title="ریشه‌یابی ضعف"
+          badge={
+            <span className="flex items-center gap-1 text-xs text-text-500">
+              <EyeOff size={12} /> فقط مشاور
+            </span>
+          }
+        >
+          <p className="text-sm leading-[1.9] text-text-700">
+            بیشترین اثر منفی روی رتبه از <span className="font-medium text-text-900">{rootCause.subject}</span>{" "}
+            می‌آید (درصد {rootCause.percentage}٪ × ضریب {rootCause.coefficient}). با توجه به نیمرخ سطح، ریشه‌ش
+            احتمالاً این مباحث‌اند:
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {rootCause.likelyTopics.map((t) => (
+              <Badge key={t} tone="danger">
+                {t}
+              </Badge>
             ))}
           </div>
         </Section>
@@ -164,11 +191,22 @@ export default async function StudentCaseFilePage({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  badge,
+  children,
+}: {
+  title: string;
+  badge?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <Card className="mt-4">
       <CardContent>
-        <h2 className="mb-3 text-sm font-bold text-text-900">{title}</h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-text-900">{title}</h2>
+          {badge}
+        </div>
         {children}
       </CardContent>
     </Card>

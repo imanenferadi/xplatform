@@ -8,34 +8,57 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 
-const week = [
-  { day: "شنبه", tasks: [{ subject: "ریاضی", topic: "فصل ۳ — مشتق", done: true, aiGenerated: true }] },
+type Task = { subject: string; topic: string; done: boolean; aiGenerated: boolean };
+
+// A rolling 7-day timebox — yesterday, today, and the next 5 days — instead
+// of dumping the whole month on the student at once. Only "today" (index 0)
+// is expanded by default; the rest are one tap away. Real day names are
+// still shown so it reads naturally, but the student always orients from
+// "امروز", not from a fixed weekday.
+const timebox: { relativeLabel: string; dayName: string; tasks: Task[] }[] = [
   {
-    day: "یکشنبه",
+    relativeLabel: "دیروز",
+    dayName: "یکشنبه",
     tasks: [
       { subject: "فیزیک", topic: "حرکت‌شناسی", done: true, aiGenerated: true },
       { subject: "شیمی", topic: "تست‌زنی فصل ۲", done: false, aiGenerated: false },
     ],
   },
-  { day: "دوشنبه", tasks: [{ subject: "زیست", topic: "فیزیولوژی گیاهی", done: false, aiGenerated: true }] },
   {
-    day: "سه‌شنبه",
+    relativeLabel: "امروز",
+    dayName: "دوشنبه",
+    tasks: [
+      { subject: "زیست", topic: "فیزیولوژی گیاهی", done: false, aiGenerated: true },
+      { subject: "شیمی", topic: "تست‌زنی فصل ۳", done: false, aiGenerated: true },
+    ],
+  },
+  {
+    relativeLabel: "فردا",
+    dayName: "سه‌شنبه",
     tasks: [
       { subject: "ریاضی", topic: "مرور نکات کنکوری", done: false, aiGenerated: true },
       { subject: "شیمی", topic: "شیمی آلی — جلسه با مشاور", done: false, aiGenerated: false },
     ],
   },
-  { day: "چهارشنبه", tasks: [{ subject: "فیزیک", topic: "تست جامع", done: false, aiGenerated: true }] },
+  { relativeLabel: "پس‌فردا", dayName: "چهارشنبه", tasks: [{ subject: "فیزیک", topic: "تست جامع", done: false, aiGenerated: true }] },
+  { relativeLabel: "", dayName: "پنجشنبه", tasks: [{ subject: "ریاضی", topic: "فصل ۴ — انتگرال", done: false, aiGenerated: true }] },
+  { relativeLabel: "", dayName: "جمعه", tasks: [{ subject: "زیست", topic: "مرور هفته", done: false, aiGenerated: false }] },
+  { relativeLabel: "", dayName: "شنبه", tasks: [{ subject: "شیمی", topic: "آزمون دوهفته‌ای", done: false, aiGenerated: false }] },
 ];
+
+const TODAY_INDEX = 1;
 
 export default function PlanPage() {
   const [behind, setBehind] = useState(false);
+  const [selected, setSelected] = useState(TODAY_INDEX);
+  const day = timebox[selected];
+  const doneCount = day.tasks.filter((t) => t.done).length;
 
   return (
     <StudentShell>
-      <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
+      <div className="mx-auto max-w-2xl px-4 py-6 md:py-10">
         <div className="mb-5 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-text-900">برنامه‌ی هفتگی</h1>
+          <h1 className="text-xl font-bold text-text-900">برنامه</h1>
           <Button variant="secondary" size="md" onClick={() => setBehind((b) => !b)}>
             <RotateCcw size={16} />
             عقب افتادم؛ بازچینی کن
@@ -51,43 +74,75 @@ export default function PlanPage() {
           </Card>
         )}
 
-        <div className="space-y-5">
-          {week.map((d) => (
-            <div key={d.day}>
-              <h2 className="mb-2 text-sm font-bold text-text-900">{d.day}</h2>
-              <div className="space-y-2">
-                {d.tasks.map((t, i) => (
-                  <Card key={i}>
-                    <CardContent className="flex items-center gap-3 py-3.5">
-                      <div
-                        className={cn(
-                          "h-2.5 w-2.5 shrink-0 rounded-full",
-                          t.done ? "bg-mint-500" : "bg-border"
-                        )}
-                      />
-                      <div className="flex-1">
-                        <div
-                          className={cn(
-                            "text-sm font-medium",
-                            t.done ? "text-text-500 line-through" : "text-text-900"
-                          )}
-                        >
-                          {t.topic}
-                        </div>
-                        <div className="text-xs text-text-500">{t.subject}</div>
-                      </div>
-                      {t.aiGenerated ? (
-                        <Badge tone="info">
-                          <Sparkles size={11} /> پیشنهاد سیستم
-                        </Badge>
-                      ) : (
-                        <Badge tone="success">تأیید مشاور ✓</Badge>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
+        {/* 7-day rolling strip */}
+        <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+          {timebox.map((d, i) => {
+            const active = i === selected;
+            const isToday = i === TODAY_INDEX;
+            return (
+              <button
+                key={i}
+                onClick={() => setSelected(i)}
+                className={cn(
+                  "flex shrink-0 flex-col items-center rounded-x-md border-2 px-4 py-2 transition-colors",
+                  active
+                    ? "border-blue-600 bg-blue-100"
+                    : "border-border bg-surface hover:border-blue-300",
+                  !isToday && i < TODAY_INDEX && "opacity-70"
+                )}
+              >
+                <span className={cn("text-xs", active ? "text-blue-600" : "text-text-500")}>
+                  {d.relativeLabel || d.dayName}
+                </span>
+                {d.relativeLabel && (
+                  <span className="text-[10px] text-text-500">{d.dayName}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Selected day detail */}
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-text-900">
+            {day.relativeLabel || day.dayName}
+            {day.relativeLabel && <span className="font-normal text-text-500"> · {day.dayName}</span>}
+          </h2>
+          <span className="tnum text-xs text-text-500">
+            {doneCount} از {day.tasks.length} انجام‌شده
+          </span>
+        </div>
+
+        <div className="space-y-2">
+          {day.tasks.map((t, i) => (
+            <Card key={i}>
+              <CardContent className="flex items-center gap-3 py-3.5">
+                <div
+                  className={cn(
+                    "h-2.5 w-2.5 shrink-0 rounded-full",
+                    t.done ? "bg-mint-500" : "bg-border"
+                  )}
+                />
+                <div className="flex-1">
+                  <div
+                    className={cn(
+                      "text-sm font-medium",
+                      t.done ? "text-text-500 line-through" : "text-text-900"
+                    )}
+                  >
+                    {t.topic}
+                  </div>
+                  <div className="text-xs text-text-500">{t.subject}</div>
+                </div>
+                {t.aiGenerated ? (
+                  <Badge tone="info">
+                    <Sparkles size={11} /> پیشنهاد سیستم
+                  </Badge>
+                ) : (
+                  <Badge tone="success">تأیید مشاور ✓</Badge>
+                )}
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
