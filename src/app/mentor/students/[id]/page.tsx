@@ -16,7 +16,8 @@ import {
   moodLabels,
   getRiskInfo,
 } from "@/lib/mock-data";
-import { Sparkles, FileText, Upload, Moon, EyeOff } from "lucide-react";
+import { Sparkles, FileText, Upload, Moon, EyeOff, LineChart } from "lucide-react";
+import { TrendChart } from "@/components/ui/TrendChart";
 
 export function generateStaticParams() {
   return mentorStudents.map((s) => ({ id: s.id }));
@@ -70,6 +71,21 @@ export default async function StudentCaseFilePage({
           <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-x-md border border-dashed border-border py-2.5 text-sm text-text-500 hover:border-blue-600 hover:text-blue-600">
             <Upload size={15} /> آپلود کارنامه‌ی جدید
           </button>
+        </Section>
+
+        {/* Growth trend — the "is this a one-off or a pattern?" signal that
+            a single-point status color can't answer. */}
+        <Section
+          title="روند اجرای برنامه"
+          badge={
+            <span className="flex items-center gap-1 text-xs text-text-500">
+              <LineChart size={12} /> ۳ هفته‌ی اخیر
+            </span>
+          }
+        >
+          <TrendChart
+            points={student.weeklyHistory.map((w) => ({ label: w.weekLabel, value: w.planCompletionPercent }))}
+          />
         </Section>
 
         {/* Level profile snapshot */}

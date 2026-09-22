@@ -1,7 +1,9 @@
+import { LineChart } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/Progress";
-import { levelProfile, studentPlan } from "@/lib/mock-data";
+import { TrendChart } from "@/components/ui/TrendChart";
+import { levelProfile, studentPlan, studentWeeklyHistory } from "@/lib/mock-data";
 
 const metrics = [
   { label: "ساعت مطالعه", value: `${studentPlan.weekCompletedHours} از ${studentPlan.weekHours}`, delta: "+۲ نسبت به هفته قبل" },
@@ -27,6 +29,18 @@ export default function ReportsPage() {
             </Card>
           ))}
         </div>
+
+        <Card className="mt-4">
+          <CardContent>
+            <div className="mb-3 flex items-center gap-2">
+              <LineChart size={16} className="text-blue-600" />
+              <h3 className="text-sm font-bold text-text-900">روند اجرای برنامه — ۵ هفته‌ی اخیر</h3>
+            </div>
+            <TrendChart
+              points={studentWeeklyHistory.map((w) => ({ label: w.weekLabel, value: w.planCompletionPercent }))}
+            />
+          </CardContent>
+        </Card>
 
         <Card className="mt-4">
           <CardContent>

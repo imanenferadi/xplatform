@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Eye, MessageSquareText, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Eye, MessageSquareText, TrendingUp, TrendingDown, Minus, LineChart } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/Progress";
 import { Avatar } from "@/components/ui/Avatar";
-import { parentWeeklyReport, mentors } from "@/lib/mock-data";
+import { TrendChart } from "@/components/ui/TrendChart";
+import { parentWeeklyReport, mentors, studentWeeklyHistory } from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
 
 const trendMeta = {
@@ -68,6 +69,20 @@ export default function ParentPage() {
               <span className="text-text-700">ساعت مطالعه نسبت به هدف هفته</span>
             </div>
             <ProgressBar value={(report.studyHours / report.studyHoursTarget) * 100} />
+          </CardContent>
+        </Card>
+
+        {/* Growth trend — parents consistently want to see a trend line,
+            not just this week's snapshot */}
+        <Card className="mt-4">
+          <CardContent>
+            <div className="mb-3 flex items-center gap-2">
+              <LineChart size={16} className="text-blue-600" />
+              <h2 className="text-sm font-bold text-text-900">روند اجرای برنامه — ۵ هفته‌ی اخیر</h2>
+            </div>
+            <TrendChart
+              points={studentWeeklyHistory.map((w) => ({ label: w.weekLabel, value: w.planCompletionPercent }))}
+            />
           </CardContent>
         </Card>
 

@@ -323,6 +323,12 @@ export const chatMessages = [
   { id: 4, from: "mentor" as const, text: "باشه بفرست ببینم. فردا سر جلسه هم روش کار می‌کنیم.", time: "۱۸:۴۰" },
 ];
 
+export type WeeklyHistoryPoint = {
+  weekLabel: string; // short label, e.g. "۱۵ شهریور"
+  studyHours: number;
+  planCompletionPercent: number;
+};
+
 export type MentorStudent = {
   id: string;
   name: string;
@@ -333,6 +339,9 @@ export type MentorStudent = {
   unreadMessages: number;
   /** Biggest percentage drop between this student's last two exams, if any. */
   examDrop?: { subject: Subject; from: number; to: number };
+  /** Oldest → newest. Real "روند" detection needs history, not one point. */
+  weeklyHistory: WeeklyHistoryPoint[];
+  nextWeekPlanReady: boolean; // drives the mentor-side "هنوز برنامه نساختی" nudge
 };
 
 export const mentorStudents: MentorStudent[] = [
@@ -345,6 +354,12 @@ export const mentorStudents: MentorStudent[] = [
     planCompletion: 45,
     unreadMessages: 2,
     examDrop: { subject: "شیمی", from: 45, to: 36 },
+    weeklyHistory: [
+      { weekLabel: "۱ شهریور", studyHours: 24, planCompletionPercent: 78 },
+      { weekLabel: "۱۵ شهریور", studyHours: 19, planCompletionPercent: 60 },
+      { weekLabel: "۲۹ شهریور", studyHours: 14, planCompletionPercent: 45 },
+    ],
+    nextWeekPlanReady: false,
   },
   {
     id: "2",
@@ -354,6 +369,14 @@ export const mentorStudents: MentorStudent[] = [
     daysSinceCheckIn: 1,
     planCompletion: 68,
     unreadMessages: 0,
+    // Looks fine as a single point (68% ≥ 60% threshold), but the trend
+    // shows a steady decline — exactly the case a point-in-time rule misses.
+    weeklyHistory: [
+      { weekLabel: "۱ شهریور", studyHours: 22, planCompletionPercent: 88 },
+      { weekLabel: "۱۵ شهریور", studyHours: 20, planCompletionPercent: 75 },
+      { weekLabel: "۲۹ شهریور", studyHours: 18, planCompletionPercent: 68 },
+    ],
+    nextWeekPlanReady: false,
   },
   {
     id: "3",
@@ -363,17 +386,29 @@ export const mentorStudents: MentorStudent[] = [
     daysSinceCheckIn: 0,
     planCompletion: 92,
     unreadMessages: 1,
+    weeklyHistory: [
+      { weekLabel: "۱ شهریور", studyHours: 25, planCompletionPercent: 75 },
+      { weekLabel: "۱۵ شهریور", studyHours: 27, planCompletionPercent: 84 },
+      { weekLabel: "۲۹ شهریور", studyHours: 29, planCompletionPercent: 92 },
+    ],
+    nextWeekPlanReady: true,
   },
 ];
 
 // ---------------------------------------------------------------------
-// Automatic at-risk detection — replaces manually-set status colors with
-// a rule computed from data we already collect (check-in gaps, study-hour
-// swings, exam drops), each with an explicit reason, not just a color.
+// Automatic at-risk detection — a point-in-time threshold misses students
+// who "still look fine" but are declining. Per the research (Moshaversara's
+// "7 early-warning signals"), the strongest signal is a *trend* across
+// consecutive weeks, not a single number. Priority order: hard signals
+// first (check-in gap, exam drop), then trend, then a same-point fallback.
 // ---------------------------------------------------------------------
 
 export type RiskLevel = "danger" | "warning" | "success";
 export type RiskInfo = { level: RiskLevel; label: string; reason: string | null };
+
+function isMonotonicDecline(values: number[]): boolean {
+  return values.every((v, i) => i === 0 || v <= values[i - 1]) && values[0] > values[values.length - 1];
+}
 
 export function getRiskInfo(student: MentorStudent): RiskInfo {
   if (student.daysSinceCheckIn >= 3) {
@@ -391,6 +426,31 @@ export function getRiskInfo(student: MentorStudent): RiskInfo {
       reason: `${subject} از ${toPersianDigits(from)}٪ به ${toPersianDigits(to)}٪ افت کرده`,
     };
   }
+
+  const completions = student.weeklyHistory.map((w) => w.planCompletionPercent);
+  if (completions.length >= 3 && isMonotonicDecline(completions)) {
+    const totalDrop = completions[0] - completions[completions.length - 1];
+    if (totalDrop >= 15) {
+      return {
+        level: "danger",
+        label: "نیاز به توجه",
+        reason: `کاهش تدریجی اجرای برنامه: ${completions.map((c) => `${toPersianDigits(c)}٪`).join(" ← ")}`,
+      };
+    }
+  }
+
+  const hours = student.weeklyHistory.map((w) => w.studyHours);
+  if (hours.length >= 3 && isMonotonicDecline(hours)) {
+    const dropPercent = Math.round(((hours[0] - hours[hours.length - 1]) / hours[0]) * 100);
+    if (dropPercent >= 20) {
+      return {
+        level: "warning",
+        label: "کمی عقب",
+        reason: `کاهش تدریجی ساعت مطالعه: ${hours.map((h) => toPersianDigits(h)).join(" ← ")} ساعت`,
+      };
+    }
+  }
+
   if (student.planCompletion < 60) {
     return {
       level: "warning",
@@ -429,6 +489,16 @@ export function rootCauseAnalysis() {
 // Parent layer — read-only weekly report. No chat, no AI conversations,
 // no mentor's private notes. Just the three numbers + one human line.
 // ---------------------------------------------------------------------
+
+// Growth history for the logged-in demo student (ایمان) — drives the
+// trend chart on /parent and /dashboard/reports. Oldest → newest.
+export const studentWeeklyHistory: WeeklyHistoryPoint[] = [
+  { weekLabel: "۱ شهریور", studyHours: 8, planCompletionPercent: 40 },
+  { weekLabel: "۸ شهریور", studyHours: 9, planCompletionPercent: 48 },
+  { weekLabel: "۱۵ شهریور", studyHours: 10, planCompletionPercent: 55 },
+  { weekLabel: "۲۲ شهریور", studyHours: 9, planCompletionPercent: 60 },
+  { weekLabel: "۲۹ شهریور", studyHours: 11, planCompletionPercent: 68 },
+];
 
 export const parentWeeklyReport = {
   studentName: "ایمان",

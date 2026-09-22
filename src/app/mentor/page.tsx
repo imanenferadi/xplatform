@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertCircle, MessageCircle, CalendarClock, Moon } from "lucide-react";
+import { AlertCircle, MessageCircle, CalendarClock, Moon, CalendarX } from "lucide-react";
 import { MentorShell } from "@/components/app/MentorShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -9,6 +9,7 @@ import { toPersianDigits } from "@/lib/utils";
 
 export default function MentorDashboardPage() {
   const needAttention = mentorStudents.filter((s) => getRiskInfo(s).level === "danger").length;
+  const planNotReady = mentorStudents.filter((s) => !s.nextWeekPlanReady);
 
   return (
     <MentorShell>
@@ -22,10 +23,28 @@ export default function MentorDashboardPage() {
           </span>
         </div>
 
+        {/* Nudge to build next week's plan on time — per the research,
+            "۹۰٪+ دانش‌آموزان روز شنبه عصر برنامه دارند" is the mark of a
+            reliable mentor; a Monday-morning plan is the warning sign. */}
+        {planNotReady.length > 0 && (
+          <div className="mt-3 flex items-center gap-2 rounded-x-md border border-orange-500/30 bg-orange-500/10 p-3 text-sm">
+            <CalendarX size={16} className="shrink-0 text-orange-500" />
+            <span className="text-text-900">
+              <span className="font-medium">{toPersianDigits(planNotReady.length)} نفر</span> هنوز برنامه‌ی هفته‌ی
+              بعد آماده ندارن:{" "}
+              <span className="text-text-700">{planNotReady.map((s) => s.name).join("، ")}</span>
+            </span>
+          </div>
+        )}
+
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <SmallStat icon={CalendarClock} label="جلسات امروز" value="۲" />
           <SmallStat icon={MessageCircle} label="پیام بی‌پاسخ" value="۳" />
-          <SmallStat icon={AlertCircle} label="نیاز به بازبینی برنامه" value="۱" />
+          <SmallStat
+            icon={AlertCircle}
+            label="نیاز به بازبینی برنامه"
+            value={toPersianDigits(planNotReady.length)}
+          />
         </div>
 
         {/* Nightly check-ins — this replaces reading the Telegram group */}
