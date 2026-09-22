@@ -259,6 +259,21 @@ export const targetMajor = {
 // mentor really writes a plan out ("ریاضی ۳، فیزیک ۲، شیمی ۱.۵").
 const HOURS_BY_PRIORITY_RANK = [3, 2, 1.5, 1];
 
+// Optional chapter/sub-topic detail per subject — the "جزئیات بیشتر" layer
+// a mentor can choose to fill in for precision (real mentor tools go down
+// to فصل + ریز مبحث, not just a subject name). Left undefined for a subject
+// and the UI simply won't show the expand affordance for it.
+const SUBJECT_DETAILS: Partial<Record<Subject, { chapter: string; subtopic: string }>> = {
+  شیمی: { chapter: "فصل ۲ — تعادل شیمیایی", subtopic: "ثابت تعادل و اصل لوشاتلیه" },
+  زیست: { chapter: "فصل ۶ — تنظیم عصبی", subtopic: "سیناپس و انتقال‌دهنده‌های عصبی" },
+  فیزیک: { chapter: "فصل ۱ — حرکت‌شناسی", subtopic: "حرکت با شتاب ثابت" },
+};
+
+/** Optional فصل/ریز مبحث detail for a subject block, if the mentor filled it in. */
+export function getSubjectDetail(subject: Subject) {
+  return SUBJECT_DETAILS[subject];
+}
+
 /** Weak-subject × coefficient reasoning the mentor's plan should surface. */
 export function examDrivenPriorities() {
   const latest = examResults[0];
@@ -268,7 +283,7 @@ export function examDrivenPriorities() {
       return { ...s, coefficient: coeff, impact: (100 - s.percentage) * coeff };
     })
     .sort((a, b) => b.impact - a.impact)
-    .map((s, i) => ({ ...s, hours: HOURS_BY_PRIORITY_RANK[i] ?? 1 }));
+    .map((s, i) => ({ ...s, hours: HOURS_BY_PRIORITY_RANK[i] ?? 1, detail: SUBJECT_DETAILS[s.subject] }));
 }
 
 export type NightlyCheckIn = {
@@ -410,7 +425,11 @@ export const mentorStudents: MentorStudent[] = [
 // first (check-in gap, exam drop), then trend, then a same-point fallback.
 // ---------------------------------------------------------------------
 
-export type RiskLevel = "danger" | "warning" | "success";
+// Four tiers, not three — "روی مسیر" (merely fine) and "عالی" (a standout
+// performer) are genuinely different things to a mentor, and the real
+// product we researched keeps them separate (عالی / معمولی / بحرانی) so
+// top students get positive recognition instead of just "not at risk".
+export type RiskLevel = "excellent" | "success" | "warning" | "danger";
 export type RiskInfo = { level: RiskLevel; label: string; reason: string | null };
 
 function isMonotonicDecline(values: number[]): boolean {
@@ -465,6 +484,12 @@ export function getRiskInfo(student: MentorStudent): RiskInfo {
       reason: `اجرای برنامه فقط ${toPersianDigits(student.planCompletion)}٪`,
     };
   }
+
+  const isImproving = completions.length >= 2 && completions[completions.length - 1] > completions[0];
+  if (student.planCompletion >= 90 && isImproving) {
+    return { level: "excellent", label: "عالی", reason: null };
+  }
+
   return { level: "success", label: "روی مسیر", reason: null };
 }
 

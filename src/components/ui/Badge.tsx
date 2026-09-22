@@ -1,10 +1,12 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-type Tone = "neutral" | "success" | "warning" | "danger" | "info" | "brand";
+type Tone = "neutral" | "excellent" | "success" | "warning" | "danger" | "info" | "brand";
 
 const tones: Record<Tone, string> = {
   neutral: "bg-surface-2 text-text-700",
+  // Distinct from "success" — a standout performer, not just "not at risk".
+  excellent: "bg-mint-500/20 text-mint-500 font-semibold",
   success: "bg-mint-500/15 text-mint-500",
   warning: "bg-orange-500/15 text-orange-500",
   danger: "bg-red-500/15 text-red-500",

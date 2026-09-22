@@ -6,9 +6,10 @@ import { StudentShell } from "@/components/app/StudentShell";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { getSubjectDetail, type Subject } from "@/lib/mock-data";
 import { cn, toPersianDigits } from "@/lib/utils";
 
-type Task = { subject: string; topic: string; hours: number; done: boolean; aiGenerated: boolean };
+type Task = { subject: Subject; topic: string; hours: number; done: boolean; aiGenerated: boolean };
 
 // A rolling 7-day timebox — yesterday, today, and the next 5 days — instead
 // of dumping the whole month on the student at once. Only "today" (index 0)
@@ -155,41 +156,59 @@ export default function PlanPage() {
         </p>
 
         <div className="space-y-2">
-          {day.tasks.map((t, i) => (
-            <Card key={i}>
-              <CardContent className="flex items-center gap-3 py-3.5">
-                <div
-                  className={cn(
-                    "h-2.5 w-2.5 shrink-0 rounded-full",
-                    t.done ? "bg-mint-500" : "bg-border"
-                  )}
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span
+          {day.tasks.map((t, i) => {
+            const detail = getSubjectDetail(t.subject);
+            return (
+              <Card key={i}>
+                <CardContent className="py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div
                       className={cn(
-                        "text-sm font-medium",
-                        t.done ? "text-text-500 line-through" : "text-text-900"
+                        "h-2.5 w-2.5 shrink-0 rounded-full",
+                        t.done ? "bg-mint-500" : "bg-border"
                       )}
-                    >
-                      {t.subject}
-                    </span>
-                    <span className="tnum rounded-x-sm bg-surface-2 px-1.5 py-0.5 text-xs font-medium text-text-700">
-                      {formatHours(t.hours)} ساعت
-                    </span>
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "text-sm font-medium",
+                            t.done ? "text-text-500 line-through" : "text-text-900"
+                          )}
+                        >
+                          {t.subject}
+                        </span>
+                        <span className="tnum rounded-x-sm bg-surface-2 px-1.5 py-0.5 text-xs font-medium text-text-700">
+                          {formatHours(t.hours)} ساعت
+                        </span>
+                      </div>
+                      <div className="text-xs text-text-500">{t.topic}</div>
+                    </div>
+                    {t.aiGenerated ? (
+                      <Badge tone="info">
+                        <Sparkles size={11} /> پیشنهاد سیستم
+                      </Badge>
+                    ) : (
+                      <Badge tone="success">تأیید مشاور ✓</Badge>
+                    )}
                   </div>
-                  <div className="text-xs text-text-500">{t.topic}</div>
-                </div>
-                {t.aiGenerated ? (
-                  <Badge tone="info">
-                    <Sparkles size={11} /> پیشنهاد سیستم
-                  </Badge>
-                ) : (
-                  <Badge tone="success">تأیید مشاور ✓</Badge>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+
+                  {/* Optional فصل/ریز مبحث — فقط وقتی مشاور پرش کرده باشه */}
+                  {detail && (
+                    <details className="mr-[22px] mt-2 border-t border-border/60 pt-2">
+                      <summary className="cursor-pointer text-xs text-blue-600 marker:content-none">
+                        جزئیات بیشتر
+                      </summary>
+                      <div className="mt-1.5 space-y-0.5 text-xs text-text-700">
+                        <div>فصل: {detail.chapter}</div>
+                        <div>ریز مبحث: {detail.subtopic}</div>
+                      </div>
+                    </details>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </StudentShell>

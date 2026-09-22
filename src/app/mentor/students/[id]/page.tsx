@@ -16,8 +16,9 @@ import {
   moodLabels,
   getRiskInfo,
 } from "@/lib/mock-data";
-import { Sparkles, FileText, Upload, Moon, EyeOff, LineChart } from "lucide-react";
+import { Sparkles, FileText, Upload, Moon, EyeOff, LineChart, GitCompare } from "lucide-react";
 import { TrendChart } from "@/components/ui/TrendChart";
+import { PeriodComparison } from "@/components/app/PeriodComparison";
 import { toPersianDigits } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -89,6 +90,20 @@ export default async function StudentCaseFilePage({
           />
         </Section>
 
+        {/* Period comparison — the mentor picks ANY two weeks, not just a
+            fixed rolling window. Matches the real product's most powerful
+            reporting tool ("۳۶۰ درجه"). */}
+        <Section
+          title="مقایسه‌ی دو بازه"
+          badge={
+            <span className="flex items-center gap-1 text-xs text-text-500">
+              <GitCompare size={12} /> دلخواه
+            </span>
+          }
+        >
+          <PeriodComparison history={student.weeklyHistory} />
+        </Section>
+
         {/* Level profile snapshot */}
         <Section title="نیمرخ سطح">
           <div className="space-y-3">
@@ -145,6 +160,7 @@ export default async function StudentCaseFilePage({
                   subject={p.subject}
                   topic={`درصد ${p.percentage}٪ × ضریب ${p.coefficient}`}
                   hours={p.hours}
+                  detail={p.detail}
                   aiGenerated
                 />
               ))}
@@ -235,34 +251,52 @@ function PlanRow({
   subject,
   topic,
   hours,
+  detail,
   aiGenerated,
 }: {
   subject: string;
   topic: string;
   hours?: number;
+  detail?: { chapter: string; subtopic: string };
   aiGenerated: boolean;
 }) {
   return (
     <div
-      className={`flex items-center justify-between rounded-x-sm p-2.5 text-sm ${
+      className={`rounded-x-sm p-2.5 text-sm ${
         aiGenerated ? "bg-blue-100" : "border border-border bg-surface"
       }`}
     >
-      <div>
-        <div className="flex items-center gap-2">
-          {subject !== "—" && <span className="font-medium text-text-900">{subject}</span>}
-          {hours != null && (
-            <span className="tnum rounded-x-sm bg-surface px-1.5 py-0.5 text-xs font-medium text-text-700">
-              {toPersianDigits(hours)} ساعت
-            </span>
-          )}
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            {subject !== "—" && <span className="font-medium text-text-900">{subject}</span>}
+            {hours != null && (
+              <span className="tnum rounded-x-sm bg-surface px-1.5 py-0.5 text-xs font-medium text-text-700">
+                {toPersianDigits(hours)} ساعت
+              </span>
+            )}
+          </div>
+          <span className="text-text-500">{topic}</span>
         </div>
-        <span className="text-text-500">{topic}</span>
+        {aiGenerated && (
+          <Badge tone="info">
+            <Sparkles size={11} /> پیشنهاد سیستم
+          </Badge>
+        )}
       </div>
-      {aiGenerated && (
-        <Badge tone="info">
-          <Sparkles size={11} /> پیشنهاد سیستم
-        </Badge>
+
+      {/* Optional "جزئیات بیشتر" layer — فصل/ریز مبحث دقیق، برای مشاورهایی
+          که می‌خوان دقیق‌تر بنویسن. یک <details> ساده، بدون نیاز به state. */}
+      {detail && (
+        <details className="mt-2 border-t border-border/60 pt-2">
+          <summary className="cursor-pointer text-xs text-blue-600 marker:content-none">
+            جزئیات بیشتر
+          </summary>
+          <div className="mt-1.5 space-y-0.5 text-xs text-text-700">
+            <div>فصل: {detail.chapter}</div>
+            <div>ریز مبحث: {detail.subtopic}</div>
+          </div>
+        </details>
       )}
     </div>
   );

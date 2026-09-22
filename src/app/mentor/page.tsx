@@ -88,7 +88,7 @@ export default function MentorDashboardPage() {
           {mentorStudents
             .slice()
             .sort((a, b) => {
-              const order = { danger: 0, warning: 1, success: 2 };
+              const order = { danger: 0, warning: 1, success: 2, excellent: 3 };
               return order[getRiskInfo(a).level] - order[getRiskInfo(b).level];
             })
             .map((s) => {
