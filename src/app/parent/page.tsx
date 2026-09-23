@@ -1,12 +1,24 @@
 import Link from "next/link";
-import { Eye, MessageSquareText, TrendingUp, TrendingDown, Minus, LineChart } from "lucide-react";
+import {
+  Eye,
+  MessageSquareText,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  LineChart,
+  CreditCard,
+  Check,
+  X as XIcon,
+} from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/Progress";
 import { Avatar } from "@/components/ui/Avatar";
+import { Badge } from "@/components/ui/Badge";
+import { buttonVariants } from "@/components/ui/Button";
 import { TrendChart } from "@/components/ui/TrendChart";
-import { parentWeeklyReport, mentors, studentWeeklyHistory } from "@/lib/mock-data";
-import { toPersianDigits } from "@/lib/utils";
+import { parentWeeklyReport, parentBilling, mentors, studentWeeklyHistory } from "@/lib/mock-data";
+import { cn, toPersianDigits } from "@/lib/utils";
 
 const trendMeta = {
   improving: { icon: TrendingUp, label: "رو به بهبود", tone: "text-mint-500" },
@@ -99,6 +111,56 @@ export default function ParentPage() {
                 <div className="text-sm font-medium text-text-900">{mentor.name}</div>
                 <p className="mt-1 text-sm leading-[1.8] text-text-700">{report.mentorNote}</p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Billing — the parent is usually who actually pays for the subscription */}
+        <Card className="mt-4">
+          <CardContent>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CreditCard size={16} className="text-blue-600" />
+                <h2 className="text-sm font-bold text-text-900">اشتراک و پرداخت</h2>
+              </div>
+              <Badge tone="brand">{parentBilling.planName}</Badge>
+            </div>
+
+            <div className="flex items-center justify-between rounded-x-md bg-surface-2 p-3">
+              <div>
+                <div className="text-sm font-medium text-text-900">
+                  {toPersianDigits(parentBilling.price.toLocaleString("en-US"))} تومان{" "}
+                  <span className="font-normal text-text-500">در ماه</span>
+                </div>
+                <div className="mt-0.5 text-xs text-text-500">
+                  تمدید بعدی: {parentBilling.nextBillingDate} — کارت ****{toPersianDigits(parentBilling.cardLast4)}
+                </div>
+              </div>
+              <Link href="/checkout" className={buttonVariants({ size: "md", variant: "secondary" })}>
+                تغییر پلن
+              </Link>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {parentBilling.history.map((h) => (
+                <div key={h.id} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={cn(
+                        "flex h-6 w-6 items-center justify-center rounded-full",
+                        h.status === "paid" ? "bg-mint-500/15 text-mint-500" : "bg-red-500/15 text-red-500"
+                      )}
+                    >
+                      {h.status === "paid" ? <Check size={12} /> : <XIcon size={12} />}
+                    </div>
+                    <span className="text-text-700">{h.date}</span>
+                    <span className="text-text-500">— پلن {h.planName}</span>
+                  </div>
+                  <span className="tnum text-text-900">
+                    {toPersianDigits(h.amount.toLocaleString("en-US"))} تومان
+                  </span>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>

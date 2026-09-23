@@ -573,6 +573,29 @@ export const parentWeeklyReport = {
   mentorName: "سارا محمدی",
 };
 
+// V-03 — parent-facing billing (the parent is usually who actually pays
+// for the subscription, not the student).
+export type PaymentRecord = {
+  id: string;
+  date: string;
+  planName: string;
+  amount: number;
+  status: "paid" | "failed";
+};
+
+export const parentBilling = {
+  planId: "companion",
+  planName: "همراه",
+  price: 1490000,
+  nextBillingDate: "۱۵ مهر",
+  cardLast4: "۴۴۴۴",
+  history: [
+    { id: "pay-1", date: "۱۵ شهریور", planName: "همراه", amount: 1490000, status: "paid" },
+    { id: "pay-2", date: "۱۵ مرداد", planName: "همراه", amount: 1490000, status: "paid" },
+    { id: "pay-3", date: "۱۵ تیر", planName: "پایه", amount: 890000, status: "paid" },
+  ] as PaymentRecord[],
+};
+
 // ---------------------------------------------------------------------
 // Content library ("دانش‌سرا") — the mentor's own material (notes, voice
 // notes, recorded explanations), replacing files scattered across
