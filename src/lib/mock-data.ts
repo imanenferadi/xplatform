@@ -167,6 +167,19 @@ export const levelProfile = {
   timingPattern: "سریع و نسبتاً دقیق",
 };
 
+export const studentProfile = {
+  name: "ایمان",
+  phone: "۰۹۱۲ ۱۲۳ ۴۵۶۷",
+  grade: "پایه دوازدهم" as const,
+  city: "تهران",
+  joinedAt: "۱۴۰۴/۰۴/۱۲",
+  notificationPrefs: {
+    checkinReminder: true,
+    mentorMessage: true,
+    weeklyReport: false,
+  },
+};
+
 export const studentPlan = {
   todayTasks: [
     { id: 1, subject: "ریاضی" as Subject, topic: "مرور فصل ۳", duration: 45, status: "todo" as const },
