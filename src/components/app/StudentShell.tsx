@@ -11,6 +11,7 @@ import {
   Library,
   Calculator,
   FileText,
+  Timer,
   User,
   Home,
 } from "lucide-react";
@@ -22,6 +23,7 @@ import { Avatar } from "@/components/ui/Avatar";
 const sidebarLinks = [
   { href: "/dashboard", label: "امروز", icon: Home },
   { href: "/dashboard/plan", label: "برنامه", icon: CalendarDays },
+  { href: "/dashboard/focustimer", label: "تایمر فوکوس", icon: Timer },
   { href: "/dashboard/checkin", label: "چک‌این شب", icon: MoonIcon },
   { href: "/dashboard/karnameh", label: "آپلود کارنامه", icon: FileText },
   { href: "/mentors/sara-mohammadi", label: "مشاور من", icon: User },
