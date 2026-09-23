@@ -8,6 +8,7 @@ const links = [
   { href: "#demo", label: "دمو و پیش‌نمایش" },
   { href: "#how", label: "چگونه کار می‌کند" },
   { href: "#pricing", label: "تعرفه‌ها" },
+  { href: "/news", label: "اخبار" },
 ];
 
 export function SiteHeader() {
@@ -19,15 +20,25 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="text-sm text-text-700 transition-colors hover:text-text-900"
-            >
-              {l.label}
-            </a>
-          ))}
+          {links.map((l) =>
+            l.href.startsWith("/") ? (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="text-sm text-text-700 transition-colors hover:text-text-900"
+              >
+                {l.label}
+              </Link>
+            ) : (
+              <a
+                key={l.href}
+                href={l.href}
+                className="text-sm text-text-700 transition-colors hover:text-text-900"
+              >
+                {l.label}
+              </a>
+            )
+          )}
         </nav>
 
         <div className="flex items-center gap-2">

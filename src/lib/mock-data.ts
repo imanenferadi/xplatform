@@ -243,6 +243,35 @@ export const examResults: ExamResult[] = [
   },
 ];
 
+// ---------------------------------------------------------------------
+// Student-side karnameh upload — the student is the one who actually
+// receives the exam result from Kanoon/Gaj, so *they* should be able to
+// send it straight to the mentor from here instead of via Telegram. This
+// is a submission log only — no score breakdown or analysis is rebuilt
+// from it (that stays on the mentor's side, sourced from the exam
+// provider itself, per the earlier product decision).
+// ---------------------------------------------------------------------
+
+export type KarnamehUpload = {
+  id: string;
+  examProvider: string;
+  date: string;
+  fileName: string;
+  note: string;
+  seenByMentor: boolean;
+};
+
+export const karnamehUploads: KarnamehUpload[] = [
+  {
+    id: "ku-1",
+    examProvider: "قلمچی",
+    date: "۱۵ شهریور ۱۴۰۵",
+    fileName: "karnameh-azmoon-4.jpg",
+    note: "",
+    seenByMentor: true,
+  },
+];
+
 export const targetMajor = {
   name: "پزشکی — تجربی",
   coefficients: [
@@ -619,5 +648,105 @@ export const pricingPlans = [
     price: 2190000,
     period: "در ماه",
     features: ["همه‌ی امکانات همراه", "جلسات بیشتر در هفته", "پاسخ‌گویی سریع‌تر مشاور"],
+  },
+];
+
+// ---------------------------------------------------------------------
+// Mentor panel — messages, calendar, earnings, profile. Rounds out the
+// sidebar nav so every link in MentorShell resolves to a real page.
+// ---------------------------------------------------------------------
+
+export type ChatMessage = { id: number; from: "mentor" | "student"; text: string; time: string };
+
+/** One thread per student, keyed by MentorStudent.id. */
+export const mentorMessageThreads: Record<string, ChatMessage[]> = {
+  "1": [
+    { id: 1, from: "mentor", text: "سلام امیرحسین، این هفته برنامه رو دیدی؟", time: "دیروز ۱۰:۰۰" },
+    { id: 2, from: "mentor", text: "چند روزه ازت خبری نیست، حالت خوبه؟", time: "امروز ۰۹:۳۰" },
+  ],
+  "2": [
+    { id: 1, from: "student", text: "سلام، ببخشید دیشب مدرسه فوق‌العاده داشتیم کم رسیدم بخونم", time: "دیروز ۲۲:۱۰" },
+    { id: 2, from: "mentor", text: "مشکلی نیست، فردا جبران می‌کنیم. شب بخیر", time: "دیروز ۲۲:۱۵" },
+  ],
+  "3": [
+    { id: 1, from: "student", text: "سلام سارا جان، یه سوال از فصل ۲ شیمی داشتم", time: "۱۴:۰۳" },
+    { id: 2, from: "student", text: "الان عکسشو می‌فرستم", time: "۱۴:۰۳" },
+    { id: 3, from: "mentor", text: "باشه بفرست ببینم. فردا سر جلسه هم روش کار می‌کنیم.", time: "۱۸:۴۰" },
+  ],
+};
+
+export type UpcomingSession = {
+  id: string;
+  studentId: string;
+  dayLabel: string; // "امروز", "فردا", or a day name
+  time: string;
+  mode: "video" | "audio";
+};
+
+export const upcomingSessions: UpcomingSession[] = [
+  { id: "s1", studentId: "3", dayLabel: "امروز", time: "۱۸:۰۰", mode: "video" },
+  { id: "s2", studentId: "2", dayLabel: "فردا", time: "۱۹:۳۰", mode: "video" },
+  { id: "s3", studentId: "1", dayLabel: "سه‌شنبه", time: "۱۷:۰۰", mode: "audio" },
+];
+
+export type StudentEarning = {
+  studentId: string;
+  planName: "برنزی" | "نقره‌ای" | "طلایی";
+  monthlyFee: number; // تومان
+  paidThisMonth: boolean;
+};
+
+export const studentEarnings: StudentEarning[] = [
+  { studentId: "1", planName: "نقره‌ای", monthlyFee: 1200000, paidThisMonth: true },
+  { studentId: "2", planName: "برنزی", monthlyFee: 800000, paidThisMonth: true },
+  { studentId: "3", planName: "طلایی", monthlyFee: 1800000, paidThisMonth: false },
+];
+
+export const earningsHistory: { monthLabel: string; total: number }[] = [
+  { monthLabel: "تیر", total: 2600000 },
+  { monthLabel: "مرداد", total: 3200000 },
+  { monthLabel: "شهریور", total: 3800000 },
+];
+
+// ---------------------------------------------------------------------
+// News — public marketing content (konkur calendar changes, exam-provider
+// updates, platform announcements). Deliberately NOT wired into
+// StudentShell's nav: a student mid-study-session shouldn't get pulled
+// into browsing news. Lives on the public site only.
+// ---------------------------------------------------------------------
+
+export type NewsArticle = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  body: string;
+  date: string;
+  category: string;
+};
+
+export const newsArticles: NewsArticle[] = [
+  {
+    slug: "konkur-1406-date-announced",
+    title: "تاریخ برگزاری کنکور سراسری ۱۴۰۶ اعلام شد",
+    excerpt: "سازمان سنجش زمان دقیق برگزاری کنکور سراسری سال آینده را اعلام کرد.",
+    body: "طبق اعلام سازمان سنجش آموزش کشور، کنکور سراسری ۱۴۰۶ در تیرماه برگزار خواهد شد. دانش‌آموزان و داوطلبان می‌توانند از طریق سامانه‌ی سازمان سنجش، برنامه‌ی دقیق هر رشته را مشاهده کنند. مشاوران ما توصیه می‌کنند برنامه‌ریزی نیم‌سال دوم را با در نظر گرفتن این تاریخ تنظیم کنید.",
+    date: "۱ مهر ۱۴۰۵",
+    category: "تقویم کنکور",
+  },
+  {
+    slug: "kanoon-exam-schedule-update",
+    title: "تغییر در تقویم آزمون‌های دوهفته‌ای قلمچی",
+    excerpt: "آزمون‌های جامع شماره ۶ و ۷ قلمچی یک هفته جابه‌جا شدند.",
+    body: "بر اساس اعلام مؤسسه‌ی قلمچی، آزمون‌های جامع شماره ۶ و ۷ به دلیل هم‌زمانی با امتحانات میان‌ترم مدارس، یک هفته به تعویق افتادند. این تغییر روی برنامه‌ی هفتگی دانش‌آموزانی که با کارنامه‌ی این آزمون‌ها برنامه‌ریزی می‌کنند اثر می‌گذارد.",
+    date: "۲۸ شهریور ۱۴۰۵",
+    category: "اطلاعیه آزمون",
+  },
+  {
+    slug: "platform-mentor-onboarding",
+    title: "بازه‌ی پذیرش مشاوران جدید باز شد",
+    excerpt: "اگر رتبه‌ی برتر کنکور بودی و می‌خوای مشاور بشی، الان زمان ثبت‌نامه.",
+    body: "تیم ما به‌دنبال جذب مشاوران جدید از میان رتبه‌های برتر یک تا دو سال اخیر کنکور است. اگر تجربه‌ی موفقی در مسیر کنکور داشته‌اید و علاقه‌مند به کمک به دانش‌آموزان دیگر هستید، از طریق فرم ثبت‌نام مشاوران اقدام کنید.",
+    date: "۲۰ شهریور ۱۴۰۵",
+    category: "اعلامیه پلتفرم",
   },
 ];

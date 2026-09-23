@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, MessageCircle, CalendarClock, Flame, Moon } from "lucide-react";
+import { ArrowLeft, MessageCircle, CalendarClock, Flame, Moon, FileText } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -131,6 +131,23 @@ export default function DashboardPage() {
           <div className="flex-1">
             <div className="text-sm font-medium text-text-900">چک‌این امشب رو بزن</div>
             <div className="text-xs text-text-500">۳۰ ثانیه — می‌ره مستقیم برای {mentor.name}</div>
+          </div>
+          <ArrowLeft size={16} className="text-text-500" />
+        </Link>
+
+        {/* Karnameh upload — the student is the one who gets the exam
+            result from Kanoon/Gaj, so they should be able to send it
+            straight from here instead of via Telegram. */}
+        <Link
+          href="/dashboard/karnameh"
+          className="mt-3 flex items-center gap-3 rounded-x-lg border border-border bg-surface p-4 transition-colors hover:bg-surface-2"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
+            <FileText size={18} className="text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-medium text-text-900">کارنامه‌ی آزمونت رو گرفتی؟</div>
+            <div className="text-xs text-text-500">عکسشو بذار، می‌ره برای {mentor.name}</div>
           </div>
           <ArrowLeft size={16} className="text-text-500" />
         </Link>

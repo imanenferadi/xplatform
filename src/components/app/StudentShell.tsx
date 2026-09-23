@@ -10,6 +10,7 @@ import {
   Moon as MoonIcon,
   Library,
   Calculator,
+  FileText,
   User,
   Home,
 } from "lucide-react";
@@ -22,6 +23,7 @@ const sidebarLinks = [
   { href: "/dashboard", label: "امروز", icon: Home },
   { href: "/dashboard/plan", label: "برنامه", icon: CalendarDays },
   { href: "/dashboard/checkin", label: "چک‌این شب", icon: MoonIcon },
+  { href: "/dashboard/karnameh", label: "آپلود کارنامه", icon: FileText },
   { href: "/mentors/sara-mohammadi", label: "مشاور من", icon: User },
   { href: "/chat", label: "پیام‌ها", icon: MessageCircle },
   { href: "/dashboard/ai", label: "معلم AI", icon: Bot },
