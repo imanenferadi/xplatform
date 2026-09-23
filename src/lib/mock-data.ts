@@ -86,6 +86,45 @@ export const mentors: Mentor[] = [
   },
 ];
 
+// Post-session ratings — feedback the student leaves right after a call.
+// Seeded here so a mentor's profile can show real quotes instead of just
+// the "rating" number.
+export type SessionFeedback = {
+  id: string;
+  mentorId: string;
+  studentName: string;
+  rating: 1 | 2 | 3 | 4 | 5;
+  comment: string;
+  date: string;
+};
+
+export const sessionFeedback: SessionFeedback[] = [
+  {
+    id: "fb-1",
+    mentorId: "sara-mohammadi",
+    studentName: "امیرحسین",
+    rating: 5,
+    comment: "خیلی صبوره و دقیقاً بر اساس ضعف‌های من برنامه می‌ده.",
+    date: "۲۰ شهریور",
+  },
+  {
+    id: "fb-2",
+    mentorId: "sara-mohammadi",
+    studentName: "نگین",
+    rating: 5,
+    comment: "بعد از هر جلسه احساس می‌کنم می‌دونم دقیقاً باید چیکار کنم.",
+    date: "۵ شهریور",
+  },
+  {
+    id: "fb-3",
+    mentorId: "amirhossein-rezaei",
+    studentName: "رضا",
+    rating: 4,
+    comment: "روش تحلیلی‌ش عالیه؛ فقط گاهی جلسه چند دقیقه دیر شروع می‌شه.",
+    date: "۱۵ شهریور",
+  },
+];
+
 export type Subject = "ریاضی" | "فیزیک" | "شیمی" | "زیست";
 
 export const placementQuestions: {

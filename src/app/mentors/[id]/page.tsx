@@ -5,7 +5,7 @@ import { buttonVariants } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { ProgressBar } from "@/components/ui/Progress";
-import { mentors } from "@/lib/mock-data";
+import { mentors, sessionFeedback } from "@/lib/mock-data";
 
 export function generateStaticParams() {
   return mentors.map((m) => ({ id: m.id }));
@@ -19,6 +19,7 @@ export default async function MentorProfilePage({
   const { id } = await params;
   const mentor = mentors.find((m) => m.id === id);
   if (!mentor) notFound();
+  const reviews = sessionFeedback.filter((f) => f.mentorId === id);
 
   return (
     <div className="min-h-screen bg-background pb-16">
@@ -83,6 +84,32 @@ export default async function MentorProfilePage({
             ))}
           </div>
         </Section>
+
+        {/* Real reviews left by students after a session, not just the number */}
+        {reviews.length > 0 && (
+          <Section title="نظر دانش‌آموزها">
+            <div className="space-y-4">
+              {reviews.map((r) => (
+                <div key={r.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-sm font-medium text-text-900">{r.studentName}</span>
+                    <div className="flex items-center gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          size={13}
+                          className={i < r.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-sm leading-[1.8] text-text-700">{r.comment}</p>
+                  <div className="tnum mt-1 text-xs text-text-500">{r.date}</div>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
 
         {/* Availability placeholder */}
         <Section title="زمان‌های آزاد">

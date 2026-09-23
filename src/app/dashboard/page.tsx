@@ -42,10 +42,13 @@ export default function DashboardPage() {
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
                 <CalendarClock size={18} className="text-blue-600" />
               </div>
-              <div>
+              <div className="flex-1">
                 <div className="text-xs text-text-500">جلسه‌ی بعدی با {mentor.name}</div>
                 <div className="text-sm font-medium text-text-900">شنبه، ساعت ۱۸:۰۰</div>
               </div>
+              <Link href={`/session/${mentor.id}`} className={buttonVariants({ size: "md" })}>
+                شروع جلسه
+              </Link>
             </CardContent>
           </Card>
           <Link href="/chat">
