@@ -3,6 +3,8 @@
 
 import { toPersianDigits } from "./utils";
 
+export type ExamGroup = "تجربی" | "ریاضی" | "انسانی";
+
 export type Mentor = {
   id: string;
   name: string;
@@ -10,6 +12,7 @@ export type Mentor = {
   year: string;
   school: string;
   major: string;
+  group: ExamGroup;
   style: string;
   capacity: number;
   capacityTotal: number;
@@ -28,6 +31,7 @@ export const mentors: Mentor[] = [
     year: "کنکور ۱۴۰۳",
     school: "دانشگاه تهران",
     major: "دانشجوی پزشکی",
+    group: "تجربی",
     style: "همراه و آرام",
     capacity: 3,
     capacityTotal: 15,
@@ -49,6 +53,7 @@ export const mentors: Mentor[] = [
     year: "کنکور ۱۴۰۴",
     school: "دانشگاه صنعتی شریف",
     major: "مهندسی برق",
+    group: "ریاضی",
     style: "داده‌محور",
     capacity: 5,
     capacityTotal: 12,
@@ -70,6 +75,7 @@ export const mentors: Mentor[] = [
     year: "کنکور ۱۴۰۳",
     school: "دانشگاه شهید بهشتی",
     major: "دندان‌پزشکی",
+    group: "تجربی",
     style: "انگیزشی",
     capacity: 2,
     capacityTotal: 10,
@@ -81,6 +87,50 @@ export const mentors: Mentor[] = [
       { subject: "زیست", score: 90 },
       { subject: "شیمی", score: 85 },
       { subject: "ریاضی", score: 68 },
+    ],
+    verified: true,
+  },
+  {
+    id: "reza-karimi",
+    name: "رضا کریمی",
+    rank: "رتبه ۵۵",
+    year: "کنکور ۱۴۰۴",
+    school: "دانشگاه صنعتی شریف",
+    major: "مهندسی کامپیوتر",
+    group: "ریاضی",
+    style: "پروژه‌محور",
+    capacity: 0,
+    capacityTotal: 10,
+    rating: 4.8,
+    reviewCount: 20,
+    story:
+      "ریاضیات گسسته و هندسه برام همیشه انتزاعی بود تا وقتی شروع کردم به حل روی مثال‌های واقعی. همون روش رو با دانش‌آموزام کار می‌کنم.",
+    strengths: [
+      { subject: "ریاضی", score: 96 },
+      { subject: "فیزیک", score: 85 },
+      { subject: "شیمی", score: 60 },
+    ],
+    verified: true,
+  },
+  {
+    id: "mahsa-ghasemi",
+    name: "مهسا قاسمی",
+    rank: "رتبه ۲۰۰",
+    year: "کنکور ۱۴۰۳",
+    school: "دانشگاه صنعتی امیرکبیر",
+    major: "مهندسی مکانیک",
+    group: "ریاضی",
+    style: "تست‌محور",
+    capacity: 4,
+    capacityTotal: 12,
+    rating: 4.7,
+    reviewCount: 15,
+    story:
+      "تست‌زنی زمان‌بندی‌شده تغییرم داد؛ از رتبه‌ی نامشخص به ۲۰۰ رسیدم فقط با تمرین تحت فشار زمانی واقعی.",
+    strengths: [
+      { subject: "فیزیک", score: 91 },
+      { subject: "ریاضی", score: 88 },
+      { subject: "شیمی", score: 65 },
     ],
     verified: true,
   },

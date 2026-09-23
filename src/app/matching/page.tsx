@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BadgeCheck, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -88,7 +89,9 @@ export default function MatchingPage() {
 
         <p className="mt-8 text-center text-sm text-text-500">
           هیچ‌کدام مناسب نبود؟{" "}
-          <button className="text-blue-600 hover:underline">گزینه‌های بیشتر را ببین</button>
+          <Link href="/mentors" className="text-blue-600 hover:underline">
+            گزینه‌های بیشتر را ببین
+          </Link>
         </p>
       </div>
 
