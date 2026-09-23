@@ -900,3 +900,107 @@ export const newsArticles: NewsArticle[] = [
     category: "اعلامیه پلتفرم",
   },
 ];
+
+// ---------------------------------------------------------------------
+// Admin panel (A-02, A-03, A-04, A-06) — wireframe-level: platform ops
+// approving mentors, managing accounts/complaints, and a finance overview.
+// No real auth; entered the same way /parent is (a demo link).
+// ---------------------------------------------------------------------
+
+export type MentorApplication = {
+  id: string;
+  name: string;
+  rank: string;
+  year: string;
+  school: string;
+  major: string;
+  appliedAt: string;
+  status: "pending" | "approved" | "rejected";
+};
+
+export const mentorApplications: MentorApplication[] = [
+  {
+    id: "app-1",
+    name: "پویا اسدی",
+    rank: "رتبه ۹۰",
+    year: "کنکور ۱۴۰۴",
+    school: "دانشگاه تهران",
+    major: "مهندسی برق",
+    appliedAt: "۲ روز پیش",
+    status: "pending",
+  },
+  {
+    id: "app-2",
+    name: "الناز رستمی",
+    rank: "رتبه ۲۵۰",
+    year: "کنکور ۱۴۰۳",
+    school: "دانشگاه علوم پزشکی ایران",
+    major: "پزشکی",
+    appliedAt: "۵ روز پیش",
+    status: "pending",
+  },
+  {
+    id: "app-3",
+    name: "کیان مرادی",
+    rank: "رتبه ۱۸۰",
+    year: "کنکور ۱۴۰۴",
+    school: "دانشگاه صنعتی شریف",
+    major: "مهندسی مکانیک",
+    appliedAt: "۱ هفته پیش",
+    status: "approved",
+  },
+];
+
+export type AdminUser = {
+  id: string;
+  name: string;
+  role: "دانش‌آموز" | "مشاور";
+  phone: string;
+  joinedAt: string;
+  status: "active" | "suspended";
+};
+
+export const adminUsers: AdminUser[] = [
+  { id: "u-1", name: "ایمان", role: "دانش‌آموز", phone: "۰۹۱۲ ۱۲۳ ۴۵۶۷", joinedAt: "۱۴۰۴/۰۴/۱۲", status: "active" },
+  { id: "u-2", name: "امیرحسین رضایی", role: "دانش‌آموز", phone: "۰۹۳۵ ۲۲۲ ۳۳۴۴", joinedAt: "۱۴۰۴/۰۲/۰۱", status: "active" },
+  { id: "u-3", name: "سارا محمدی", role: "مشاور", phone: "۰۹۱۲ ۹۹۹ ۸۸۷۷", joinedAt: "۱۴۰۳/۱۱/۱۰", status: "active" },
+  { id: "u-4", name: "رضا نامدار", role: "دانش‌آموز", phone: "۰۹۳۹ ۴۴۴ ۵۵۶۶", joinedAt: "۱۴۰۴/۰۵/۲۰", status: "suspended" },
+];
+
+export type Complaint = {
+  id: string;
+  fromName: string;
+  aboutName: string;
+  reason: string;
+  date: string;
+  status: "open" | "resolved";
+};
+
+export const complaints: Complaint[] = [
+  {
+    id: "cp-1",
+    fromName: "رضا نامدار",
+    aboutName: "—",
+    reason: "مشاورم دو هفته‌ست پاسخ پیام نمی‌ده",
+    date: "۳ روز پیش",
+    status: "open",
+  },
+  {
+    id: "cp-2",
+    fromName: "امیرحسین رضایی",
+    aboutName: "—",
+    reason: "پرداخت انجام شد ولی پلن آپدیت نشد",
+    date: "۱ هفته پیش",
+    status: "resolved",
+  },
+];
+
+export type PlatformRevenuePoint = { monthLabel: string; total: number };
+
+export const platformRevenue: PlatformRevenuePoint[] = [
+  { monthLabel: "تیر", total: 42000000 },
+  { monthLabel: "مرداد", total: 51000000 },
+  { monthLabel: "شهریور", total: 63000000 },
+];
+
+export const pendingMentorPayouts = 8;
