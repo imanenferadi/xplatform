@@ -280,6 +280,31 @@ export const studentPlan = {
   streakDays: 4,
 };
 
+// Combined weekly view for /dashboard/calendar — mentor sessions, the
+// bi-weekly mock exam, and a daily task summary side by side. Deliberately
+// a summary per day (Time Block, not a minute-by-minute calendar); the
+// full per-task breakdown still lives on /dashboard/plan.
+export type CalendarDay = {
+  dayName: string;
+  taskSummary?: string;
+  session?: { time: string; mentorName: string; mode: "video" | "audio" };
+  exam?: { provider: string; name: string };
+};
+
+export const studentWeekCalendar: CalendarDay[] = [
+  {
+    dayName: "شنبه",
+    taskSummary: "۱ کار · ۳ ساعت",
+    session: { time: "۱۸:۰۰", mentorName: "سارا محمدی", mode: "video" },
+  },
+  { dayName: "یکشنبه", taskSummary: "۲ کار · ۳.۵ ساعت" },
+  { dayName: "دوشنبه", taskSummary: "۳ کار · ۶.۵ ساعت" },
+  { dayName: "سه‌شنبه", taskSummary: "۲ کار · ۳ ساعت" },
+  { dayName: "چهارشنبه", taskSummary: "۱ کار · ۲.۵ ساعت" },
+  { dayName: "پنجشنبه", taskSummary: "۱ کار · ۲ ساعت" },
+  { dayName: "جمعه", exam: { provider: "قلمچی", name: "آزمون جامع شماره ۶" } },
+];
+
 // ---------------------------------------------------------------------
 // Exam-driven weekly cycle (§ real konkur-mentoring workflow)
 //

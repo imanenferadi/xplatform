@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CalendarDays,
+  CalendarRange,
   MessageCircle,
   Bot,
   BarChart3,
@@ -23,6 +24,7 @@ import { Avatar } from "@/components/ui/Avatar";
 const sidebarLinks = [
   { href: "/dashboard", label: "امروز", icon: Home },
   { href: "/dashboard/plan", label: "برنامه", icon: CalendarDays },
+  { href: "/dashboard/calendar", label: "تقویم هفته", icon: CalendarRange },
   { href: "/dashboard/focustimer", label: "تایمر فوکوس", icon: Timer },
   { href: "/dashboard/checkin", label: "چک‌این شب", icon: MoonIcon },
   { href: "/dashboard/karnameh", label: "آپلود کارنامه", icon: FileText },
