@@ -9,6 +9,7 @@ const links = [
   { href: "#how", label: "چگونه کار می‌کند" },
   { href: "#pricing", label: "تعرفه‌ها" },
   { href: "/news", label: "اخبار" },
+  { href: "/mentor/apply", label: "مشاور شو" },
 ];
 
 export function SiteHeader() {

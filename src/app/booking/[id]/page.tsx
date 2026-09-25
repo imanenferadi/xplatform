@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, use } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { notFound } from "next/navigation";
+import { useApprovedMentors } from "@/lib/mentor-applications-store";
 import { Video, Phone, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
@@ -15,14 +16,26 @@ const times = ["۱۷:۰۰", "۱۸:۰۰", "۱۹:۰۰", "۲۰:۰۰"];
 
 export default function BookingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const mentor = mentors.find((m) => m.id === id);
+  const approved = useApprovedMentors();
+  const mentor = mentors.find((m) => m.id === id) ?? approved.find((m) => m.id === id);
   const router = useRouter();
   const [day, setDay] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
   const [mode, setMode] = useState<"video" | "audio">("video");
   const [confirmed, setConfirmed] = useState(false);
 
-  if (!mentor) notFound();
+  // Not notFound(): self-registered mentors live only in the browser's demo
+  // store, which the server render can't see.
+  if (!mentor) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
+        <p className="text-text-500">این مشاور پیدا نشد.</p>
+        <Link href="/mentors" className="mt-3 text-sm text-blue-600 hover:underline">
+          فهرست مشاوران
+        </Link>
+      </div>
+    );
+  }
 
   if (confirmed) {
     return (

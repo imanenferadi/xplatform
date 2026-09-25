@@ -4,7 +4,13 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { TrendChart } from "@/components/ui/TrendChart";
-import { mentorStudents, studentEarnings, earningsHistory } from "@/lib/mock-data";
+import {
+  mentorStudents,
+  studentEarnings,
+  earningsHistory,
+  PLATFORM_COMMISSION_PERCENT,
+  TRADITIONAL_INSTITUTE_COMMISSION,
+} from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
 
 function formatToman(n: number): string {
@@ -13,6 +19,7 @@ function formatToman(n: number): string {
 
 export default function MentorEarningsPage() {
   const thisMonth = earningsHistory[earningsHistory.length - 1].total;
+  const commission = Math.round((thisMonth * PLATFORM_COMMISSION_PERCENT) / 100);
   const paidCount = studentEarnings.filter((e) => e.paidThisMonth).length;
 
   return (
@@ -26,8 +33,8 @@ export default function MentorEarningsPage() {
         <div className="grid grid-cols-2 gap-3">
           <Card>
             <CardContent>
-              <div className="text-xs text-text-500">درآمد این ماه</div>
-              <div className="tnum mt-1 text-xl font-bold text-text-900">{formatToman(thisMonth)}</div>
+              <div className="text-xs text-text-500">سهم خالص این ماه</div>
+              <div className="tnum mt-1 text-xl font-bold text-text-900">{formatToman(thisMonth - commission)}</div>
             </CardContent>
           </Card>
           <Card>
@@ -39,6 +46,28 @@ export default function MentorEarningsPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Card className="mt-4">
+          <CardContent className="space-y-1.5 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-text-500">جمع پرداختی دانش‌آموزها</span>
+              <span className="tnum text-text-700">{formatToman(thisMonth)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-text-500">
+                کارمزد پلتفرم ({toPersianDigits(PLATFORM_COMMISSION_PERCENT)}٪)
+              </span>
+              <span className="tnum text-text-700">− {formatToman(commission)}</span>
+            </div>
+            <div className="flex items-center justify-between border-t border-border pt-1.5">
+              <span className="font-medium text-text-900">سهم تو</span>
+              <span className="tnum font-bold text-mint-500">{formatToman(thisMonth - commission)}</span>
+            </div>
+            <p className="pt-1 text-xs text-text-500">
+              آموزشگاه‌های سنتی معمولاً {TRADITIONAL_INSTITUTE_COMMISSION} شهریه رو برمی‌دارن.
+            </p>
+          </CardContent>
+        </Card>
 
         <Card className="mt-4">
           <CardContent>

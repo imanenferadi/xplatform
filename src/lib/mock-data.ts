@@ -21,7 +21,26 @@ export type Mentor = {
   story: string;
   strengths: { subject: string; score: number }[];
   verified: boolean;
+  availability?: string[];
 };
+
+export const DEFAULT_AVAILABILITY = ["شنبه ۱۸:۰۰", "دوشنبه ۱۹:۰۰", "سه‌شنبه ۲۰:۰۰", "پنجشنبه ۱۷:۰۰"];
+
+// Platform cut of each student subscription. Benchmarks (ostadbank.com mag,
+// 2026): traditional institutes take 40–60%, online tutor marketplaces
+// 15–20%. Mentora/Moshaversara don't publish theirs. Change it here only.
+export const PLATFORM_COMMISSION_PERCENT = 12;
+export const TRADITIONAL_INSTITUTE_COMMISSION = "۴۰ تا ۶۰٪";
+
+// Used by mentor self-registration (/mentor/apply).
+export const MENTOR_STYLES = ["همراه و آرام", "داده‌محور", "انگیزشی", "تست‌محور", "پروژه‌محور"];
+export const SUBJECTS_BY_GROUP: Record<ExamGroup, string[]> = {
+  تجربی: ["زیست", "شیمی", "فیزیک", "ریاضی"],
+  ریاضی: ["ریاضی", "فیزیک", "شیمی"],
+  انسانی: ["ادبیات", "عربی", "ریاضی و آمار", "علوم اجتماعی"],
+};
+export const AVAILABILITY_DAYS = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه"];
+export const AVAILABILITY_TIMES = ["۱۶:۰۰", "۱۷:۰۰", "۱۸:۰۰", "۱۹:۰۰", "۲۰:۰۰"];
 
 export const mentors: Mentor[] = [
   {

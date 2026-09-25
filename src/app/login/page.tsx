@@ -123,6 +123,12 @@ export default function LoginPage() {
           </Link>
         </p>
         <p className="mt-1.5 text-center text-xs text-text-500">
+          رتبه‌برتری و می‌خوای مشاور بشی؟{" "}
+          <Link href="/mentor/apply" className="text-blue-600 hover:underline">
+            ثبت‌نام مشاور
+          </Link>
+        </p>
+        <p className="mt-1.5 text-center text-xs text-text-500">
           تیم پلتفرم هستی؟{" "}
           <Link href="/admin" className="text-blue-600 hover:underline">
             پنل ادمین را ببین

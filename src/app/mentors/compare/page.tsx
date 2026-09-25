@@ -7,6 +7,7 @@ import { BadgeCheck, Star } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { buttonVariants } from "@/components/ui/Button";
 import { mentors, type Mentor, type Subject } from "@/lib/mock-data";
+import { useApprovedMentors } from "@/lib/mentor-applications-store";
 
 const ALL_SUBJECTS: Subject[] = ["ریاضی", "فیزیک", "شیمی", "زیست"];
 
@@ -16,8 +17,10 @@ function strengthScore(mentor: Mentor, subject: Subject): number | null {
 
 function ComparePageInner() {
   const params = useSearchParams();
-  const a = mentors.find((m) => m.id === params.get("a"));
-  const b = mentors.find((m) => m.id === params.get("b"));
+  const approved = useApprovedMentors();
+  const all = [...mentors, ...approved];
+  const a = all.find((m) => m.id === params.get("a"));
+  const b = all.find((m) => m.id === params.get("b"));
 
   if (!a || !b) {
     return (

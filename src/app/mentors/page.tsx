@@ -9,6 +9,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { mentors, type ExamGroup } from "@/lib/mock-data";
+import { useApprovedMentors } from "@/lib/mentor-applications-store";
 import { cn } from "@/lib/utils";
 
 const GROUPS: ExamGroup[] = ["تجربی", "ریاضی", "انسانی"];
@@ -36,15 +37,18 @@ export default function MentorsListPage() {
     setSelected([]);
   }
 
+  const approved = useApprovedMentors();
+  const allMentors = useMemo(() => [...mentors, ...approved], [approved]);
+
   const filtered = useMemo(
     () =>
-      mentors.filter((m) => {
+      allMentors.filter((m) => {
         if (group !== "همه" && m.group !== group) return false;
         if (m.rating < minRating) return false;
         if (onlyAvailable && m.capacity === 0) return false;
         return true;
       }),
-    [group, minRating, onlyAvailable]
+    [allMentors, group, minRating, onlyAvailable]
   );
 
   return (
@@ -165,10 +169,14 @@ export default function MentorsListPage() {
                     </div>
 
                     <div className="mt-4 flex flex-1 items-end justify-between text-xs text-text-500">
-                      <span className="flex items-center gap-1">
-                        <Star size={13} className="fill-yellow-400 text-yellow-400" />
-                        <span className="tnum">{m.rating}</span> ({m.reviewCount} نظر)
-                      </span>
+                      {m.reviewCount === 0 ? (
+                        <Badge tone="success">مشاور تازه‌وارد</Badge>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <Star size={13} className="fill-yellow-400 text-yellow-400" />
+                          <span className="tnum">{m.rating}</span> ({m.reviewCount} نظر)
+                        </span>
+                      )}
                       <span className="tnum">
                         {m.capacity === 0 ? "ظرفیت تکمیل" : `${m.capacity} ظرفیت باقی‌مانده`}
                       </span>
@@ -190,7 +198,7 @@ export default function MentorsListPage() {
         <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
           <div className="flex items-center gap-3 rounded-x-lg border border-border bg-surface px-4 py-3 shadow-x-md">
             <span className="text-sm text-text-700">
-              {selected.map((id) => mentors.find((m) => m.id === id)?.name).join(" و ")}
+              {selected.map((id) => allMentors.find((m) => m.id === id)?.name).join(" و ")}
             </span>
             <Button size="md" onClick={() => router.push(`/mentors/compare?a=${selected[0]}&b=${selected[1]}`)}>
               مقایسه کن
