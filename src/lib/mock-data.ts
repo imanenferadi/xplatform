@@ -1137,3 +1137,14 @@ export const transactions: Transaction[] = [
     status: "rejected",
   },
 ];
+
+// Private, mentor-only notes on a student's case file — never shown to the
+// student or parent. Was a single hardcoded uncontrolled textarea before;
+// now a real dated log, since a mentor actually keeps a running record
+// across many sessions, not just one note.
+export type PrivateNote = { id: string; studentId: string; text: string; date: string };
+
+export const mentorPrivateNotes: PrivateNote[] = [
+  { id: "pn-1", studentId: "1", text: "بعد از جلسه‌ی قبل انگیزه‌اش کم شده بود؛ حواسم به این باشه.", date: "۲۰ شهریور" },
+  { id: "pn-2", studentId: "3", text: "خانواده فشار زیادی برای رشته‌ی پزشکی می‌ذارن؛ باید موقع صحبت با خودش مراقب باشم.", date: "۱۵ شهریور" },
+];

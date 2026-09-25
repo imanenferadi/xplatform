@@ -14,11 +14,13 @@ import {
   rootCauseAnalysis,
   nightlyCheckIns,
   moodLabels,
+  mentorPrivateNotes,
   getRiskInfo,
 } from "@/lib/mock-data";
 import { Sparkles, FileText, Upload, Moon, EyeOff, LineChart, GitCompare } from "lucide-react";
 import { TrendChart } from "@/components/ui/TrendChart";
 import { PeriodComparison } from "@/components/app/PeriodComparison";
+import { PrivateNotes } from "@/components/app/PrivateNotes";
 import { toPersianDigits } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -213,11 +215,9 @@ export default async function StudentCaseFilePage({
 
         {/* Private notes */}
         <Section title="یادداشت‌های خصوصی">
-          <textarea
-            className="w-full rounded-x-md border border-border bg-surface p-3 text-sm text-text-900 outline-none focus:border-blue-600"
-            rows={3}
-            placeholder="یادداشتی برای خودت بنویس..."
-            defaultValue="بعد از جلسه‌ی قبل انگیزه‌اش کم شده بود؛ حواسم به این باشه."
+          <PrivateNotes
+            studentId={student.id}
+            initialNotes={mentorPrivateNotes.filter((n) => n.studentId === student.id)}
           />
         </Section>
       </div>
