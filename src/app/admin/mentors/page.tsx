@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { UserCheck, Check, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { UserCheck, Check, X, Send, Copy, Link2 } from "lucide-react";
 import { AdminShell } from "@/components/app/AdminShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { mentorApplications as initialApplications, type MentorApplication } from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
+
+type DirectInvite = { id: string; name: string; link: string };
 
 const statusMeta: Record<MentorApplication["status"], { label: string; tone: "warning" | "success" | "danger" }> = {
   pending: { label: "در انتظار بررسی", tone: "warning" },
@@ -15,11 +18,37 @@ const statusMeta: Record<MentorApplication["status"], { label: string; tone: "wa
   rejected: { label: "رد شده", tone: "danger" },
 };
 
+function generateToken(): string {
+  return Math.random().toString(36).slice(2, 10);
+}
+
 export default function AdminMentorsPage() {
   const [applications, setApplications] = useState(initialApplications);
+  const [inviteName, setInviteName] = useState("");
+  const [invites, setInvites] = useState<DirectInvite[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const nextId = useRef(1);
 
   function setStatus(id: string, status: MentorApplication["status"]) {
     setApplications((apps) => apps.map((a) => (a.id === id ? { ...a, status } : a)));
+  }
+
+  function generateInviteLink() {
+    if (!inviteName.trim()) return;
+    const link = `https://x-platform.ir/mentor-invite/${generateToken()}`;
+    setInvites((inv) => [{ id: `di-${nextId.current++}`, name: inviteName.trim(), link }, ...inv]);
+    setInviteName("");
+  }
+
+  async function copyInviteLink(invite: DirectInvite) {
+    try {
+      await navigator.clipboard.writeText(invite.link);
+      setCopiedId(invite.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      // Clipboard access can fail (permissions, insecure context) — the
+      // link is still visible on screen to copy manually.
+    }
   }
 
   const pending = applications.filter((a) => a.status === "pending");
@@ -35,6 +64,52 @@ export default function AdminMentorsPage() {
         <p className="mb-6 text-sm text-text-500">
           <span className="tnum">{toPersianDigits(pending.length)}</span> درخواست در انتظار بررسی
         </p>
+
+        {/* Direct invite — complements the public application form above:
+            admin can invite a specific top-rank student directly instead
+            of waiting for them to apply. */}
+        <Card className="mb-6">
+          <CardContent>
+            <div className="mb-3 flex items-center gap-2">
+              <Send size={16} className="text-blue-600" />
+              <h2 className="text-sm font-bold text-text-900">دعوت مستقیم مشاور</h2>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder="نام رتبه‌برتری که می‌خوای دعوت کنی"
+                value={inviteName}
+                onChange={(e) => setInviteName(e.target.value)}
+                className="flex-1"
+              />
+              <Button onClick={generateInviteLink} disabled={!inviteName.trim()}>
+                <Link2 size={15} />
+                تولید لینک دعوت
+              </Button>
+            </div>
+
+            {invites.length > 0 && (
+              <div className="mt-4 space-y-2">
+                {invites.map((inv) => (
+                  <div key={inv.id} className="flex items-center justify-between gap-3 rounded-x-md bg-surface-2 p-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-text-900">{inv.name}</div>
+                      <div dir="ltr" className="tnum truncate text-xs text-text-500">
+                        {inv.link}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => copyInviteLink(inv)}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-x-md border border-border bg-surface text-text-700 transition-colors hover:bg-surface-2"
+                      aria-label="کپی لینک"
+                    >
+                      {copiedId === inv.id ? <Check size={14} className="text-mint-500" /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className="space-y-3">
           {pending.map((a) => (
