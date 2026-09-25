@@ -957,15 +957,24 @@ export const mentorMessageThreads: Record<string, ChatMessage[]> = {
 export type UpcomingSession = {
   id: string;
   studentId: string;
+  dayName: string; // شنبه … جمعه of the current week
   dayLabel: string; // "امروز", "فردا", or a day name
   time: string;
   mode: "video" | "audio";
+  done?: boolean; // already held earlier this week
 };
 
 export const upcomingSessions: UpcomingSession[] = [
-  { id: "s1", studentId: "3", dayLabel: "امروز", time: "۱۸:۰۰", mode: "video" },
-  { id: "s2", studentId: "2", dayLabel: "فردا", time: "۱۹:۳۰", mode: "video" },
-  { id: "s3", studentId: "1", dayLabel: "سه‌شنبه", time: "۱۷:۰۰", mode: "audio" },
+  { id: "s0", studentId: "1", dayName: "شنبه", dayLabel: "شنبه", time: "۱۷:۰۰", mode: "audio", done: true },
+  { id: "s1", studentId: "3", dayName: "دوشنبه", dayLabel: "امروز", time: "۱۸:۰۰", mode: "video" },
+  { id: "s2", studentId: "2", dayName: "سه‌شنبه", dayLabel: "فردا", time: "۱۹:۳۰", mode: "video" },
+  { id: "s3", studentId: "1", dayName: "پنجشنبه", dayLabel: "پنجشنبه", time: "۱۷:۰۰", mode: "audio" },
+];
+
+// Other fixed commitments on the mentor's week (read-only, for the calendar).
+export const mentorWeekNotes: { dayName: string; text: string; tone: "exam" | "deadline" }[] = [
+  { dayName: "جمعه", text: "آزمون جامع قلمچی دانش‌آموزها", tone: "exam" },
+  { dayName: "جمعه", text: "مهلت ارسال برنامه‌ی هفته‌ی بعد (تا شب)", tone: "deadline" },
 ];
 
 export type StudentEarning = {

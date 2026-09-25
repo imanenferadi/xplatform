@@ -4,7 +4,14 @@ import { MentorShell } from "@/components/app/MentorShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
-import { mentorStudents, nightlyCheckIns, moodLabels, getRiskInfo } from "@/lib/mock-data";
+import {
+  CURRENT_DAY_NAME,
+  mentorStudents,
+  nightlyCheckIns,
+  moodLabels,
+  getRiskInfo,
+  upcomingSessions,
+} from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
 
 export default function MentorDashboardPage() {
@@ -30,21 +37,20 @@ export default function MentorDashboardPage() {
           <div className="mt-3 flex items-center gap-2 rounded-x-md border border-orange-500/30 bg-orange-500/10 p-3 text-sm">
             <CalendarX size={16} className="shrink-0 text-orange-500" />
             <span className="text-text-900">
-              <span className="font-medium">{toPersianDigits(planNotReady.length)} نفر</span> هنوز برنامه‌ی هفته‌ی
-              بعد آماده ندارن:{" "}
-              <span className="text-text-700">{planNotReady.map((s) => s.name).join("، ")}</span>
+              <span className="font-medium">{toPersianDigits(planNotReady.length)} نفر</span> هنوز برنامه‌ی هفته‌ی بعد
+              آماده ندارن: <span className="text-text-700">{planNotReady.map((s) => s.name).join("، ")}</span>
             </span>
           </div>
         )}
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <SmallStat icon={CalendarClock} label="جلسات امروز" value="۲" />
-          <SmallStat icon={MessageCircle} label="پیام بی‌پاسخ" value="۳" />
           <SmallStat
-            icon={AlertCircle}
-            label="نیاز به بازبینی برنامه"
-            value={toPersianDigits(planNotReady.length)}
+            icon={CalendarClock}
+            label="جلسات امروز"
+            value={toPersianDigits(upcomingSessions.filter((x) => x.dayName === CURRENT_DAY_NAME).length)}
           />
+          <SmallStat icon={MessageCircle} label="پیام بی‌پاسخ" value="۳" />
+          <SmallStat icon={AlertCircle} label="نیاز به بازبینی برنامه" value={toPersianDigits(planNotReady.length)} />
         </div>
 
         {/* Nightly check-ins — this replaces reading the Telegram group */}
@@ -63,9 +69,7 @@ export default function MentorDashboardPage() {
                     <Avatar name={student.name} size="sm" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate text-sm font-medium text-text-900">
-                          {student.name}
-                        </span>
+                        <span className="truncate text-sm font-medium text-text-900">{student.name}</span>
                         <span className="text-xs text-text-500">{ci.date}</span>
                         {!ci.mentorSeen && <Badge tone="info">جدید</Badge>}
                       </div>
