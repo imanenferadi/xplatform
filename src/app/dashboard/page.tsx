@@ -1,39 +1,52 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowLeft, MessageCircle, CalendarClock, Flame, Moon, FileText, Timer } from "lucide-react";
+import { ArrowLeft, MessageCircle, CalendarClock, Flame, Moon, FileText, Timer, Focus } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
-import { Button, buttonVariants } from "@/components/ui/Button";
+import { buttonVariants } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/Progress";
 import { Badge } from "@/components/ui/Badge";
 import { mentors, studentPlan } from "@/lib/mock-data";
+import { useCompletedTaskIds } from "@/lib/focus-log-store";
 import { toPersianDigits, cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const mentor = mentors[0];
-  const todoCount = studentPlan.todayTasks.filter((t) => t.status === "todo").length;
+  const completed = useCompletedTaskIds();
+  const tasks = studentPlan.todayTasks.map((t) => ({
+    ...t,
+    done: t.status === "done" || completed.has(t.id),
+  }));
+  const nextTask = tasks.find((t) => !t.done);
+  const todoCount = tasks.filter((t) => !t.done).length;
 
   return (
     <StudentShell>
       <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
         <h1 className="text-xl font-bold text-text-900">سلام ایمان 👋</h1>
-        <p className="mt-1 text-sm text-text-500">امروز {toPersianDigits(todoCount)} کار داری</p>
+        <p className="mt-1 text-sm text-text-500">
+          {todoCount > 0 ? `امروز ${toPersianDigits(todoCount)} کار داری` : "همه‌ی کارهای امروز انجام شد"}
+        </p>
 
-        {/* Hero task card */}
-        <Card className="mt-5 border-blue-600/20 bg-blue-100">
-          <CardContent className="flex items-center justify-between gap-4">
-            <div>
-              <div className="text-sm text-text-500">شروع کن با</div>
-              <div className="font-bold text-text-900">{studentPlan.todayTasks[0].topic}</div>
-              <div className="tnum mt-1 text-xs text-text-500">
-                {studentPlan.todayTasks[0].duration} دقیقه · {studentPlan.todayTasks[0].subject}
+        {/* Hero — one tap into distraction-free focus mode on the next task */}
+        {nextTask && (
+          <Card className="mt-5 border-blue-600/20 bg-blue-100">
+            <CardContent className="flex items-center justify-between gap-4">
+              <div>
+                <div className="text-sm text-text-500">کار بعدی</div>
+                <div className="font-bold text-text-900">{nextTask.topic}</div>
+                <div className="tnum mt-1 text-xs text-text-500">
+                  {toPersianDigits(nextTask.duration)} دقیقه · {nextTask.subject}
+                </div>
               </div>
-            </div>
-            <Link href="/dashboard/plan" className={buttonVariants({ size: "md" })}>
-              شروع کن
-              <ArrowLeft size={16} />
-            </Link>
-          </CardContent>
-        </Card>
+              <Link href="/dashboard/focus" className={buttonVariants({ size: "md" })}>
+                <Focus size={16} />
+                حالت «فقط الان»
+              </Link>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Secondary cards */}
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -89,34 +102,28 @@ export default function DashboardPage() {
         {/* Today's tasks */}
         <h2 className="mb-3 mt-6 text-sm font-bold text-text-900">برنامه‌ی امروز</h2>
         <div className="space-y-3">
-          {studentPlan.todayTasks.map((t) => (
+          {tasks.map((t) => (
             <Card key={t.id}>
               <CardContent className="flex items-center gap-3 py-4">
-                <div
-                  className={cn(
-                    "h-2.5 w-2.5 shrink-0 rounded-full",
-                    t.status === "done" ? "bg-mint-500" : "bg-border"
-                  )}
-                />
+                <div className={cn("h-2.5 w-2.5 shrink-0 rounded-full", t.done ? "bg-mint-500" : "bg-border")} />
                 <div className="flex-1">
-                  <div
-                    className={cn(
-                      "text-sm font-medium",
-                      t.status === "done" ? "text-text-500 line-through" : "text-text-900"
-                    )}
-                  >
+                  <div className={cn("text-sm font-medium", t.done ? "text-text-500 line-through" : "text-text-900")}>
                     {t.topic}
                   </div>
                   <div className="tnum text-xs text-text-500">
-                    {t.subject} · {t.duration} دقیقه
+                    {t.subject} · {toPersianDigits(t.duration)} دقیقه
                   </div>
                 </div>
-                {t.status === "todo" ? (
-                  <Button size="md" variant="secondary">
-                    شروع
-                  </Button>
-                ) : (
+                {t.done ? (
                   <Badge tone="success">انجام شد</Badge>
+                ) : (
+                  <Link
+                    href={`/dashboard/focustimer?task=${t.id}`}
+                    className={buttonVariants({ size: "md", variant: "secondary" })}
+                  >
+                    <Timer size={15} />
+                    شروع
+                  </Link>
                 )}
               </CardContent>
             </Card>
