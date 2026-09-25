@@ -305,7 +305,7 @@ export const studentPlan = {
 // full per-task breakdown still lives on /dashboard/plan.
 export type CalendarDay = {
   dayName: string;
-  taskSummary?: string;
+  tasks: { subject: string; hours: number }[]; // same numbers as /dashboard/plan
   session?: { time: string; mentorName: string; mode: "video" | "audio" };
   exam?: { provider: string; name: string };
 };
@@ -313,15 +313,22 @@ export type CalendarDay = {
 export const studentWeekCalendar: CalendarDay[] = [
   {
     dayName: "شنبه",
-    taskSummary: "۱ کار · ۳ ساعت",
+    tasks: [{ subject: "زیست", hours: 3 }],
     session: { time: "۱۸:۰۰", mentorName: "سارا محمدی", mode: "video" },
   },
-  { dayName: "یکشنبه", taskSummary: "۲ کار · ۳.۵ ساعت" },
-  { dayName: "دوشنبه", taskSummary: "۳ کار · ۶.۵ ساعت" },
-  { dayName: "سه‌شنبه", taskSummary: "۲ کار · ۳ ساعت" },
-  { dayName: "چهارشنبه", taskSummary: "۱ کار · ۲.۵ ساعت" },
-  { dayName: "پنجشنبه", taskSummary: "۱ کار · ۲ ساعت" },
-  { dayName: "جمعه", exam: { provider: "قلمچی", name: "آزمون جامع شماره ۶" } },
+  { dayName: "یکشنبه", tasks: [{ subject: "فیزیک", hours: 2 }, { subject: "شیمی", hours: 1.5 }] },
+  {
+    dayName: "دوشنبه",
+    tasks: [
+      { subject: "ریاضی", hours: 3 },
+      { subject: "فیزیک", hours: 2 },
+      { subject: "شیمی", hours: 1.5 },
+    ],
+  },
+  { dayName: "سه‌شنبه", tasks: [{ subject: "ریاضی", hours: 2 }, { subject: "شیمی", hours: 1 }] },
+  { dayName: "چهارشنبه", tasks: [{ subject: "فیزیک", hours: 2.5 }] },
+  { dayName: "پنجشنبه", tasks: [{ subject: "ریاضی", hours: 2 }] },
+  { dayName: "جمعه", tasks: [{ subject: "زیست", hours: 1.5 }], exam: { provider: "قلمچی", name: "آزمون جامع شماره ۶" } },
 ];
 
 // ---------------------------------------------------------------------
@@ -473,10 +480,23 @@ export type NightlyCheckIn = {
   mood: "great" | "ok" | "tired" | "struggled";
   note: string;
   mentorSeen: boolean;
+  /** Optional, "HH:MM": last night's bedtime and this morning's wake-up. */
+  sleep?: { bed: string; wake: string };
 };
 
 // "Today" across the demo (matches the plan page's امروز).
 export const CURRENT_DAY_NAME = "دوشنبه";
+// The demo's fixed "today" as a calendar date: دوشنبه ۷ مهر ۱۴۰۵.
+export const DEMO_TODAY_ISO = "2026-09-29";
+
+// Konkur 1406 hasn't been announced by سنجش yet (1405's was ۲۹ مرداد), so
+// this is an estimate — change it here once the official date is out.
+export const KONKUR_DATE = { label: "۱۵ تیر ۱۴۰۶", iso: "2027-07-06", estimated: true };
+
+export function daysUntilKonkur(todayIso = DEMO_TODAY_ISO): number {
+  const ms = Date.parse(`${KONKUR_DATE.iso}T00:00:00Z`) - Date.parse(`${todayIso}T00:00:00Z`);
+  return Math.max(0, Math.round(ms / 86_400_000));
+}
 export const WEEK_DAYS = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
 export const WEEK_LABELS = { this: "این هفته (۵ تا ۱۱ مهر)", last: "هفته‌ی قبل (۲۹ شهریور تا ۴ مهر)" };
 // Konkur تجربی subjects incl. the general ones students actually log.
@@ -507,6 +527,11 @@ function seedCheckIn(
   };
 }
 
+// Attaches last night's sleep to seeded check-ins by id: [bed, wake].
+function withSleep(list: NightlyCheckIn[], sleep: Record<string, [bed: string, wake: string]>): NightlyCheckIn[] {
+  return list.map((ci) => (sleep[ci.id] ? { ...ci, sleep: { bed: sleep[ci.id][0], wake: sleep[ci.id][1] } } : ci));
+}
+
 export const moodLabels: Record<NightlyCheckIn["mood"], string> = {
   great: "عالی بودم 💪",
   ok: "خوب بود 🙂",
@@ -517,7 +542,7 @@ export const moodLabels: Record<NightlyCheckIn["mood"], string> = {
 // Check-ins for the mentor's students — this feed is what replaces the
 // mentor's Telegram group in the current real-world workflow.
 // The recent ones — what the mentor's "چک‌این‌های دیشب" feed shows.
-export const nightlyCheckIns: NightlyCheckIn[] = [
+export const nightlyCheckIns: NightlyCheckIn[] = withSleep([
   {
     ...seedCheckIn(
       "ci-1",
@@ -540,10 +565,13 @@ export const nightlyCheckIns: NightlyCheckIn[] = [
     mentorSeen: false,
   },
   seedCheckIn("ci-3", "1", "last", "جمعه", [], "struggled", "", "۳ روز پیش"),
-];
+], {
+  "ci-1": ["23:30", "06:30"],
+  "ci-2": ["01:15", "06:45"],
+});
 
 // Older nights for the mentor's students — only feed the weekly summaries.
-export const checkInHistory: NightlyCheckIn[] = [
+export const checkInHistory: NightlyCheckIn[] = withSleep([
   seedCheckIn("h3-1", "3", "last", "شنبه", [["زیست", "ژنتیک", 90, 40], ["شیمی", "استوکیومتری", 60, 30]], "great"),
   seedCheckIn("h3-2", "3", "last", "یکشنبه", [["فیزیک", "حرکت‌شناسی", 75, 25], ["ریاضی", "تابع", 45, 20]], "ok"),
   seedCheckIn("h3-3", "3", "last", "دوشنبه", [["زیست", "گردش خون", 80, 35], ["ادبیات", "آرایه‌ها", 30, 20]], "great"),
@@ -562,11 +590,17 @@ export const checkInHistory: NightlyCheckIn[] = [
 
   seedCheckIn("h1-1", "1", "last", "شنبه", [["زیست", "سلول", 40, 10]], "tired"),
   seedCheckIn("h1-2", "1", "last", "سه‌شنبه", [["شیمی", "آلی", 30, 5]], "struggled", "هیچی نفهمیدم از آلی"),
-];
+], {
+  "h3-1": ["23:00", "06:30"], "h3-2": ["23:30", "06:30"], "h3-3": ["23:15", "06:30"], "h3-4": ["00:00", "06:45"],
+  "h3-5": ["00:30", "06:45"], "h3-6": ["23:30", "07:00"], "h3-7": ["23:00", "06:00"], "h3-8": ["23:00", "06:30"],
+  "h3-9": ["23:45", "06:30"],
+  "h2-1": ["00:30", "06:30"], "h2-2": ["01:00", "06:30"], "h2-3": ["01:30", "06:45"], "h2-4": ["00:45", "07:00"],
+  "h2-5": ["01:00", "06:30"],
+});
 
 // The logged-in student's own (ایمان) past nights; tonight's is entered on
 // /dashboard/checkin and kept in the browser (see checkin-store).
-export const myCheckInSeed: NightlyCheckIn[] = [
+export const myCheckInSeed: NightlyCheckIn[] = withSleep([
   seedCheckIn("me-1", "me", "last", "شنبه", [["زیست", "ژنتیک", 80, 30], ["شیمی", "استوکیومتری", 50, 25]], "ok"),
   seedCheckIn("me-2", "me", "last", "یکشنبه", [["ریاضی", "تابع", 60, 20], ["فیزیک", "حرکت‌شناسی", 45, 15]], "great"),
   seedCheckIn("me-3", "me", "last", "دوشنبه", [["زیست", "گردش خون", 70, 35], ["ادبیات", "قرابت معنایی", 25, 15]], "ok"),
@@ -576,7 +610,11 @@ export const myCheckInSeed: NightlyCheckIn[] = [
   seedCheckIn("me-7", "me", "last", "جمعه", [["زیست", "آزمون جامع قلمچی", 90, 45]], "ok"),
   seedCheckIn("me-8", "me", "this", "شنبه", [["ریاضی", "مرور فصل ۲", 60, 25], ["شیمی", "تست‌زنی", 45, 30]], "ok"),
   seedCheckIn("me-9", "me", "this", "یکشنبه", [["فیزیک", "حرکت‌شناسی", 90, 20], ["زیست", "فیزیولوژی", 40, 20]], "great"),
-];
+], {
+  "me-1": ["23:30", "07:00"], "me-2": ["23:00", "06:30"], "me-3": ["00:30", "06:30"], "me-4": ["01:00", "06:30"],
+  "me-5": ["23:30", "06:45"], "me-6": ["23:00", "06:30"], "me-7": ["23:30", "06:00"],
+  "me-8": ["23:15", "06:45"], "me-9": ["00:15", "06:45"],
+});
 
 export const chatMessages = [
   { id: 1, from: "mentor" as const, text: "سلام! برنامه‌ی این هفته رو دیدی؟ از فردا شیمی آلی رو شروع می‌کنیم.", time: "۰۹:۱۲" },
@@ -896,6 +934,7 @@ export type ChatMessage = {
   text: string;
   time: string;
   voice?: { url: string; seconds: number };
+  broadcast?: boolean; // sent to several students at once (پیام گروهی)
 };
 
 /** One thread per student, keyed by MentorStudent.id. */
@@ -1271,3 +1310,75 @@ export const referralProgram = {
     { id: "rf-2", friendName: "مریم صادقی", date: "۳ هفته پیش", status: "pending_payment" as const },
   ] as ReferralRecord[],
 };
+
+// ---------------------------------------------------------------------
+// دفترچه‌ی غلط‌ها — the student logs each wrong test with *why* it went
+// wrong. No test bank needed: the student just references the source
+// (exam / book + question number). The point is the pattern: "most of my
+// mistakes are carelessness, not ignorance" changes what the mentor plans.
+// ---------------------------------------------------------------------
+
+export type MistakeReason = "careless" | "calculation" | "concept" | "forgot" | "time" | "trap" | "not_studied";
+
+export const MISTAKE_REASONS: Record<MistakeReason, { label: string; hint: string }> = {
+  careless: { label: "بی‌دقتی", hint: "صورت سؤال رو بد خوندم، «نیست» یا واحد رو ندیدم" },
+  calculation: { label: "اشتباه محاسباتی", hint: "راه رو بلد بودم، توی حساب اشتباه کردم" },
+  concept: { label: "بلد نبودم", hint: "مفهوم رو درست نفهمیده بودم" },
+  forgot: { label: "فرمول/نکته یادم رفت", hint: "خونده بودم ولی سر جلسه یادم نیومد" },
+  time: { label: "کمبود وقت", hint: "وقت نشد درست حلش کنم" },
+  trap: { label: "تله‌ی تستی", hint: "گول گزینه‌ی انحرافی رو خوردم" },
+  not_studied: { label: "نخونده بودم", hint: "این مبحث رو هنوز نخونده بودم" },
+};
+
+export type MistakeEntry = {
+  id: string;
+  studentId: string;
+  subject: string;
+  topic: string;
+  source: string;
+  questionNo?: string;
+  reason: MistakeReason;
+  fix: string; // «درستش چی بود» — what to do next time
+  date: string;
+  resolved: boolean; // re-solved it correctly later
+};
+
+function seedMistake(
+  id: string,
+  studentId: string,
+  subject: string,
+  topic: string,
+  source: string,
+  reason: MistakeReason,
+  fix = "",
+  date = "هفته‌ی قبل",
+  resolved = false,
+  questionNo?: string
+): MistakeEntry {
+  return { id, studentId, subject, topic, source, reason, fix, date, resolved, questionNo };
+}
+
+// The logged-in student's own notebook seed (see mistakes-store).
+export const myMistakesSeed: MistakeEntry[] = [
+  seedMistake("mm-1", "me", "شیمی", "استوکیومتری", "آزمون قلم‌چی ۴ مهر", "calculation", "واحد گرم به مول رو دوبار چک کنم", "۴ مهر", false, "۱۴۷"),
+  seedMistake("mm-2", "me", "زیست", "گردش خون", "آزمون قلم‌چی ۴ مهر", "careless", "کلمه‌ی «نادرست» توی صورت سؤال بود", "۴ مهر", false, "۱۲"),
+  seedMistake("mm-3", "me", "زیست", "ژنتیک", "آزمون قلم‌چی ۴ مهر", "concept", "", "۴ مهر", false, "۳۱"),
+  seedMistake("mm-4", "me", "فیزیک", "حرکت‌شناسی", "خیلی سبز فصل ۲", "careless", "جهت مثبت محور رو اول مشخص کنم", "۲ مهر", true, "۸۸"),
+  seedMistake("mm-5", "me", "ریاضی", "مشتق", "خیلی سبز فصل ۴", "calculation", "", "۱ مهر", false, "۱۰۲"),
+  seedMistake("mm-6", "me", "شیمی", "تعادل", "آزمون قلم‌چی ۴ مهر", "trap", "گزینه‌ی ۲ فقط نیمه‌ی اول درست بود", "۴ مهر", false, "۱۵۸"),
+  seedMistake("mm-7", "me", "فیزیک", "دینامیک", "آزمون قلم‌چی ۴ مهر", "time", "", "۴ مهر", false, "۱۱۵"),
+  seedMistake("mm-8", "me", "زیست", "تنفس", "مهروماه فصل ۵", "careless", "", "۳۱ شهریور", true, "۴۰"),
+];
+
+// Mentor's students — feeds «الگوی غلط‌ها» on the case file.
+export const studentMistakes: MistakeEntry[] = [
+  seedMistake("sm-1", "3", "زیست", "تنظیم عصبی", "آزمون قلم‌چی ۴ مهر", "careless"),
+  seedMistake("sm-2", "3", "شیمی", "تعادل", "آزمون قلم‌چی ۴ مهر", "calculation"),
+  seedMistake("sm-3", "3", "فیزیک", "کار و انرژی", "آزمون قلم‌چی ۴ مهر", "careless"),
+  seedMistake("sm-4", "3", "ریاضی", "مثلثات", "خیلی سبز", "time"),
+  seedMistake("sm-5", "3", "زیست", "ژنتیک", "آزمون قلم‌چی ۴ مهر", "trap"),
+  seedMistake("sm-6", "1", "شیمی", "آلی", "آزمون قلم‌چی ۴ مهر", "not_studied"),
+  seedMistake("sm-7", "1", "شیمی", "آلی", "مبتکران", "concept"),
+  seedMistake("sm-8", "1", "زیست", "سلول", "آزمون قلم‌چی ۴ مهر", "concept"),
+  seedMistake("sm-9", "1", "فیزیک", "الکتریسیته", "آزمون قلم‌چی ۴ مهر", "forgot"),
+];

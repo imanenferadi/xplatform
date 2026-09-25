@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { mentors } from "@/lib/mock-data";
+import { CapacitySettings } from "@/components/app/CapacitySettings";
 
 export default function MentorProfilePage() {
   const me = mentors[0]; // سارا محمدی — the logged-in mentor for this demo
@@ -79,6 +80,8 @@ export default function MentorProfilePage() {
             </form>
           </CardContent>
         </Card>
+
+        <CapacitySettings mentor={me} />
       </div>
     </MentorShell>
   );

@@ -23,6 +23,7 @@ const navGroups: NavGroup[] = [
       { href: "/dashboard/plan", label: "برنامه‌ی هفته" },
       { href: "/dashboard/calendar", label: "تقویم" },
       { href: "/dashboard/focustimer", label: "تایمر فوکوس" },
+      { href: "/dashboard/exam-sim", label: "شبیه‌ساز آزمون" },
     ],
   },
   {
@@ -43,6 +44,7 @@ const navGroups: NavGroup[] = [
       { href: "/dashboard/ai", label: "معلم AI" },
       { href: "/dashboard/library", label: "کتابخونه" },
       { href: "/dashboard/calculator", label: "ماشین‌حساب درصد" },
+      { href: "/dashboard/mistakes", label: "دفترچه‌ی غلط‌ها" },
       { href: "/dashboard/notes", label: "یادداشت‌ها" },
     ],
   },

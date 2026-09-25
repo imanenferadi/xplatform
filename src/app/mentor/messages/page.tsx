@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MentorShell } from "@/components/app/MentorShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
+import { BroadcastComposer } from "@/components/app/BroadcastComposer";
 import { mentorStudents, mentorMessageThreads } from "@/lib/mock-data";
 
 export default function MentorMessagesPage() {
@@ -9,6 +10,8 @@ export default function MentorMessagesPage() {
     <MentorShell>
       <div className="mx-auto max-w-2xl px-4 py-6 md:py-8">
         <h1 className="mb-5 text-lg font-bold text-text-900">گفتگوها</h1>
+
+        <BroadcastComposer />
 
         <div className="space-y-2">
           {mentorStudents.map((s) => {

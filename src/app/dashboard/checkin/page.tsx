@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { Check, Moon, Plus, Trash2, BarChart3 } from "lucide-react";
+import { Check, Moon, Plus, Trash2, BarChart3, BedDouble } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -16,6 +16,7 @@ import {
 } from "@/lib/mock-data";
 import { saveCheckIn, useMyCheckIns } from "@/lib/checkin-store";
 import { useFocusMinutesByTask } from "@/lib/focus-log-store";
+import { formatStudyTime, sleepMinutes } from "@/lib/checkins";
 import { cn, toLatinDigits, toPersianDigits } from "@/lib/utils";
 
 type Mood = NightlyCheckIn["mood"];
@@ -23,6 +24,9 @@ type Row = { key: number; subject: string; topic: string; minutes: string; tests
 
 const MAX_MINUTES = 600;
 const MAX_TESTS = 500;
+// A bed/wake pair outside this range is almost certainly a typo (AM/PM mix-up).
+const MIN_SLEEP = 2 * 60;
+const MAX_SLEEP = 14 * 60;
 
 function emptyRow(key: number): Row {
   return { key, subject: "", topic: "", minutes: "", tests: "" };
@@ -39,6 +43,9 @@ export default function NightlyCheckInPage() {
   const [mood, setMood] = useState<Mood | null>(null);
   const [moodError, setMoodError] = useState(false);
   const [note, setNote] = useState("");
+  const [bed, setBed] = useState("");
+  const [wake, setWake] = useState("");
+  const [sleepError, setSleepError] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   const alreadyTonight = useMyCheckIns().some((c) => c.week === "this" && c.dayName === CURRENT_DAY_NAME);
@@ -81,9 +88,18 @@ export default function NightlyCheckInPage() {
       else entries.push({ subject: r.subject, topic: r.topic.trim(), minutes, tests });
     }
 
+    let sleepErr = "";
+    if (Boolean(bed) !== Boolean(wake)) sleepErr = "هم ساعت خواب رو بزن هم ساعت بیداری (یا هیچ‌کدوم).";
+    else if (bed && wake) {
+      const slept = sleepMinutes({ bed, wake });
+      if (slept < MIN_SLEEP || slept > MAX_SLEEP)
+        sleepErr = `با این ساعت‌ها می‌شه ${formatStudyTime(slept)} خواب — یه بار دیگه چکش کن.`;
+    }
+
     setRowErrors(errors);
     setMoodError(!mood);
-    if (Object.keys(errors).length > 0 || !mood) return;
+    setSleepError(sleepErr);
+    if (Object.keys(errors).length > 0 || !mood || sleepErr) return;
 
     saveCheckIn({
       id: `me-${CURRENT_DAY_NAME}`,
@@ -95,6 +111,7 @@ export default function NightlyCheckInPage() {
       mood,
       note: note.trim(),
       mentorSeen: false,
+      ...(bed && wake ? { sleep: { bed, wake } } : {}),
     });
     setSubmitted(true);
   }
@@ -227,6 +244,28 @@ export default function NightlyCheckInPage() {
 
           <Card>
             <CardContent>
+              <h2 className="mb-1 flex items-center gap-1.5 text-sm font-bold text-text-900">
+                <BedDouble size={15} className="text-blue-600" /> خواب
+                <span className="font-normal text-text-500">(اختیاری)</span>
+              </h2>
+              <p className="mb-3 text-xs text-text-500">
+                ساعت خواب ثابت، مخصوصاً بیدار شدن صبح زود، روی تمرکز و روز کنکور اثر مستقیم داره.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <TimeField label="دیشب کی خوابیدی؟" value={bed} onChange={(v) => { setBed(v); setSleepError(""); }} />
+                <TimeField label="امروز کی بیدار شدی؟" value={wake} onChange={(v) => { setWake(v); setSleepError(""); }} />
+              </div>
+              {bed && wake && !sleepError && (
+                <p className="mt-2 text-xs text-text-500">
+                  یعنی حدود {formatStudyTime(sleepMinutes({ bed, wake }))} خواب
+                </p>
+              )}
+              {sleepError && <p className="mt-2 text-xs text-red-500">{sleepError}</p>}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent>
               <h2 className="mb-3 text-sm font-bold text-text-900">امروز حالت چطور بود؟</h2>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {(Object.keys(moodLabels) as Mood[]).map((m) => (
@@ -287,6 +326,21 @@ function NumberField({ label, value, onChange }: { label: string; value: string;
         className="tnum w-full min-w-0 bg-transparent text-sm text-text-900 outline-none placeholder:text-text-500"
       />
       <span className="shrink-0 text-xs text-text-500">{label}</span>
+    </label>
+  );
+}
+
+function TimeField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs text-text-700">{label}</span>
+      <input
+        type="time"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        dir="ltr"
+        className="tnum h-10 w-full rounded-x-sm border border-border bg-surface px-3 text-sm text-text-900 outline-none focus:border-blue-600"
+      />
     </label>
   );
 }

@@ -7,12 +7,16 @@ import { StudentShell } from "@/components/app/StudentShell";
 import { Avatar } from "@/components/ui/Avatar";
 import { VoiceBubble, VoiceRecordButton } from "@/components/app/Voice";
 import { chatMessages, mentors, type ChatMessage } from "@/lib/mock-data";
+import { useBroadcastMessages } from "@/lib/broadcast-store";
 import type { VoiceClip } from "@/lib/use-voice-recorder";
 import { cn } from "@/lib/utils";
 
 export default function ChatPage() {
   const mentor = mentors[0];
-  const [messages, setMessages] = useState<ChatMessage[]>(chatMessages);
+  // Seeded history, then the mentor's group messages, then this session's own.
+  const [sent, setSent] = useState<ChatMessage[]>([]);
+  const broadcasts = useBroadcastMessages("me");
+  const messages: ChatMessage[] = [...chatMessages, ...broadcasts, ...sent];
   const [input, setInput] = useState("");
   const nextId = useRef(1000);
   const voiceUrls = useRef<string[]>([]);
@@ -24,7 +28,7 @@ export default function ChatPage() {
 
   function send() {
     if (!input.trim()) return;
-    setMessages((m) => [
+    setSent((m) => [
       ...m,
       { id: nextId.current++, from: "student", text: input, time: "الان" },
     ]);
@@ -33,7 +37,7 @@ export default function ChatPage() {
 
   function sendVoice(clip: VoiceClip) {
     voiceUrls.current.push(clip.url);
-    setMessages((m) => [...m, { id: nextId.current++, from: "student", text: "", time: "الان", voice: clip }]);
+    setSent((m) => [...m, { id: nextId.current++, from: "student", text: "", time: "الان", voice: clip }]);
   }
 
   return (
@@ -61,6 +65,11 @@ export default function ChatPage() {
                   m.from === "student" ? "bg-navy-900 text-white" : "border border-border bg-surface-2 text-text-700"
                 )}
               >
+                {m.broadcast && (
+                  <div className={cn("mb-1 text-[10px] font-medium", m.from === "student" ? "text-white/70" : "text-blue-600")}>
+                    📣 پیام گروهی
+                  </div>
+                )}
                 {m.voice ? <VoiceBubble clip={m.voice} mine={m.from === "student"} /> : m.text}
                 <div
                   className={cn(

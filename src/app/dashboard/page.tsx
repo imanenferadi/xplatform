@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, MessageCircle, CalendarClock, Flame, Moon, FileText, Timer, Focus } from "lucide-react";
+import { ArrowLeft, MessageCircle, CalendarClock, Flame, Moon, FileText, Timer, Focus, Hourglass } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { buttonVariants } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/Progress";
 import { Badge } from "@/components/ui/Badge";
-import { mentors, studentPlan } from "@/lib/mock-data";
+import { KONKUR_DATE, daysUntilKonkur, mentors, studentPlan } from "@/lib/mock-data";
 import { useCompletedTaskIds } from "@/lib/focus-log-store";
 import { toPersianDigits, cn } from "@/lib/utils";
 
@@ -24,10 +24,29 @@ export default function DashboardPage() {
   return (
     <StudentShell>
       <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
-        <h1 className="text-xl font-bold text-text-900">سلام ایمان 👋</h1>
-        <p className="mt-1 text-sm text-text-500">
-          {todoCount > 0 ? `امروز ${toPersianDigits(todoCount)} کار داری` : "همه‌ی کارهای امروز انجام شد"}
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-text-900">سلام ایمان 👋</h1>
+            <p className="mt-1 text-sm text-text-500">
+              {todoCount > 0 ? `امروز ${toPersianDigits(todoCount)} کار داری` : "همه‌ی کارهای امروز انجام شد"}
+            </p>
+          </div>
+          <div
+            className="flex items-center gap-2 rounded-x-md border border-border bg-surface px-3 py-2"
+            title={KONKUR_DATE.estimated ? `تاریخ تخمینی (${KONKUR_DATE.label}) — هنوز سنجش رسماً اعلام نکرده` : KONKUR_DATE.label}
+          >
+            <Hourglass size={16} className="text-orange-500" />
+            <div>
+              <div className="text-sm font-bold text-text-900">
+                <span className="tnum">{toPersianDigits(daysUntilKonkur())}</span> روز تا کنکور
+              </div>
+              <div className="text-[10px] text-text-500">
+                {KONKUR_DATE.label}
+                {KONKUR_DATE.estimated && " · تخمینی"}
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Hero — one tap into distraction-free focus mode on the next task */}
         {nextTask && (

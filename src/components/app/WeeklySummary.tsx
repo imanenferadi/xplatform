@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Clock, ListChecks, CalendarCheck } from "lucide-react";
+import { Clock, ListChecks, CalendarCheck, BedDouble } from "lucide-react";
 import { CURRENT_DAY_NAME, WEEK_DAYS, WEEK_LABELS, type NightlyCheckIn } from "@/lib/mock-data";
-import { aggregateWeek, formatStudyTime } from "@/lib/checkins";
+import { SHORT_SLEEP_MINUTES, aggregateWeek, formatClockTime, formatStudyTime } from "@/lib/checkins";
 import { cn, toPersianDigits } from "@/lib/utils";
 
 type Week = NightlyCheckIn["week"];
@@ -53,6 +53,7 @@ export function WeeklySummary({ checkIns, audience }: { checkIns: NightlyCheckIn
         {WEEK_DAYS.map((d, i) => {
           const future = week === "this" && i > todayIndex;
           const done = summary.checkedInDays.has(d);
+          const slept = summary.sleep.byDay.get(d);
           return (
             <div key={d} className="text-center">
               <div
@@ -64,10 +65,38 @@ export function WeeklySummary({ checkIns, audience }: { checkIns: NightlyCheckIn
               <div className={cn("mt-1 text-[10px]", future ? "text-text-500/60" : "text-text-500")}>
                 {d.slice(0, 2)}
               </div>
+              {slept != null && (
+                <div
+                  className={cn(
+                    "text-[10px]",
+                    slept < SHORT_SLEEP_MINUTES ? "font-bold text-orange-500" : "text-text-500"
+                  )}
+                  title={`خواب: ${formatStudyTime(slept)}`}
+                >
+                  <span className="tnum">{toPersianDigits(Math.round((slept / 60) * 10) / 10)}</span>س
+                </div>
+              )}
             </div>
           );
         })}
       </div>
+
+      {summary.sleep.nights > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-x-md bg-surface-2 px-3 py-2 text-xs text-text-700">
+          <span className="flex items-center gap-1 font-medium text-text-900">
+            <BedDouble size={13} className="text-blue-600" /> خواب
+          </span>
+          <span>میانگین {formatStudyTime(summary.sleep.avgMinutes)}</span>
+          <span>
+            بیداری حدود <span className="tnum">{formatClockTime(summary.sleep.avgWake)}</span>
+          </span>
+          {summary.sleep.shortNights > 0 && (
+            <span className="text-orange-500">
+              {toPersianDigits(summary.sleep.shortNights)} شب زیر ۶ ساعت
+            </span>
+          )}
+        </div>
+      )}
 
       {summary.subjects.length === 0 ? (
         <p className="py-8 text-center text-sm text-text-500">

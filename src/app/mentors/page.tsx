@@ -10,7 +10,8 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { mentors, type ExamGroup } from "@/lib/mock-data";
 import { useApprovedMentors } from "@/lib/mentor-applications-store";
-import { cn } from "@/lib/utils";
+import { useCapacityOverrides } from "@/lib/capacity-store";
+import { cn, toPersianDigits } from "@/lib/utils";
 
 const GROUPS: ExamGroup[] = ["تجربی", "ریاضی", "انسانی"];
 const MIN_RATINGS = [0, 4.5, 4.8];
@@ -38,7 +39,11 @@ export default function MentorsListPage() {
   }
 
   const approved = useApprovedMentors();
-  const allMentors = useMemo(() => [...mentors, ...approved], [approved]);
+  const remainingSeats = useCapacityOverrides();
+  const allMentors = useMemo(
+    () => [...mentors, ...approved].map((m) => ({ ...m, capacity: remainingSeats(m) })),
+    [approved, remainingSeats]
+  );
 
   const filtered = useMemo(
     () =>
@@ -177,8 +182,14 @@ export default function MentorsListPage() {
                           <span className="tnum">{m.rating}</span> ({m.reviewCount} نظر)
                         </span>
                       )}
-                      <span className="tnum">
-                        {m.capacity === 0 ? "ظرفیت تکمیل" : `${m.capacity} ظرفیت باقی‌مانده`}
+                      <span>
+                        {m.capacity === 0 ? (
+                          "ظرفیت تکمیل"
+                        ) : (
+                          <>
+                            <span className="tnum">{toPersianDigits(m.capacity)}</span> ظرفیت باقی‌مانده
+                          </>
+                        )}
                       </span>
                     </div>
                   </CardContent>

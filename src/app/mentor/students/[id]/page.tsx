@@ -16,6 +16,7 @@ import {
   checkInHistory,
   moodLabels,
   mentorPrivateNotes,
+  studentMistakes,
   getRiskInfo,
 } from "@/lib/mock-data";
 import { Sparkles, FileText, Upload, Moon, EyeOff, LineChart, GitCompare } from "lucide-react";
@@ -23,7 +24,8 @@ import { TrendChart } from "@/components/ui/TrendChart";
 import { PeriodComparison } from "@/components/app/PeriodComparison";
 import { PrivateNotes } from "@/components/app/PrivateNotes";
 import { WeeklySummary } from "@/components/app/WeeklySummary";
-import { formatStudyTime } from "@/lib/checkins";
+import { MistakePattern } from "@/components/app/MistakePattern";
+import { formatStudyTime, sleepMinutes } from "@/lib/checkins";
 import { toPersianDigits } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -185,6 +187,11 @@ export default async function StudentCaseFilePage({
           />
         </Section>
 
+        {/* Why this student gets tests wrong, from their own mistake notebook */}
+        <Section title="الگوی غلط‌ها">
+          <MistakePattern entries={studentMistakes.filter((m) => m.studentId === student.id)} audience="mentor" />
+        </Section>
+
         {/* Nightly check-ins — replaces reading the Telegram group report */}
         <Section title="چک‌این‌های شب">
           <div className="space-y-2">
@@ -200,6 +207,12 @@ export default async function StudentCaseFilePage({
                     <div className="flex items-center gap-2 text-xs text-text-500">
                       <span>{c.date}</span>
                       <span>{moodLabels[c.mood]}</span>
+                      {c.sleep && (
+                        <span className="tnum">
+                          · خواب {toPersianDigits(c.sleep.bed)} تا {toPersianDigits(c.sleep.wake)} (
+                          {formatStudyTime(sleepMinutes(c.sleep))})
+                        </span>
+                      )}
                     </div>
                     {c.entries.length > 0 && (
                       <ul className="mt-1 space-y-0.5 text-xs text-text-700">

@@ -6,6 +6,8 @@ import { LayoutDashboard, MessageCircle, CalendarDays, Wallet, User, Library } f
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
+import { CapacityNote } from "@/components/app/MentorAvailability";
+import { mentors } from "@/lib/mock-data";
 
 const links = [
   { href: "/mentor", label: "داشبورد", icon: LayoutDashboard },
@@ -52,7 +54,9 @@ export function MentorShell({ children }: { children: React.ReactNode }) {
             <Avatar name="سارا" size="sm" />
             <div className="min-w-0">
               <div className="truncate text-xs font-medium text-white">سارا محمدی</div>
-              <div className="truncate text-[11px] text-white/50">۳ ظرفیت باقی‌مانده</div>
+              <div className="truncate text-[11px] text-white/50">
+                <CapacityNote mentor={mentors[0]} />
+              </div>
             </div>
           </div>
         </div>

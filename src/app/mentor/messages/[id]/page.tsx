@@ -8,15 +8,17 @@ import { MentorShell } from "@/components/app/MentorShell";
 import { Avatar } from "@/components/ui/Avatar";
 import { VoiceBubble, VoiceRecordButton } from "@/components/app/Voice";
 import { mentorStudents, mentorMessageThreads, type ChatMessage } from "@/lib/mock-data";
+import { useBroadcastMessages } from "@/lib/broadcast-store";
 import type { VoiceClip } from "@/lib/use-voice-recorder";
 import { cn } from "@/lib/utils";
 
 export default function MentorThreadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const student = mentorStudents.find((s) => s.id === id);
-  const [messages, setMessages] = useState<ChatMessage[]>(
-    student ? (mentorMessageThreads[student.id] ?? []) : []
-  );
+  // Seeded history, then group messages this student received, then this session's own.
+  const [sent, setSent] = useState<ChatMessage[]>([]);
+  const broadcasts = useBroadcastMessages(id);
+  const messages = [...(student ? (mentorMessageThreads[student.id] ?? []) : []), ...broadcasts, ...sent];
   const [input, setInput] = useState("");
   const nextId = useRef(1000);
   const voiceUrls = useRef<string[]>([]);
@@ -30,13 +32,13 @@ export default function MentorThreadPage({ params }: { params: Promise<{ id: str
 
   function send() {
     if (!input.trim()) return;
-    setMessages((m) => [...m, { id: nextId.current++, from: "mentor", text: input, time: "الان" }]);
+    setSent((m) => [...m, { id: nextId.current++, from: "mentor", text: input, time: "الان" }]);
     setInput("");
   }
 
   function sendVoice(clip: VoiceClip) {
     voiceUrls.current.push(clip.url);
-    setMessages((m) => [...m, { id: nextId.current++, from: "mentor", text: "", time: "الان", voice: clip }]);
+    setSent((m) => [...m, { id: nextId.current++, from: "mentor", text: "", time: "الان", voice: clip }]);
   }
 
   return (
@@ -68,6 +70,11 @@ export default function MentorThreadPage({ params }: { params: Promise<{ id: str
                   m.from === "mentor" ? "bg-navy-900 text-white" : "border border-border bg-surface-2 text-text-700"
                 )}
               >
+                {m.broadcast && (
+                  <div className={cn("mb-1 text-[10px] font-medium", m.from === "mentor" ? "text-white/70" : "text-blue-600")}>
+                    📣 پیام گروهی
+                  </div>
+                )}
                 {m.voice ? <VoiceBubble clip={m.voice} mine={m.from === "mentor"} /> : m.text}
                 <div className={cn("tnum mt-1 text-[10px]", m.from === "mentor" ? "text-white/60" : "text-text-500")}>
                   {m.time}

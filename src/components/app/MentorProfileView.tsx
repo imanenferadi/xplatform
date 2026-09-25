@@ -1,11 +1,10 @@
-import Link from "next/link";
 import { BadgeCheck, Star, PlayCircle, Eye } from "lucide-react";
-import { buttonVariants } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { ProgressBar } from "@/components/ui/Progress";
 import { DEFAULT_AVAILABILITY, type Mentor, type SessionFeedback } from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
+import { BookOrWaitlist, CapacityNote } from "@/components/app/MentorAvailability";
 
 // Single source for how a mentor profile looks: the public page, the
 // applicant's own preview while registering, and the admin's review
@@ -61,14 +60,10 @@ export function MentorProfileView({
               </>
             )}
             {" · "}
-            <span className="tnum">{toPersianDigits(mentor.capacity)}</span> ظرفیت باقی‌مانده
+            <CapacityNote mentor={mentor} />
           </div>
 
-          {!preview && (
-            <Link href={`/booking/${mentor.id}`} className={buttonVariants({ size: "lg", className: "mt-2" })}>
-              رزرو جلسه‌ی آشنایی رایگان
-            </Link>
-          )}
+          {!preview && <BookOrWaitlist mentor={mentor} className="mt-2 w-full max-w-xs" />}
         </div>
       </div>
 
@@ -140,12 +135,7 @@ export function MentorProfileView({
             <p className="text-sm text-text-500">
               قبل از هر تصمیمی، یک جلسه‌ی ۲۰ دقیقه‌ای رایگان با هم داشته باشید.
             </p>
-            <Link
-              href={`/booking/${mentor.id}`}
-              className={buttonVariants({ size: "lg", className: "mt-4 w-full sm:w-auto" })}
-            >
-              رزرو جلسه‌ی آشنایی
-            </Link>
+            <BookOrWaitlist mentor={mentor} className="mx-auto mt-4 w-full max-w-xs" />
           </div>
         )}
       </div>
