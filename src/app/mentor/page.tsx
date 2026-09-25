@@ -50,7 +50,7 @@ export default function MentorDashboardPage() {
         {/* Nightly check-ins — this replaces reading the Telegram group */}
         <h2 className="mb-3 mt-6 flex items-center gap-1.5 text-sm font-bold text-text-900">
           <Moon size={15} className="text-blue-600" />
-          چک‌این‌های دیشب
+          گزارش کارهای دیشب
         </h2>
         <div className="space-y-2">
           {nightlyCheckIns.map((ci) => {
@@ -104,7 +104,7 @@ export default function MentorDashboardPage() {
                           <Badge tone={risk.level}>{risk.label}</Badge>
                         </div>
                         <div className="mt-0.5 text-xs text-text-500">
-                          {risk.reason ?? `${s.grade} · آخرین چک‌این: ${s.lastCheckIn}`}
+                          {risk.reason ?? `${s.grade} · آخرین گزارش کار: ${s.lastCheckIn}`}
                         </div>
                       </div>
                       <div className="text-left">

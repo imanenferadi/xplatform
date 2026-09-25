@@ -18,7 +18,7 @@ export default function WeeklyTotalsPage() {
           <h1 className="text-xl font-bold text-text-900">جمع هفته</h1>
         </div>
         <p className="mb-5 text-sm text-text-500">
-          همه‌ی چک‌این‌های هفته، درس به درس جمع زده شده — همین جدول رو مشاورت هم می‌بینه.
+          همه‌ی گزارش کارهای هفته، درس به درس جمع زده شده — همین جدول رو مشاورت هم می‌بینه.
         </p>
 
         <Card>
@@ -28,11 +28,11 @@ export default function WeeklyTotalsPage() {
         </Card>
 
         <Link
-          href="/dashboard/checkin"
+          href="/dashboard/report"
           className="mt-4 flex items-center gap-3 rounded-x-lg border border-border bg-surface p-4 text-sm transition-colors hover:bg-surface-2"
         >
           <Moon size={16} className="text-blue-600" />
-          <span className="flex-1 text-text-900">چک‌این امشب رو زدی؟</span>
+          <span className="flex-1 text-text-900">گزارش کار امشب رو فرستادی؟</span>
         </Link>
       </div>
     </StudentShell>

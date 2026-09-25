@@ -541,7 +541,7 @@ export const moodLabels: Record<NightlyCheckIn["mood"], string> = {
 
 // Check-ins for the mentor's students — this feed is what replaces the
 // mentor's Telegram group in the current real-world workflow.
-// The recent ones — what the mentor's "چک‌این‌های دیشب" feed shows.
+// The recent ones — what the mentor's "گزارش کارهای دیشب" feed shows.
 export const nightlyCheckIns: NightlyCheckIn[] = withSleep([
   {
     ...seedCheckIn(
@@ -599,7 +599,7 @@ export const checkInHistory: NightlyCheckIn[] = withSleep([
 });
 
 // The logged-in student's own (ایمان) past nights; tonight's is entered on
-// /dashboard/checkin and kept in the browser (see checkin-store).
+// /dashboard/report and kept in the browser (see checkin-store).
 export const myCheckInSeed: NightlyCheckIn[] = withSleep([
   seedCheckIn("me-1", "me", "last", "شنبه", [["زیست", "ژنتیک", 80, 30], ["شیمی", "استوکیومتری", 50, 25]], "ok"),
   seedCheckIn("me-2", "me", "last", "یکشنبه", [["ریاضی", "تابع", 60, 20], ["فیزیک", "حرکت‌شناسی", 45, 15]], "great"),
@@ -719,7 +719,7 @@ export function getRiskInfo(student: MentorStudent): RiskInfo {
     return {
       level: "danger",
       label: "نیاز به توجه",
-      reason: `${toPersianDigits(student.daysSinceCheckIn)} روز چک‌این نکرده`,
+      reason: `${toPersianDigits(student.daysSinceCheckIn)} روز گزارش کار نفرستاده`,
     };
   }
   if (student.examDrop && student.examDrop.from - student.examDrop.to >= 5) {
@@ -1136,83 +1136,221 @@ export const pendingMentorPayouts = 8;
 
 // A-07 — platform activity/audit log. Not user-facing: this is what an
 // admin checks when a complaint comes in ("چرا حساب من مسدود شد؟") or a
-// payment needs tracing. Seeded, doesn't reflect live state elsewhere in
-// this demo since there's no shared store across pages.
-export type LogCategory = "مشاوران" | "کاربران" | "مالی" | "شکایات";
+// payment needs tracing. The event itself (who / what / when / details) is
+// immutable on purpose — an editable audit trail proves nothing. What the
+// admin edits is the follow-up layer (status, assignee, tags, note), and
+// every such edit is itself recorded. Live admin actions are appended by
+// admin-log-store.
+export type LogCategory = "مشاوران" | "کاربران" | "مالی" | "شکایات" | "امنیت";
+export type LogActorRole = "ادمین" | "سیستم" | "دانش‌آموز" | "مشاور" | "والد";
+export type LogSeverity = "info" | "warning" | "critical";
+export type FollowUpStatus = "new" | "in_progress" | "reviewed";
+
+export type LogFollowUp = {
+  status: FollowUpStatus;
+  assignee: string;
+  tags: string[];
+  note: string;
+  history: { by: string; at: string; change: string }[];
+};
 
 export type PlatformLogEntry = {
   id: string;
   category: LogCategory;
   actor: string;
+  actorRole: LogActorRole;
   action: string;
   target: string;
-  timestamp: string;
+  date: string; // "۷ مهر ۱۴۰۵"
+  time: string; // "۱۰:۲۲"
+  severity: LogSeverity;
+  device?: string;
+  details: { label: string; value: string }[];
+  href?: string; // related admin page
+  followUp: LogFollowUp;
 };
+
+export const LOG_ADMINS = ["ادمین پلتفرم", "مریم (پشتیبانی)", "علی (مالی)"];
+
+function followUp(status: FollowUpStatus = "reviewed", extra: Partial<LogFollowUp> = {}): LogFollowUp {
+  return { status, assignee: "", tags: [], note: "", history: [], ...extra };
+}
 
 export const platformLogs: PlatformLogEntry[] = [
   {
     id: "log-1",
     category: "مشاوران",
     actor: "ادمین پلتفرم",
+    actorRole: "ادمین",
     action: "تأیید درخواست مشاور",
     target: "کیان مرادی",
-    timestamp: "امروز، ۱۰:۲۲",
+    date: "۷ مهر ۱۴۰۵",
+    time: "۱۰:۲۲",
+    severity: "info",
+    device: "تهران · Chrome روی macOS",
+    details: [
+      { label: "رتبه", value: "۱۲۰ تجربی ۱۴۰۴" },
+      { label: "مدرک احراز", value: "karnameh-1404.pdf" },
+      { label: "وضعیت", value: "در انتظار ← تأییدشده" },
+    ],
+    href: "/admin/mentors",
+    followUp: followUp(),
   },
   {
     id: "log-2",
-    category: "کاربران",
-    actor: "ادمین پلتفرم",
-    action: "مسدودسازی حساب",
-    target: "رضا نامدار",
-    timestamp: "دیروز، ۱۸:۰۵",
+    category: "امنیت",
+    actor: "سیستم",
+    actorRole: "سیستم",
+    action: "۵ تلاش ناموفق ورود پشت‌سرهم",
+    target: "حساب ۰۹۳۹ ۴۴۴ ۵۵۶۶ (رضا نامدار)",
+    date: "۷ مهر ۱۴۰۵",
+    time: "۰۳:۴۱",
+    severity: "critical",
+    device: "IP ناشناس · خارج از ایران",
+    details: [
+      { label: "تعداد تلاش", value: "۵ در ۲ دقیقه" },
+      { label: "اقدام خودکار", value: "قفل ورود به مدت ۳۰ دقیقه" },
+    ],
+    href: "/admin/users",
+    followUp: followUp("new"),
   },
   {
     id: "log-3",
-    category: "مالی",
-    actor: "سیستم پرداخت",
-    action: "پرداخت ناموفق",
-    target: "امیرحسین رضایی — پلن همراه",
-    timestamp: "دیروز، ۱۴:۴۰",
+    category: "کاربران",
+    actor: "ادمین پلتفرم",
+    actorRole: "ادمین",
+    action: "مسدودسازی حساب",
+    target: "رضا نامدار",
+    date: "۶ مهر ۱۴۰۵",
+    time: "۱۸:۰۵",
+    severity: "warning",
+    device: "تهران · Chrome روی macOS",
+    details: [
+      { label: "دلیل", value: "گزارش رفتار نامناسب در چت با مشاور" },
+      { label: "وضعیت", value: "فعال ← مسدود" },
+    ],
+    href: "/admin/users",
+    followUp: followUp("in_progress", {
+      assignee: "مریم (پشتیبانی)",
+      tags: ["نیاز به تماس"],
+      note: "با والدینش تماس گرفته بشه قبل از رفع مسدودیت.",
+      history: [{ by: "مریم (پشتیبانی)", at: "۶ مهر، ۱۸:۲۰", change: "وضعیت: جدید ← در حال پیگیری" }],
+    }),
   },
   {
     id: "log-4",
-    category: "شکایات",
-    actor: "رضا نامدار",
-    action: "ثبت شکایت جدید",
-    target: "مشاور بی‌پاسخ",
-    timestamp: "۳ روز پیش، ۰۹:۱۵",
+    category: "مالی",
+    actor: "درگاه پرداخت",
+    actorRole: "سیستم",
+    action: "پرداخت ناموفق",
+    target: "امیرحسین رضایی — پلن همراه",
+    date: "۶ مهر ۱۴۰۵",
+    time: "۱۴:۴۰",
+    severity: "warning",
+    details: [
+      { label: "مبلغ", value: "۱,۴۹۰,۰۰۰ تومان" },
+      { label: "کد پیگیری", value: "TRX-88213" },
+      { label: "خطای بانک", value: "موجودی کافی نیست (کد ۵۱)" },
+    ],
+    href: "/admin/payments",
+    followUp: followUp("new"),
   },
   {
     id: "log-5",
-    category: "مالی",
-    actor: "سیستم پرداخت",
-    action: "پرداخت موفق",
-    target: "ایمان — پلن همراه",
-    timestamp: "۴ روز پیش، ۱۱:۰۰",
+    category: "شکایات",
+    actor: "رضا نامدار",
+    actorRole: "دانش‌آموز",
+    action: "ثبت شکایت جدید",
+    target: "مشاور بی‌پاسخ — نگار احمدی",
+    date: "۴ مهر ۱۴۰۵",
+    time: "۰۹:۱۵",
+    severity: "warning",
+    device: "مشهد · اپ اندروید",
+    details: [
+      { label: "متن", value: "مشاورم دو هفته‌ست پاسخ پیام نمی‌ده" },
+      { label: "آخرین پیام مشاور", value: "۱۹ شهریور" },
+    ],
+    href: "/admin/users",
+    followUp: followUp("in_progress", { assignee: "ادمین پلتفرم", tags: ["تعویض مشاور"] }),
   },
   {
     id: "log-6",
-    category: "کاربران",
-    actor: "ادمین پلتفرم",
-    action: "رفع مسدودیت حساب",
-    target: "نگین احمدی",
-    timestamp: "۵ روز پیش، ۱۶:۳۰",
+    category: "مالی",
+    actor: "درگاه پرداخت",
+    actorRole: "سیستم",
+    action: "پرداخت موفق",
+    target: "ایمان — پلن همراه",
+    date: "۳ مهر ۱۴۰۵",
+    time: "۱۱:۰۰",
+    severity: "info",
+    details: [
+      { label: "مبلغ", value: "۱,۴۹۰,۰۰۰ تومان" },
+      { label: "کد پیگیری", value: "TRX-88102" },
+      { label: "پرداخت‌کننده", value: "والد (کارت ****۴۴۴۴)" },
+    ],
+    href: "/admin/payments",
+    followUp: followUp(),
   },
   {
     id: "log-7",
-    category: "شکایات",
-    actor: "ادمین پلتفرم",
-    action: "بستن شکایت به‌عنوان حل‌شده",
-    target: "امیرحسین رضایی — پلن آپدیت‌نشده",
-    timestamp: "۶ روز پیش، ۱۳:۱۰",
+    category: "امنیت",
+    actor: "سارا محمدی",
+    actorRole: "مشاور",
+    action: "ورود از دستگاه جدید",
+    target: "حساب مشاور",
+    date: "۲ مهر ۱۴۰۵",
+    time: "۲۲:۱۰",
+    severity: "info",
+    device: "اصفهان · Safari روی iPhone",
+    details: [{ label: "تأیید دومرحله‌ای", value: "با کد پیامکی تأیید شد" }],
+    followUp: followUp(),
   },
   {
     id: "log-8",
+    category: "کاربران",
+    actor: "ادمین پلتفرم",
+    actorRole: "ادمین",
+    action: "رفع مسدودیت حساب",
+    target: "نگین احمدی",
+    date: "۲ مهر ۱۴۰۵",
+    time: "۱۶:۳۰",
+    severity: "info",
+    details: [
+      { label: "دلیل", value: "اشتباه در تشخیص پرداخت تکراری" },
+      { label: "وضعیت", value: "مسدود ← فعال" },
+    ],
+    href: "/admin/users",
+    followUp: followUp(),
+  },
+  {
+    id: "log-9",
+    category: "شکایات",
+    actor: "ادمین پلتفرم",
+    actorRole: "ادمین",
+    action: "بستن شکایت به‌عنوان حل‌شده",
+    target: "امیرحسین رضایی — پلن آپدیت‌نشده",
+    date: "۱ مهر ۱۴۰۵",
+    time: "۱۳:۱۰",
+    severity: "info",
+    details: [{ label: "راه‌حل", value: "پلن دستی به «همراه» تغییر کرد" }],
+    followUp: followUp(),
+  },
+  {
+    id: "log-10",
     category: "مشاوران",
     actor: "ادمین پلتفرم",
+    actorRole: "ادمین",
     action: "رد درخواست مشاور",
     target: "حسین طاهری",
-    timestamp: "۱ هفته پیش، ۱۰:۰۰",
+    date: "۳۱ شهریور ۱۴۰۵",
+    time: "۱۰:۰۰",
+    severity: "info",
+    details: [
+      { label: "دلیل", value: "کارنامه‌ی آپلودشده با رتبه‌ی اعلام‌شده نمی‌خوند" },
+      { label: "وضعیت", value: "در انتظار ← رد شده" },
+    ],
+    href: "/admin/mentors",
+    followUp: followUp("reviewed", { tags: ["احراز هویت"] }),
   },
 ];
 
@@ -1433,6 +1571,6 @@ export const REASSIGN_REASONS = [
 
 // What the new mentor inherits — and what deliberately stays behind.
 export const REASSIGN_TRANSFERS = {
-  moves: ["برنامه‌ها و تاریخچه‌ی اجرا", "چک‌این‌های شبانه و جمع هفته‌ها", "کارنامه‌های آپلودشده", "دفترچه‌ی غلط‌ها"],
+  moves: ["برنامه‌ها و تاریخچه‌ی اجرا", "گزارش کارهای شبانه و جمع هفته‌ها", "کارنامه‌های آپلودشده", "دفترچه‌ی غلط‌ها"],
   stays: ["یادداشت‌های خصوصی مشاور قبلی (قول «فقط خودت می‌بینی»)", "گفتگوهای قبلی با مشاور قبلی"],
 };

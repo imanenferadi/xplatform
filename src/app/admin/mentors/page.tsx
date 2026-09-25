@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { mentorApplications as initialApplications, type MentorApplication } from "@/lib/mock-data";
 import { setApplicationStatus, useStoredApplications } from "@/lib/mentor-applications-store";
+import { logEvent } from "@/lib/admin-log-store";
+
 import { toPersianDigits } from "@/lib/utils";
 
 type DirectInvite = { id: string; name: string; link: string };
@@ -25,6 +27,22 @@ function generateToken(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
+function logMentorDecision(name: string, rank: string, status: string, source = "صف تأیید") {
+  const approved = status === "approved";
+  logEvent({
+    category: "مشاوران",
+    action: approved ? "تأیید درخواست مشاور" : "رد درخواست مشاور",
+    target: name,
+    severity: "info",
+    details: [
+      { label: "رتبه", value: rank },
+      { label: "منبع درخواست", value: source },
+      { label: "وضعیت", value: `در انتظار ← ${approved ? "تأییدشده" : "رد شده"}` },
+    ],
+    href: "/admin/mentors",
+  });
+}
+
 export default function AdminMentorsPage() {
   const [applications, setApplications] = useState(initialApplications);
   const [inviteName, setInviteName] = useState("");
@@ -33,13 +51,28 @@ export default function AdminMentorsPage() {
   const nextId = useRef(1);
 
   function setStatus(id: string, status: MentorApplication["status"]) {
+    const app = applications.find((a) => a.id === id);
     setApplications((apps) => apps.map((a) => (a.id === id ? { ...a, status } : a)));
+    if (app) logMentorDecision(app.name, `${app.rank} · ${app.year}`, status);
+  }
+
+  function decideStored(id: string, name: string, rank: string, status: "approved" | "rejected") {
+    setApplicationStatus(id, status);
+    logMentorDecision(name, rank, status, "ثبت‌نام از سایت");
   }
 
   function generateInviteLink() {
     if (!inviteName.trim()) return;
     const link = `https://x-platform.ir/mentor-invite/${generateToken()}`;
     setInvites((inv) => [{ id: `di-${nextId.current++}`, name: inviteName.trim(), link }, ...inv]);
+    logEvent({
+      category: "مشاوران",
+      action: "ساخت لینک دعوت مستقیم مشاور",
+      target: inviteName.trim(),
+      severity: "info",
+      details: [{ label: "لینک", value: link }],
+      href: "/admin/mentors",
+    });
     setInviteName("");
   }
 
@@ -99,10 +132,14 @@ export default function AdminMentorsPage() {
                       </div>
                     </div>
                     <div className="flex shrink-0 gap-2">
-                      <Button size="md" variant="secondary" onClick={() => setApplicationStatus(a.id, "rejected")}>
+                      <Button
+                        size="md"
+                        variant="secondary"
+                        onClick={() => decideStored(a.id, a.mentor.name, a.mentor.rank, "rejected")}
+                      >
                         <X size={15} /> رد
                       </Button>
-                      <Button size="md" onClick={() => setApplicationStatus(a.id, "approved")}>
+                      <Button size="md" onClick={() => decideStored(a.id, a.mentor.name, a.mentor.rank, "approved")}>
                         <Check size={15} /> تأیید و انتشار
                       </Button>
                     </div>
@@ -203,7 +240,10 @@ export default function AdminMentorsPage() {
             <h2 className="mb-3 mt-8 text-sm font-bold text-text-900">تصمیم‌های قبلی</h2>
             <div className="space-y-2">
               {storedDecided.map((a) => (
-                <div key={a.id} className="flex items-center justify-between rounded-x-md border border-border bg-surface p-3.5">
+                <div
+                  key={a.id}
+                  className="flex items-center justify-between rounded-x-md border border-border bg-surface p-3.5"
+                >
                   <div>
                     <div className="text-sm font-medium text-text-900">{a.mentor.name}</div>
                     <div className="text-xs text-text-500">
@@ -221,10 +261,15 @@ export default function AdminMentorsPage() {
                 </div>
               ))}
               {decided.map((a) => (
-                <div key={a.id} className="flex items-center justify-between rounded-x-md border border-border bg-surface p-3.5">
+                <div
+                  key={a.id}
+                  className="flex items-center justify-between rounded-x-md border border-border bg-surface p-3.5"
+                >
                   <div>
                     <div className="text-sm font-medium text-text-900">{a.name}</div>
-                    <div className="text-xs text-text-500">{a.major} — {a.school}</div>
+                    <div className="text-xs text-text-500">
+                      {a.major} — {a.school}
+                    </div>
                   </div>
                   <Badge tone={statusMeta[a.status].tone}>{statusMeta[a.status].label}</Badge>
                 </div>

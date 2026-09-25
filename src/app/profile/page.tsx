@@ -13,7 +13,7 @@ import { PARENT_ACCESS_LABELS, setParentAccess, useParentAccess, type ParentAcce
 import { cn } from "@/lib/utils";
 
 const NOTIFICATION_LABELS: Record<keyof typeof studentProfile.notificationPrefs, string> = {
-  checkinReminder: "یادآوری چک‌این شب",
+  checkinReminder: "یادآوری گزارش کار شب",
   mentorMessage: "پیام جدید از مشاور",
   weeklyReport: "خلاصه‌ی هفتگی پیشرفت",
 };

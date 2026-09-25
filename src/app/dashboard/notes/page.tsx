@@ -36,7 +36,7 @@ export default function StudentNotesPage() {
           <h1 className="text-xl font-bold text-text-900">یادداشت‌های من</h1>
         </div>
         <p className="mb-6 text-sm text-text-500">
-          یه فضای شخصی برای هر چیزی که می‌خوای یادت بمونه — جدا از برنامه و چک‌این.
+          یه فضای شخصی برای هر چیزی که می‌خوای یادت بمونه — جدا از برنامه و گزارش کار.
         </p>
 
         <Card>

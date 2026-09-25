@@ -10,6 +10,7 @@ import { transactions as initialTransactions, type Transaction } from "@/lib/moc
 import { toPersianDigits } from "@/lib/utils";
 import { Toman } from "@/components/ui/Toman";
 import { decideRefund, useSubscription } from "@/lib/subscription-store";
+import { logEvent } from "@/lib/admin-log-store";
 
 const statusMeta: Record<Transaction["status"], { label: string; tone: "warning" | "success" | "danger" }> = {
   pending: { label: "در انتظار بررسی", tone: "warning" },
@@ -17,13 +18,44 @@ const statusMeta: Record<Transaction["status"], { label: string; tone: "warning"
   rejected: { label: "رد شده", tone: "danger" },
 };
 
+function logRefund(student: string, plan: string, amount: number, approved: boolean, kind: string, reason = "") {
+  logEvent({
+    category: "مالی",
+    action: approved ? "تأیید بازپرداخت" : "رد بازپرداخت",
+    target: `${student} — ${plan}`,
+    severity: approved ? "info" : "warning",
+    details: [
+      { label: "مبلغ", value: `${toPersianDigits(amount.toLocaleString("en-US"))} تومان` },
+      { label: "نوع", value: kind },
+      ...(reason ? [{ label: "دلیل دانش‌آموز", value: reason }] : []),
+    ],
+    href: "/admin/payments",
+  });
+}
+
 export default function AdminPaymentsPage() {
   const [transactions, setTransactions] = useState(initialTransactions);
   const sub = useSubscription();
   const guaranteeRefund = sub?.refund ? sub.refund : null;
 
   function setStatus(id: string, status: Transaction["status"]) {
+    const tx = transactions.find((t) => t.id === id);
     setTransactions((txs) => txs.map((t) => (t.id === id ? { ...t, status } : t)));
+    if (tx) logRefund(tx.studentName, tx.planName, tx.amount, status === "approved", "درخواست عادی");
+  }
+
+  function decideGuarantee(status: "approved" | "rejected") {
+    decideRefund(status);
+    if (sub?.refund) {
+      logRefund(
+        "ایمان",
+        `پلن ${sub.planName} (${sub.durationLabel})`,
+        sub.refund.amount,
+        status === "approved",
+        "ضمانت ۷ روزه",
+        sub.refund.reason
+      );
+    }
   }
 
   const pendingRefunds = transactions.filter((t) => t.type === "refund_request" && t.status === "pending");
@@ -62,10 +94,10 @@ export default function AdminPaymentsPage() {
               </div>
               {guaranteeRefund.status === "pending" ? (
                 <div className="flex shrink-0 gap-2">
-                  <Button size="md" variant="secondary" onClick={() => decideRefund("rejected")}>
+                  <Button size="md" variant="secondary" onClick={() => decideGuarantee("rejected")}>
                     <X size={15} /> رد
                   </Button>
-                  <Button size="md" onClick={() => decideRefund("approved")}>
+                  <Button size="md" onClick={() => decideGuarantee("approved")}>
                     <Check size={15} /> برگشت وجه
                   </Button>
                 </div>

@@ -151,14 +151,14 @@ export default function DashboardPage() {
 
         {/* Nightly check-in — replaces the mentor's Telegram group report */}
         <Link
-          href="/dashboard/checkin"
+          href="/dashboard/report"
           className="mt-4 flex items-center gap-3 rounded-x-lg border border-border bg-surface p-4 transition-colors hover:bg-surface-2"
         >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-900/10">
             <Moon size={18} className="text-navy-900" />
           </div>
           <div className="flex-1">
-            <div className="text-sm font-medium text-text-900">چک‌این امشب رو بزن</div>
+            <div className="text-sm font-medium text-text-900">گزارش کار امشب رو بفرست</div>
             <div className="text-xs text-text-500">۳۰ ثانیه — می‌ره مستقیم برای {mentor.name}</div>
           </div>
           <ArrowLeft size={16} className="text-text-500" />

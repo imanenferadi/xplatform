@@ -36,7 +36,7 @@ function isBlank(r: Row) {
   return !r.subject && !r.topic.trim() && !r.minutes.trim() && !r.tests.trim();
 }
 
-export default function NightlyCheckInPage() {
+export default function DailyReportPage() {
   const nextKey = useRef(1);
   const [rows, setRows] = useState<Row[]>(() => [emptyRow(0)]);
   const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
@@ -123,7 +123,7 @@ export default function NightlyCheckInPage() {
           <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-mint-500/15">
             <Check size={28} className="text-mint-500" />
           </div>
-          <h1 className="text-xl font-bold text-text-900">چک‌این امشب ثبت شد</h1>
+          <h1 className="text-xl font-bold text-text-900">گزارش کار امشب ثبت شد</h1>
           <p className="mt-2 max-w-xs text-sm text-text-500">
             سارا محمدی امشب گزارشت رو می‌بینه و توی جمع هفته هم حساب شد. شب بخیر.
           </p>
@@ -145,7 +145,7 @@ export default function NightlyCheckInPage() {
       <div className="mx-auto max-w-2xl px-4 py-6 md:py-10">
         <div className="mb-1 flex items-center gap-2">
           <Moon size={18} className="text-blue-600" />
-          <h1 className="text-xl font-bold text-text-900">چک‌این امشب</h1>
+          <h1 className="text-xl font-bold text-text-900">گزارش کار امشب</h1>
         </div>
         <p className="mb-6 text-sm text-text-500">
           هر درسی که امروز خوندی رو با مبحث، زمان و تعداد تستش بنویس — مستقیم می‌ره برای مشاورت و آخر هفته جمع زده
@@ -154,7 +154,7 @@ export default function NightlyCheckInPage() {
 
         {alreadyTonight && (
           <div className="mb-4 rounded-x-md border border-orange-500/30 bg-orange-500/10 p-3 text-sm text-text-700">
-            چک‌این امشب رو قبلاً زدی — ثبت دوباره، جایگزین قبلی می‌شه.
+            گزارش کار امشب رو قبلاً فرستادی — ثبت دوباره، جایگزین قبلی می‌شه.
           </div>
         )}
 
@@ -307,7 +307,7 @@ export default function NightlyCheckInPage() {
           </Card>
 
           <Button type="submit" size="lg" className="w-full">
-            ثبت چک‌این امشب
+            ثبت گزارش کار امشب
           </Button>
         </form>
       </div>

@@ -180,7 +180,7 @@ export default async function StudentCaseFilePage({
         </Section>
 
         {/* Weekly roll-up of every nightly check-in, subject by subject */}
-        <Section title="جمع هفته از چک‌این‌ها">
+        <Section title="جمع هفته از گزارش کارها">
           <WeeklySummary
             checkIns={[...nightlyCheckIns, ...checkInHistory].filter((c) => c.studentId === student.id)}
             audience="mentor"
@@ -193,7 +193,7 @@ export default async function StudentCaseFilePage({
         </Section>
 
         {/* Nightly check-ins — replaces reading the Telegram group report */}
-        <Section title="چک‌این‌های شب">
+        <Section title="گزارش کارهای شبانه">
           <div className="space-y-2">
             {nightlyCheckIns
               .filter((c) => c.studentId === student.id)
@@ -230,7 +230,7 @@ export default async function StudentCaseFilePage({
                 </div>
               ))}
             {nightlyCheckIns.filter((c) => c.studentId === student.id).length === 0 && (
-              <p className="text-sm text-text-500">هنوز چک‌اینی ثبت نشده.</p>
+              <p className="text-sm text-text-500">هنوز گزارش کاری ثبت نشده.</p>
             )}
           </div>
         </Section>

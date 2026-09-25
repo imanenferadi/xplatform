@@ -16,6 +16,8 @@ import {
   type StudentAssignment,
 } from "@/lib/mock-data";
 import { useCapacityOverrides } from "@/lib/capacity-store";
+import { logEvent } from "@/lib/admin-log-store";
+
 import { cn, toPersianDigits } from "@/lib/utils";
 
 type HistoryEntry = { id: number; student: string; from: string; to: string; reason: string };
@@ -60,6 +62,19 @@ function Reassign() {
 
   function confirm() {
     if (!student) return;
+    logEvent({
+      category: "مشاوران",
+      action: "تعویض مشاور",
+      target: student.name,
+      severity: "warning",
+      details: [
+        { label: "مشاور قبلی", value: mentorName(student.mentorId) },
+        { label: "مشاور جدید", value: mentorName(newMentorId) },
+        { label: "دلیل", value: reason },
+        ...(handover.trim() ? [{ label: "یادداشت تحویل", value: handover.trim() }] : []),
+      ],
+      href: "/admin/reassign",
+    });
     setHistory((h) => [
       {
         id: Date.now(),
@@ -149,7 +164,7 @@ function Reassign() {
                           }}
                           className={cn(
                             "flex w-full items-center gap-3 rounded-x-md border-2 p-3 text-right transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-                            newMentorId === m.id ? "border-blue-600 bg-blue-100" : "border-border bg-surface",
+                            newMentorId === m.id ? "border-blue-600 bg-blue-100" : "border-border bg-surface"
                           )}
                         >
                           <Avatar name={m.name} size="sm" />

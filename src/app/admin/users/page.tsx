@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { adminUsers as initialUsers, complaints, studentAssignments, type AdminUser } from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
+import { logEvent } from "@/lib/admin-log-store";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState(initialUsers);
@@ -17,12 +18,28 @@ export default function AdminUsersPage() {
 
   const filtered = useMemo(
     () => users.filter((u) => u.name.includes(query) || u.phone.includes(query)),
-    [users, query],
+    [users, query]
   );
 
   function toggleStatus(id: string) {
+    const user = users.find((u) => u.id === id);
+    if (user) {
+      const suspending = user.status === "active";
+      logEvent({
+        category: "کاربران",
+        action: suspending ? "مسدودسازی حساب" : "رفع مسدودیت حساب",
+        target: user.name,
+        severity: suspending ? "warning" : "info",
+        details: [
+          { label: "نقش", value: user.role },
+          { label: "موبایل", value: user.phone },
+          { label: "وضعیت", value: suspending ? "فعال ← مسدود" : "مسدود ← فعال" },
+        ],
+        href: "/admin/users",
+      });
+    }
     setUsers((us) =>
-      us.map((u) => (u.id === id ? { ...u, status: u.status === "active" ? "suspended" : "active" } : u)),
+      us.map((u) => (u.id === id ? { ...u, status: u.status === "active" ? "suspended" : "active" } : u))
     );
   }
 

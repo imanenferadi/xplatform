@@ -13,12 +13,48 @@ import { cn, toLatinDigits, toPersianDigits } from "@/lib/utils";
 
 type Section = { name: string; questions: number; minutes: number };
 
-// سنجش's 1405 announcement for گروه تجربی: 155 questions in 180 minutes,
-// in three specialized booklets (ana.ir/fa/news/1076547).
-const KONKUR_TAJROBI: Section[] = [
-  { name: "زیست‌شناسی", questions: 45, minutes: 45 },
-  { name: "فیزیک و شیمی", questions: 65, minutes: 75 },
-  { name: "ریاضی و زمین‌شناسی", questions: 45, minutes: 60 },
+// سنجش's 1405 announcement (ana.ir/fa/news/1076547), specialized booklets
+// only — the فرهنگیان/بهیاری extra booklets are left out.
+type Template = "tajrobi" | "riazi" | "ensani";
+
+const KONKUR: Record<Template, { label: string; sections: Section[] }> = {
+  tajrobi: {
+    label: "کنکور تجربی",
+    sections: [
+      { name: "زیست‌شناسی", questions: 45, minutes: 45 },
+      { name: "فیزیک و شیمی", questions: 65, minutes: 75 },
+      { name: "ریاضی و زمین‌شناسی", questions: 45, minutes: 60 },
+    ],
+  },
+  riazi: {
+    label: "کنکور ریاضی",
+    sections: [
+      { name: "ریاضیات", questions: 40, minutes: 70 },
+      { name: "فیزیک و شیمی", questions: 65, minutes: 75 },
+    ],
+  },
+  ensani: {
+    label: "کنکور انسانی",
+    sections: [
+      { name: "ریاضی، ادبیات، علوم اجتماعی و روان‌شناسی", questions: 80, minutes: 85 },
+      { name: "عربی، تاریخ و جغرافیا، فلسفه و منطق و اقتصاد", questions: 80, minutes: 75 },
+    ],
+  },
+};
+
+// Third انسانی booklet — only for applicants to معارف اسلامی majors.
+const MAAREF: Section = { name: "علوم و معارف اسلامی", questions: 80, minutes: 75 };
+
+const CUSTOM_SUBJECTS = [
+  ...CHECKIN_SUBJECTS,
+  "هندسه",
+  "گسسته",
+  "تاریخ",
+  "جغرافیا",
+  "فلسفه و منطق",
+  "اقتصاد",
+  "علوم اجتماعی",
+  "روان‌شناسی",
 ];
 
 const MAX_QUESTIONS = 100;
@@ -35,24 +71,29 @@ function formatSpent(seconds: number) {
   return formatClock(Math.max(0, seconds));
 }
 
+function templateSections(t: Template, withMaaref: boolean): Section[] {
+  return t === "ensani" && withMaaref ? [...KONKUR.ensani.sections, MAAREF] : KONKUR[t].sections;
+}
+
 export default function ExamSimPage() {
   const [phase, setPhase] = useState<Phase>("setup");
-  const [template, setTemplate] = useState<"konkur" | "custom">("konkur");
+  const [template, setTemplate] = useState<Template | "custom">("tajrobi");
+  const [withMaaref, setWithMaaref] = useState(false);
   const [custom, setCustom] = useState({ subject: "", questions: "", minutes: "" });
   const [customError, setCustomError] = useState("");
-  const [sections, setSections] = useState<Section[]>(KONKUR_TAJROBI);
+  const [sections, setSections] = useState<Section[]>(KONKUR.tajrobi.sections);
   const [current, setCurrent] = useState(0);
   const [sectionStart, setSectionStart] = useState(0); // countdown value when this section began
   const [spent, setSpent] = useState<number[]>([]); // seconds used per finished section
 
-  const { remaining, running, setRunning, reset } = useCountdown(totalMinutes(KONKUR_TAJROBI) * 60, () => {
+  const { remaining, running, setRunning, reset } = useCountdown(totalMinutes(KONKUR.tajrobi.sections) * 60, () => {
     // Time's up: whatever section we're in ends here; later ones were never reached.
     setSpent((s) => [...s, sectionStart]);
     setPhase("done");
   });
 
   function start() {
-    let chosen = KONKUR_TAJROBI;
+    let chosen = template === "custom" ? [] : templateSections(template, withMaaref);
     if (template === "custom") {
       const q = Number(toLatinDigits(custom.questions.trim()));
       const m = Number(toLatinDigits(custom.minutes.trim()));
@@ -104,8 +145,8 @@ export default function ExamSimPage() {
 
         {phase === "setup" && (
           <>
-            <div className="mb-4 grid grid-cols-2 gap-2">
-              {(["konkur", "custom"] as const).map((t) => (
+            <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(["tajrobi", "riazi", "ensani", "custom"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setTemplate(t)}
@@ -113,17 +154,17 @@ export default function ExamSimPage() {
                     "rounded-x-md border-2 px-3 py-3 text-sm font-medium transition-colors",
                     template === t
                       ? "border-blue-600 bg-blue-100 text-text-900"
-                      : "border-border bg-surface text-text-700 hover:border-blue-300",
+                      : "border-border bg-surface text-text-700 hover:border-blue-300"
                   )}
                 >
-                  {t === "konkur" ? "کنکور تجربی کامل" : "آزمون تک‌درس"}
+                  {t === "custom" ? "آزمون تک‌درس" : KONKUR[t].label}
                 </button>
               ))}
             </div>
 
             <Card>
               <CardContent>
-                {template === "konkur" ? (
+                {template !== "custom" ? (
                   <>
                     <table className="w-full text-sm">
                       <thead>
@@ -134,7 +175,7 @@ export default function ExamSimPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {KONKUR_TAJROBI.map((s) => (
+                        {templateSections(template, withMaaref).map((s) => (
                           <tr key={s.name} className="border-b border-border/60">
                             <td className="py-2.5 text-text-900">{s.name}</td>
                             <td className="tnum py-2.5 text-center text-text-700">{toPersianDigits(s.questions)}</td>
@@ -148,14 +189,33 @@ export default function ExamSimPage() {
                         <tr className="font-bold text-text-900">
                           <td className="py-2.5">جمع</td>
                           <td className="tnum py-2.5 text-center">
-                            {toPersianDigits(KONKUR_TAJROBI.reduce((s, x) => s + x.questions, 0))}
+                            {toPersianDigits(
+                              templateSections(template, withMaaref).reduce((s, x) => s + x.questions, 0)
+                            )}
                           </td>
                           <td className="py-2.5 text-center">
-                            <span className="tnum">{toPersianDigits(totalMinutes(KONKUR_TAJROBI))}</span> دقیقه
+                            <span className="tnum">
+                              {toPersianDigits(totalMinutes(templateSections(template, withMaaref)))}
+                            </span>{" "}
+                            دقیقه
                           </td>
                         </tr>
                       </tfoot>
                     </table>
+                    {template === "ensani" && (
+                      <label className="mt-3 flex items-start gap-2 text-xs text-text-700">
+                        <input
+                          type="checkbox"
+                          checked={withMaaref}
+                          onChange={(e) => setWithMaaref(e.target.checked)}
+                          className="mt-0.5"
+                        />
+                        <span>
+                          دفترچه‌ی سوم (علوم و معارف اسلامی، ۸۰ سؤال در ۷۵ دقیقه) رو هم اضافه کن — فقط برای متقاضیان
+                          رشته‌های معارف.
+                        </span>
+                      </label>
+                    )}
                     <p className="mt-2 text-xs text-text-500">طبق اطلاعیه‌ی سنجش برای کنکور ۱۴۰۵.</p>
                   </>
                 ) : (
@@ -170,7 +230,7 @@ export default function ExamSimPage() {
                       className="h-10 w-full rounded-x-sm border border-border bg-surface px-3 text-sm text-text-900"
                     >
                       <option value="">انتخاب درس</option>
-                      {CHECKIN_SUBJECTS.map((s) => (
+                      {CUSTOM_SUBJECTS.map((s) => (
                         <option key={s} value={s}>
                           {s}
                         </option>
@@ -308,7 +368,7 @@ function Results({ sections, spent, onRestart }: { sections: Section[]; spent: n
                     <td
                       className={cn(
                         "tnum py-2.5 text-center",
-                        diff == null ? "text-text-500" : diff > 0 ? "text-orange-500" : "text-mint-500",
+                        diff == null ? "text-text-500" : diff > 0 ? "text-orange-500" : "text-mint-500"
                       )}
                     >
                       {diff == null

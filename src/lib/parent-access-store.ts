@@ -15,7 +15,7 @@ export type ParentAccess = {
 export const PARENT_ACCESS_LABELS: Record<keyof ParentAccess, { label: string; hint: string }> = {
   summary: { label: "ساعت مطالعه و اجرای برنامه", hint: "سه عدد خلاصه‌ی هفته" },
   trend: { label: "روند چندهفته‌ای", hint: "نمودار اجرای برنامه" },
-  subjects: { label: "جمع درس‌به‌درس", hint: "ساعت و تست هر درس از چک‌این‌ها" },
+  subjects: { label: "جمع درس‌به‌درس", hint: "ساعت و تست هر درس از گزارش کارها" },
   sleep: { label: "ساعت خواب", hint: "میانگین خواب و بیداری هفته" },
   mentorNote: { label: "یادداشت مشاور برای والدین", hint: "پیامی که مشاور برای خانواده می‌نویسه" },
 };

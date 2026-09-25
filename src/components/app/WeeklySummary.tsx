@@ -51,7 +51,7 @@ export function WeeklySummary({
         <Stat icon={ListChecks} label="تست زده‌شده" value={toPersianDigits(summary.totalTests)} />
         <Stat
           icon={CalendarCheck}
-          label="شب‌های چک‌این"
+          label="شب‌های با گزارش"
           value={`${toPersianDigits(summary.checkedInDays.size)} از ${toPersianDigits(daysSoFar)}`}
         />
       </div>
@@ -108,7 +108,7 @@ export function WeeklySummary({
 
       {summary.subjects.length === 0 ? (
         <p className="py-8 text-center text-sm text-text-500">
-          {audience === "student" ? "این هفته هنوز چک‌اینی ثبت نکردی." : "این هفته هنوز چک‌اینی ثبت نشده."}
+          {audience === "student" ? "این هفته هنوز گزارش کاری نفرستادی." : "این هفته هنوز گزارش کاری ثبت نشده."}
         </p>
       ) : (
         <div className="mt-4 overflow-x-auto">

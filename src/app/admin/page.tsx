@@ -39,7 +39,9 @@ export default function AdminFinancePage() {
               <div className="flex items-center gap-1.5 text-xs text-text-500">
                 <Clock size={12} /> تسویه‌ی درانتظار مشاوران
               </div>
-              <div className="tnum mt-1 text-xl font-bold text-text-900">{toPersianDigits(pendingMentorPayouts)} مورد</div>
+              <div className="tnum mt-1 text-xl font-bold text-text-900">
+                {toPersianDigits(pendingMentorPayouts)} مورد
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -64,7 +66,10 @@ export default function AdminFinancePage() {
         <h2 className="mb-3 mt-6 text-sm font-bold text-text-900">تفکیک درآمد بر اساس پلن</h2>
         <div className="space-y-2">
           {planBreakdown.map((p) => (
-            <div key={p.id} className="flex items-center justify-between rounded-x-md border border-border bg-surface p-3.5">
+            <div
+              key={p.id}
+              className="flex items-center justify-between rounded-x-md border border-border bg-surface p-3.5"
+            >
               <div>
                 <div className="text-sm font-medium text-text-900">{p.name}</div>
                 <div className="tnum text-xs text-text-500">{formatToman(p.price)} در ماه</div>

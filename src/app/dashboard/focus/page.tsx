@@ -64,9 +64,9 @@ export default function FocusModePage() {
           <>
             <PartyPopper size={40} className="mb-4 text-mint-500" />
             <h1 className="text-lg font-bold text-text-900">همه‌ی کارهای امروز انجام شد</h1>
-            <p className="mt-1 text-sm text-text-500">امشب چک‌اینت رو یادت نره.</p>
-            <Link href="/dashboard/checkin" className={buttonVariants({ size: "lg", className: "mt-6" })}>
-              چک‌این شب
+            <p className="mt-1 text-sm text-text-500">امشب گزارش کارت رو یادت نره.</p>
+            <Link href="/dashboard/report" className={buttonVariants({ size: "lg", className: "mt-6" })}>
+              گزارش کار امشب
             </Link>
           </>
         )}

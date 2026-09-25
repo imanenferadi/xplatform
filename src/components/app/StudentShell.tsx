@@ -30,7 +30,7 @@ const navGroups: NavGroup[] = [
     label: "گزارش",
     icon: BarChart3,
     sections: [
-      { href: "/dashboard/checkin", label: "چک‌این شب" },
+      { href: "/dashboard/report", label: "گزارش کار" },
       { href: "/dashboard/weekly", label: "جمع هفته" },
       { href: "/dashboard/karnameh", label: "کارنامه" },
       { href: "/dashboard/reports", label: "روند پیشرفت" },

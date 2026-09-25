@@ -128,7 +128,7 @@ export default function ParentPage() {
             <CardContent>
               <div className="mb-3 flex items-center gap-2">
                 <BarChart3 size={16} className="text-blue-600" />
-                <h2 className="text-sm font-bold text-text-900">درس‌به‌درس از چک‌این‌های {report.studentName}</h2>
+                <h2 className="text-sm font-bold text-text-900">درس‌به‌درس از گزارش کارهای {report.studentName}</h2>
               </div>
               <WeeklySummary checkIns={checkIns} audience="parent" showSleep={access.sleep} />
             </CardContent>
