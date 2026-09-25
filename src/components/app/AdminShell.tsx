@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Wallet, UserCheck, Users } from "lucide-react";
+import { Wallet, UserCheck, Users, ScrollText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
@@ -13,6 +13,7 @@ const links = [
   { href: "/admin", label: "داشبورد مالی", icon: Wallet },
   { href: "/admin/mentors", label: "تأیید مشاوران", icon: UserCheck },
   { href: "/admin/users", label: "کاربران و شکایات", icon: Users },
+  { href: "/admin/logs", label: "لاگ فعالیت‌ها", icon: ScrollText },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

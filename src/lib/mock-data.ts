@@ -1004,3 +1004,85 @@ export const platformRevenue: PlatformRevenuePoint[] = [
 ];
 
 export const pendingMentorPayouts = 8;
+
+// A-07 — platform activity/audit log. Not user-facing: this is what an
+// admin checks when a complaint comes in ("چرا حساب من مسدود شد؟") or a
+// payment needs tracing. Seeded, doesn't reflect live state elsewhere in
+// this demo since there's no shared store across pages.
+export type LogCategory = "مشاوران" | "کاربران" | "مالی" | "شکایات";
+
+export type PlatformLogEntry = {
+  id: string;
+  category: LogCategory;
+  actor: string;
+  action: string;
+  target: string;
+  timestamp: string;
+};
+
+export const platformLogs: PlatformLogEntry[] = [
+  {
+    id: "log-1",
+    category: "مشاوران",
+    actor: "ادمین پلتفرم",
+    action: "تأیید درخواست مشاور",
+    target: "کیان مرادی",
+    timestamp: "امروز، ۱۰:۲۲",
+  },
+  {
+    id: "log-2",
+    category: "کاربران",
+    actor: "ادمین پلتفرم",
+    action: "مسدودسازی حساب",
+    target: "رضا نامدار",
+    timestamp: "دیروز، ۱۸:۰۵",
+  },
+  {
+    id: "log-3",
+    category: "مالی",
+    actor: "سیستم پرداخت",
+    action: "پرداخت ناموفق",
+    target: "امیرحسین رضایی — پلن همراه",
+    timestamp: "دیروز، ۱۴:۴۰",
+  },
+  {
+    id: "log-4",
+    category: "شکایات",
+    actor: "رضا نامدار",
+    action: "ثبت شکایت جدید",
+    target: "مشاور بی‌پاسخ",
+    timestamp: "۳ روز پیش، ۰۹:۱۵",
+  },
+  {
+    id: "log-5",
+    category: "مالی",
+    actor: "سیستم پرداخت",
+    action: "پرداخت موفق",
+    target: "ایمان — پلن همراه",
+    timestamp: "۴ روز پیش، ۱۱:۰۰",
+  },
+  {
+    id: "log-6",
+    category: "کاربران",
+    actor: "ادمین پلتفرم",
+    action: "رفع مسدودیت حساب",
+    target: "نگین احمدی",
+    timestamp: "۵ روز پیش، ۱۶:۳۰",
+  },
+  {
+    id: "log-7",
+    category: "شکایات",
+    actor: "ادمین پلتفرم",
+    action: "بستن شکایت به‌عنوان حل‌شده",
+    target: "امیرحسین رضایی — پلن آپدیت‌نشده",
+    timestamp: "۶ روز پیش، ۱۳:۱۰",
+  },
+  {
+    id: "log-8",
+    category: "مشاوران",
+    actor: "ادمین پلتفرم",
+    action: "رد درخواست مشاور",
+    target: "حسین طاهری",
+    timestamp: "۱ هفته پیش، ۱۰:۰۰",
+  },
+];
