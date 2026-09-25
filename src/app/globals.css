@@ -170,3 +170,20 @@ h1, h2, h3, h4, .no-break {
     scroll-behavior: auto !important;
   }
 }
+
+/* Printing (e.g. the parent weekly report "دانلود PDF" button) should
+   always come out on a light background, even if the viewer is in dark
+   mode — a printed page with a near-black background just wastes ink. */
+@media print {
+  :root,
+  :root[data-theme="dark"],
+  :root.dark {
+    --x-background: #ffffff;
+    --x-surface: #ffffff;
+    --x-surface-2: #f1f4f9;
+    --x-border: #e4e9f0;
+    --x-text-900: #0f2d58;
+    --x-text-700: #344054;
+    --x-text-500: #667085;
+  }
+}

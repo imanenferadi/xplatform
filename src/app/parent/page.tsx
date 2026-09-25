@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Eye,
@@ -9,13 +11,14 @@ import {
   CreditCard,
   Check,
   X as XIcon,
+  Download,
 } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/Progress";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
-import { buttonVariants } from "@/components/ui/Button";
+import { Button, buttonVariants } from "@/components/ui/Button";
 import { TrendChart } from "@/components/ui/TrendChart";
 import { parentWeeklyReport, parentBilling, mentors, studentWeeklyHistory } from "@/lib/mock-data";
 import { cn, toPersianDigits } from "@/lib/utils";
@@ -35,17 +38,25 @@ export default function ParentPage() {
   return (
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="mx-auto max-w-xl">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between print:hidden">
           <Logo />
           <span className="flex items-center gap-1.5 rounded-x-pill bg-surface-2 px-3 py-1 text-xs text-text-500">
             <Eye size={13} /> فقط مشاهده
           </span>
         </div>
 
-        <h1 className="text-xl font-bold text-text-900">
-          وضعیت این هفته — {report.studentName}
-        </h1>
-        <p className="mt-1 text-sm text-text-500">{report.weekLabel}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-text-900">
+              وضعیت این هفته — {report.studentName}
+            </h1>
+            <p className="mt-1 text-sm text-text-500">{report.weekLabel}</p>
+          </div>
+          <Button size="md" variant="secondary" className="shrink-0 print:hidden" onClick={() => window.print()}>
+            <Download size={15} />
+            دانلود PDF
+          </Button>
+        </div>
 
         {/* Three numbers — no jargon, per the design doc's parent guidance */}
         <div className="mt-5 grid grid-cols-3 gap-3">
@@ -136,7 +147,7 @@ export default function ParentPage() {
                   تمدید بعدی: {parentBilling.nextBillingDate} — کارت ****{toPersianDigits(parentBilling.cardLast4)}
                 </div>
               </div>
-              <Link href="/checkout" className={buttonVariants({ size: "md", variant: "secondary" })}>
+              <Link href="/checkout" className={buttonVariants({ size: "md", variant: "secondary", className: "print:hidden" })}>
                 تغییر پلن
               </Link>
             </div>
@@ -170,7 +181,7 @@ export default function ParentPage() {
           هوشمند خصوصی می‌ماند.
         </p>
 
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center print:hidden">
           <Link href="/" className="text-xs text-text-500 hover:text-text-900">
             بازگشت به صفحه‌ی اصلی
           </Link>
