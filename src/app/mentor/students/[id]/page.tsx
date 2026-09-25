@@ -13,6 +13,7 @@ import {
   examDrivenPriorities,
   rootCauseAnalysis,
   nightlyCheckIns,
+  checkInHistory,
   moodLabels,
   mentorPrivateNotes,
   getRiskInfo,
@@ -21,6 +22,8 @@ import { Sparkles, FileText, Upload, Moon, EyeOff, LineChart, GitCompare } from 
 import { TrendChart } from "@/components/ui/TrendChart";
 import { PeriodComparison } from "@/components/app/PeriodComparison";
 import { PrivateNotes } from "@/components/app/PrivateNotes";
+import { WeeklySummary } from "@/components/app/WeeklySummary";
+import { formatStudyTime } from "@/lib/checkins";
 import { toPersianDigits } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -174,6 +177,14 @@ export default async function StudentCaseFilePage({
           </div>
         </Section>
 
+        {/* Weekly roll-up of every nightly check-in, subject by subject */}
+        <Section title="جمع هفته از چک‌این‌ها">
+          <WeeklySummary
+            checkIns={[...nightlyCheckIns, ...checkInHistory].filter((c) => c.studentId === student.id)}
+            audience="mentor"
+          />
+        </Section>
+
         {/* Nightly check-ins — replaces reading the Telegram group report */}
         <Section title="چک‌این‌های شب">
           <div className="space-y-2">
@@ -191,9 +202,15 @@ export default async function StudentCaseFilePage({
                       <span>{moodLabels[c.mood]}</span>
                     </div>
                     {c.entries.length > 0 && (
-                      <div className="tnum mt-1 text-xs text-text-700">
-                        {c.entries.map((e) => `${e.subject} (${e.minutes} دقیقه)`).join(" · ")}
-                      </div>
+                      <ul className="mt-1 space-y-0.5 text-xs text-text-700">
+                        {c.entries.map((e, i) => (
+                          <li key={i}>
+                            <span className="font-medium text-text-900">{e.subject}</span>
+                            {e.topic && ` — ${e.topic}`} · {formatStudyTime(e.minutes)} ·{" "}
+                            {toPersianDigits(e.tests)} تست
+                          </li>
+                        ))}
+                      </ul>
                     )}
                     {c.note && <p className="mt-1 text-sm text-text-900">{c.note}</p>}
                   </div>

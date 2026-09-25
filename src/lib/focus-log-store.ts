@@ -16,6 +16,15 @@ export function useCompletedTaskIds(): Set<number> {
   return useMemo(() => new Set(log.map((e) => e.taskId)), [log]);
 }
 
+export function useFocusMinutesByTask(): Map<number, number> {
+  const log = store.useValue();
+  return useMemo(() => {
+    const m = new Map<number, number>();
+    for (const e of log) m.set(e.taskId, (m.get(e.taskId) ?? 0) + e.minutes);
+    return m;
+  }, [log]);
+}
+
 export function logFocus(taskId: number, minutes: number) {
   store.set([...store.get(), { taskId, minutes }]);
 }

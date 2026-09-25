@@ -2,10 +2,8 @@ import Link from "next/link";
 import { CalendarDays, Video, Phone, FileText, ArrowLeft } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Card, CardContent } from "@/components/ui/Card";
-import { studentWeekCalendar } from "@/lib/mock-data";
+import { CURRENT_DAY_NAME, studentWeekCalendar } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
-
-const TODAY_INDEX = 1; // "یکشنبه", matching /dashboard/plan's TODAY_INDEX convention
 
 export default function CalendarPage() {
   return (
@@ -20,8 +18,8 @@ export default function CalendarPage() {
         </p>
 
         <div className="space-y-2">
-          {studentWeekCalendar.map((d, i) => {
-            const isToday = i === TODAY_INDEX;
+          {studentWeekCalendar.map((d) => {
+            const isToday = d.dayName === CURRENT_DAY_NAME;
             return (
               <Card key={d.dayName} className={cn(isToday && "border-blue-600/40 bg-blue-100/40")}>
                 <CardContent className="flex items-center gap-3 py-3.5">

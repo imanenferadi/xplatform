@@ -20,17 +20,13 @@ import {
   type Mentor,
 } from "@/lib/mock-data";
 import { addApplication } from "@/lib/mentor-applications-store";
-import { cn, toPersianDigits } from "@/lib/utils";
+import { cn, toLatinDigits, toPersianDigits } from "@/lib/utils";
 
 const STEPS = ["اطلاعات فردی", "سوابق کنکور", "ساخت پروفایل", "پیش‌نمایش و ارسال"];
 const YEARS = ["1403", "1404", "1405"];
 const GROUPS: ExamGroup[] = ["تجربی", "ریاضی", "انسانی"];
 const MIN_STORY_LENGTH = 50;
 const EXAMPLE_MONTHLY_FEE = 1200000;
-
-function toLatinDigits(s: string): string {
-  return s.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
-}
 
 function formatToman(n: number): string {
   return toPersianDigits(n.toLocaleString("en-US")) + " تومان";

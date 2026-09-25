@@ -15,3 +15,8 @@ const persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹
 export function toPersianDigits(input: number | string): string {
   return String(input).replace(/[0-9]/g, (d) => persianDigits[Number(d)]);
 }
+
+/** Normalizes digits typed on a Persian keyboard so Number() can parse them. */
+export function toLatinDigits(input: string): string {
+  return input.replace(/[۰-۹]/g, (d) => String(persianDigits.indexOf(d)));
+}

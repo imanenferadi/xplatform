@@ -461,15 +461,51 @@ export function examDrivenPriorities() {
     .map((s, i) => ({ ...s, hours: HOURS_BY_PRIORITY_RANK[i] ?? 1, detail: SUBJECT_DETAILS[s.subject] }));
 }
 
+export type CheckInEntry = { subject: string; topic: string; minutes: number; tests: number };
+
 export type NightlyCheckIn = {
   id: string;
   date: string; // "امشب", "دیشب", or a Persian date
+  week: "this" | "last";
+  dayName: string; // شنبه … جمعه — lets the weekly summary group by day
   studentId: string;
-  entries: { subject: Subject; topic: string; minutes: number }[];
+  entries: CheckInEntry[];
   mood: "great" | "ok" | "tired" | "struggled";
   note: string;
   mentorSeen: boolean;
 };
+
+// "Today" across the demo (matches the plan page's امروز).
+export const CURRENT_DAY_NAME = "دوشنبه";
+export const WEEK_DAYS = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
+export const WEEK_LABELS = { this: "این هفته (۵ تا ۱۱ مهر)", last: "هفته‌ی قبل (۲۹ شهریور تا ۴ مهر)" };
+// Konkur تجربی subjects incl. the general ones students actually log.
+export const CHECKIN_SUBJECTS = ["زیست", "شیمی", "فیزیک", "ریاضی", "ادبیات", "عربی", "دینی", "زبان"];
+
+type SeedEntry = [subject: string, topic: string, minutes: number, tests: number];
+
+function seedCheckIn(
+  id: string,
+  studentId: string,
+  week: NightlyCheckIn["week"],
+  dayName: string,
+  entries: SeedEntry[],
+  mood: NightlyCheckIn["mood"],
+  note = "",
+  date = `${dayName}${week === "last" ? " هفته‌ی قبل" : ""}`
+): NightlyCheckIn {
+  return {
+    id,
+    date,
+    week,
+    dayName,
+    studentId,
+    entries: entries.map(([subject, topic, minutes, tests]) => ({ subject, topic, minutes, tests })),
+    mood,
+    note,
+    mentorSeen: true,
+  };
+}
 
 export const moodLabels: Record<NightlyCheckIn["mood"], string> = {
   great: "عالی بودم 💪",
@@ -480,37 +516,66 @@ export const moodLabels: Record<NightlyCheckIn["mood"], string> = {
 
 // Check-ins for the mentor's students — this feed is what replaces the
 // mentor's Telegram group in the current real-world workflow.
+// The recent ones — what the mentor's "چک‌این‌های دیشب" feed shows.
 export const nightlyCheckIns: NightlyCheckIn[] = [
   {
-    id: "ci-1",
-    date: "امشب",
-    studentId: "3",
-    entries: [
-      { subject: "زیست", topic: "فیزیولوژی گیاهی", minutes: 50 },
-      { subject: "شیمی", topic: "تست‌زنی فصل ۲", minutes: 40 },
-    ],
-    mood: "great",
-    note: "امروز خیلی خوب پیش رفت، شیمی رو کامل تموم کردم.",
+    ...seedCheckIn(
+      "ci-1",
+      "3",
+      "this",
+      "دوشنبه",
+      [
+        ["زیست", "فیزیولوژی گیاهی", 50, 30],
+        ["شیمی", "تست‌زنی فصل ۲", 40, 25],
+      ],
+      "great",
+      "امروز خیلی خوب پیش رفت، شیمی رو کامل تموم کردم.",
+      "امشب"
+    ),
     mentorSeen: false,
   },
   {
-    id: "ci-2",
-    date: "دیشب",
-    studentId: "2",
-    entries: [{ subject: "ریاضی", topic: "مثلثات", minutes: 35 }],
-    mood: "tired",
-    note: "امروز مدرسه فوق‌العاده داشتیم، کم رسیدم بخونم.",
+    ...seedCheckIn("ci-2", "2", "this", "یکشنبه", [["ریاضی", "مثلثات", 35, 15]], "tired",
+      "امروز مدرسه فوق‌العاده داشتیم، کم رسیدم بخونم.", "دیشب"),
     mentorSeen: false,
   },
-  {
-    id: "ci-3",
-    date: "۳ روز پیش",
-    studentId: "1",
-    entries: [],
-    mood: "struggled",
-    note: "",
-    mentorSeen: true,
-  },
+  seedCheckIn("ci-3", "1", "last", "جمعه", [], "struggled", "", "۳ روز پیش"),
+];
+
+// Older nights for the mentor's students — only feed the weekly summaries.
+export const checkInHistory: NightlyCheckIn[] = [
+  seedCheckIn("h3-1", "3", "last", "شنبه", [["زیست", "ژنتیک", 90, 40], ["شیمی", "استوکیومتری", 60, 30]], "great"),
+  seedCheckIn("h3-2", "3", "last", "یکشنبه", [["فیزیک", "حرکت‌شناسی", 75, 25], ["ریاضی", "تابع", 45, 20]], "ok"),
+  seedCheckIn("h3-3", "3", "last", "دوشنبه", [["زیست", "گردش خون", 80, 35], ["ادبیات", "آرایه‌ها", 30, 20]], "great"),
+  seedCheckIn("h3-4", "3", "last", "سه‌شنبه", [["شیمی", "تعادل", 70, 30], ["عربی", "ترجمه", 30, 15]], "ok"),
+  seedCheckIn("h3-5", "3", "last", "چهارشنبه", [["زیست", "تنفس", 60, 30], ["فیزیک", "دینامیک", 60, 20]], "tired"),
+  seedCheckIn("h3-6", "3", "last", "پنجشنبه", [["ریاضی", "مشتق", 60, 25], ["شیمی", "آلی", 45, 20]], "ok"),
+  seedCheckIn("h3-7", "3", "last", "جمعه", [["زیست", "آزمون جامع قلمچی", 90, 50]], "ok", "آزمون قلمچی بود"),
+  seedCheckIn("h3-8", "3", "this", "شنبه", [["زیست", "تنظیم عصبی", 70, 30], ["فیزیک", "کار و انرژی", 50, 20]], "great"),
+  seedCheckIn("h3-9", "3", "this", "یکشنبه", [["شیمی", "تعادل", 60, 35], ["ریاضی", "مثلثات", 40, 15]], "ok"),
+
+  seedCheckIn("h2-1", "2", "last", "شنبه", [["ریاضی", "حد", 90, 30], ["فیزیک", "الکتریسیته", 60, 20]], "ok"),
+  seedCheckIn("h2-2", "2", "last", "دوشنبه", [["ریاضی", "مشتق", 70, 25], ["شیمی", "اسید و باز", 40, 15]], "ok"),
+  seedCheckIn("h2-3", "2", "last", "چهارشنبه", [["فیزیک", "مغناطیس", 60, 20]], "tired"),
+  seedCheckIn("h2-4", "2", "last", "پنجشنبه", [["ریاضی", "انتگرال", 50, 15], ["زبان", "لغت", 20, 10]], "ok"),
+  seedCheckIn("h2-5", "2", "this", "شنبه", [["ریاضی", "مثلثات", 45, 20]], "ok"),
+
+  seedCheckIn("h1-1", "1", "last", "شنبه", [["زیست", "سلول", 40, 10]], "tired"),
+  seedCheckIn("h1-2", "1", "last", "سه‌شنبه", [["شیمی", "آلی", 30, 5]], "struggled", "هیچی نفهمیدم از آلی"),
+];
+
+// The logged-in student's own (ایمان) past nights; tonight's is entered on
+// /dashboard/checkin and kept in the browser (see checkin-store).
+export const myCheckInSeed: NightlyCheckIn[] = [
+  seedCheckIn("me-1", "me", "last", "شنبه", [["زیست", "ژنتیک", 80, 30], ["شیمی", "استوکیومتری", 50, 25]], "ok"),
+  seedCheckIn("me-2", "me", "last", "یکشنبه", [["ریاضی", "تابع", 60, 20], ["فیزیک", "حرکت‌شناسی", 45, 15]], "great"),
+  seedCheckIn("me-3", "me", "last", "دوشنبه", [["زیست", "گردش خون", 70, 35], ["ادبیات", "قرابت معنایی", 25, 15]], "ok"),
+  seedCheckIn("me-4", "me", "last", "سه‌شنبه", [["شیمی", "تعادل", 60, 20]], "tired", "شیمی سنگین بود"),
+  seedCheckIn("me-5", "me", "last", "چهارشنبه", [["فیزیک", "دینامیک", 50, 20], ["عربی", "قواعد", 30, 20]], "ok"),
+  seedCheckIn("me-6", "me", "last", "پنجشنبه", [["زیست", "تنفس", 60, 30], ["ریاضی", "مشتق", 40, 15]], "great"),
+  seedCheckIn("me-7", "me", "last", "جمعه", [["زیست", "آزمون جامع قلمچی", 90, 45]], "ok"),
+  seedCheckIn("me-8", "me", "this", "شنبه", [["ریاضی", "مرور فصل ۲", 60, 25], ["شیمی", "تست‌زنی", 45, 30]], "ok"),
+  seedCheckIn("me-9", "me", "this", "یکشنبه", [["فیزیک", "حرکت‌شناسی", 90, 20], ["زیست", "فیزیولوژی", 40, 20]], "great"),
 ];
 
 export const chatMessages = [

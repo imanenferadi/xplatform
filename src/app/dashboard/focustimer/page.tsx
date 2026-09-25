@@ -11,7 +11,7 @@ import { ProgressCircle } from "@/components/ui/Progress";
 import { studentPlan } from "@/lib/mock-data";
 import { logFocus } from "@/lib/focus-log-store";
 import { formatClock, useCountdown } from "@/lib/use-countdown";
-import { cn, toPersianDigits } from "@/lib/utils";
+import { cn, toLatinDigits, toPersianDigits } from "@/lib/utils";
 
 type Mode = "focus" | "rest";
 
@@ -77,7 +77,7 @@ function FocusTimer() {
 
   function applyCustom(e: React.FormEvent) {
     e.preventDefault();
-    const m = Number(customInput.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))));
+    const m = Number(toLatinDigits(customInput));
     if (!Number.isInteger(m) || m < MIN_CUSTOM || m > MAX_CUSTOM) {
       setCustomError(`یه عدد صحیح بین ${toPersianDigits(MIN_CUSTOM)} تا ${toPersianDigits(MAX_CUSTOM)} دقیقه وارد کن.`);
       return;
