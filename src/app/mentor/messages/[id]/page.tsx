@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useRef, use } from "react";
+import { useState, useRef, useEffect, use } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Send } from "lucide-react";
 import { MentorShell } from "@/components/app/MentorShell";
 import { Avatar } from "@/components/ui/Avatar";
+import { VoiceBubble, VoiceRecordButton } from "@/components/app/Voice";
 import { mentorStudents, mentorMessageThreads, type ChatMessage } from "@/lib/mock-data";
+import type { VoiceClip } from "@/lib/use-voice-recorder";
 import { cn } from "@/lib/utils";
 
 export default function MentorThreadPage({ params }: { params: Promise<{ id: string }> }) {
@@ -17,6 +19,12 @@ export default function MentorThreadPage({ params }: { params: Promise<{ id: str
   );
   const [input, setInput] = useState("");
   const nextId = useRef(1000);
+  const voiceUrls = useRef<string[]>([]);
+
+  useEffect(() => {
+    const urls = voiceUrls.current;
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, []);
 
   if (!student) notFound();
 
@@ -24,6 +32,11 @@ export default function MentorThreadPage({ params }: { params: Promise<{ id: str
     if (!input.trim()) return;
     setMessages((m) => [...m, { id: nextId.current++, from: "mentor", text: input, time: "الان" }]);
     setInput("");
+  }
+
+  function sendVoice(clip: VoiceClip) {
+    voiceUrls.current.push(clip.url);
+    setMessages((m) => [...m, { id: nextId.current++, from: "mentor", text: "", time: "الان", voice: clip }]);
   }
 
   return (
@@ -55,7 +68,7 @@ export default function MentorThreadPage({ params }: { params: Promise<{ id: str
                   m.from === "mentor" ? "bg-navy-900 text-white" : "border border-border bg-surface-2 text-text-700"
                 )}
               >
-                {m.text}
+                {m.voice ? <VoiceBubble clip={m.voice} mine={m.from === "mentor"} /> : m.text}
                 <div className={cn("tnum mt-1 text-[10px]", m.from === "mentor" ? "text-white/60" : "text-text-500")}>
                   {m.time}
                 </div>
@@ -69,8 +82,9 @@ export default function MentorThreadPage({ params }: { params: Promise<{ id: str
             e.preventDefault();
             send();
           }}
-          className="mt-3 flex items-center gap-2 rounded-x-md border border-border bg-surface p-2"
+          className="relative mt-3 flex items-center gap-2 rounded-x-md border border-border bg-surface p-2"
         >
+          <VoiceRecordButton onRecorded={sendVoice} />
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}

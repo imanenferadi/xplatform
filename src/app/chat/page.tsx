@@ -1,18 +1,26 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Send, Camera } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Avatar } from "@/components/ui/Avatar";
-import { chatMessages, mentors } from "@/lib/mock-data";
+import { VoiceBubble, VoiceRecordButton } from "@/components/app/Voice";
+import { chatMessages, mentors, type ChatMessage } from "@/lib/mock-data";
+import type { VoiceClip } from "@/lib/use-voice-recorder";
 import { cn } from "@/lib/utils";
 
 export default function ChatPage() {
   const mentor = mentors[0];
-  const [messages, setMessages] = useState(chatMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>(chatMessages);
   const [input, setInput] = useState("");
   const nextId = useRef(1000);
+  const voiceUrls = useRef<string[]>([]);
+
+  useEffect(() => {
+    const urls = voiceUrls.current;
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, []);
 
   function send() {
     if (!input.trim()) return;
@@ -21,6 +29,11 @@ export default function ChatPage() {
       { id: nextId.current++, from: "student", text: input, time: "الان" },
     ]);
     setInput("");
+  }
+
+  function sendVoice(clip: VoiceClip) {
+    voiceUrls.current.push(clip.url);
+    setMessages((m) => [...m, { id: nextId.current++, from: "student", text: "", time: "الان", voice: clip }]);
   }
 
   return (
@@ -48,7 +61,7 @@ export default function ChatPage() {
                   m.from === "student" ? "bg-navy-900 text-white" : "border border-border bg-surface-2 text-text-700"
                 )}
               >
-                {m.text}
+                {m.voice ? <VoiceBubble clip={m.voice} mine={m.from === "student"} /> : m.text}
                 <div
                   className={cn(
                     "tnum mt-1 text-[10px]",
@@ -67,8 +80,9 @@ export default function ChatPage() {
             e.preventDefault();
             send();
           }}
-          className="mt-3 flex items-center gap-2 rounded-x-md border border-border bg-surface p-2"
+          className="relative mt-3 flex items-center gap-2 rounded-x-md border border-border bg-surface p-2"
         >
+          <VoiceRecordButton onRecorded={sendVoice} />
           <button type="button" className="shrink-0 rounded-x-sm p-2 text-text-500 hover:bg-surface-2" aria-label="ارسال عکس">
             <Camera size={18} />
           </button>

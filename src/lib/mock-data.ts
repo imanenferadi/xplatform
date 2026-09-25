@@ -825,7 +825,13 @@ export const pricingPlans = [
 // sidebar nav so every link in MentorShell resolves to a real page.
 // ---------------------------------------------------------------------
 
-export type ChatMessage = { id: number; from: "mentor" | "student"; text: string; time: string };
+export type ChatMessage = {
+  id: number;
+  from: "mentor" | "student";
+  text: string;
+  time: string;
+  voice?: { url: string; seconds: number };
+};
 
 /** One thread per student, keyed by MentorStudent.id. */
 export const mentorMessageThreads: Record<string, ChatMessage[]> = {
