@@ -13,6 +13,7 @@ import {
   Calculator,
   FileText,
   Timer,
+  NotebookPen,
   User,
   Home,
 } from "lucide-react";
@@ -28,6 +29,7 @@ const sidebarLinks = [
   { href: "/dashboard/focustimer", label: "تایمر فوکوس", icon: Timer },
   { href: "/dashboard/checkin", label: "چک‌این شب", icon: MoonIcon },
   { href: "/dashboard/karnameh", label: "آپلود کارنامه", icon: FileText },
+  { href: "/dashboard/notes", label: "یادداشت‌های من", icon: NotebookPen },
   { href: "/mentors/sara-mohammadi", label: "مشاور من", icon: User },
   { href: "/chat", label: "پیام‌ها", icon: MessageCircle },
   { href: "/dashboard/ai", label: "معلم AI", icon: Bot },

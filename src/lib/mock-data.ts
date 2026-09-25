@@ -1148,3 +1148,23 @@ export const mentorPrivateNotes: PrivateNote[] = [
   { id: "pn-1", studentId: "1", text: "بعد از جلسه‌ی قبل انگیزه‌اش کم شده بود؛ حواسم به این باشه.", date: "۲۰ شهریور" },
   { id: "pn-2", studentId: "3", text: "خانواده فشار زیادی برای رشته‌ی پزشکی می‌ذارن؛ باید موقع صحبت با خودش مراقب باشم.", date: "۱۵ شهریور" },
 ];
+
+// A student's own free-form notebook — NOT the test-bank "دفترچه‌ی
+// اشتباهات" (that's still deliberately deferred, phase 4). Just a place
+// to jot something down, separate from the structured plan/check-in.
+export type StudentNote = { id: string; title: string; body: string; date: string };
+
+export const studentNotes: StudentNote[] = [
+  {
+    id: "sn-1",
+    title: "فرمول‌های اثبات‌نشده‌ی مثلثات",
+    body: "یادم باشه فردا از سارا بپرسم فرمول تبدیل جمع به ضرب رو از کجا میاد.",
+    date: "۲ روز پیش",
+  },
+  {
+    id: "sn-2",
+    title: "ایده برای جمع‌بندی شیمی",
+    body: "به‌جای خوندن کل فصل، فقط رو غلط‌های آزمون قبلی مرور کنم.",
+    date: "۵ روز پیش",
+  },
+];
