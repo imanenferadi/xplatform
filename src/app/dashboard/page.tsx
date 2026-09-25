@@ -79,7 +79,7 @@ export default function DashboardPage() {
                 <div className="text-sm font-medium text-text-900">شنبه، ساعت ۱۸:۰۰</div>
               </div>
               <Link href={`/session/${mentor.id}`} className={buttonVariants({ size: "md" })}>
-                شروع جلسه
+                ورود به جلسه
               </Link>
             </CardContent>
           </Card>

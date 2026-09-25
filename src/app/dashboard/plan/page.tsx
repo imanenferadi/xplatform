@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { RotateCcw, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
-import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { getSubjectDetail, type Subject } from "@/lib/mock-data";
@@ -75,7 +74,6 @@ function formatHours(h: number): string {
 }
 
 export default function PlanPage() {
-  const [behind, setBehind] = useState(false);
   const [selected, setSelected] = useState(TODAY_INDEX);
   const day = timebox[selected];
   const doneCount = day.tasks.filter((t) => t.done).length;
@@ -84,22 +82,7 @@ export default function PlanPage() {
   return (
     <StudentShell>
       <div className="mx-auto max-w-2xl px-4 py-6 md:py-10">
-        <div className="mb-5 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-text-900">برنامه</h1>
-          <Button variant="secondary" size="md" onClick={() => setBehind((b) => !b)}>
-            <RotateCcw size={16} />
-            عقب افتادم؛ بازچینی کن
-          </Button>
-        </div>
-
-        {behind && (
-          <Card className="mb-5 border-orange-500/30 bg-orange-500/10">
-            <CardContent className="text-sm text-text-700">
-              <span className="font-medium text-text-900">بازچینی شد.</span> کارهای انجام‌نشده روی
-              روزهای باقی‌مانده‌ی هفته پخش شدند. سبک‌تر شد، نه سنگین‌تر.
-            </CardContent>
-          </Card>
-        )}
+        <h1 className="mb-5 text-xl font-bold text-text-900">برنامه</h1>
 
         {/* 7-day rolling strip */}
         <div className="mb-5 flex gap-2 overflow-x-auto pb-1">

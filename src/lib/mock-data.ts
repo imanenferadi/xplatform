@@ -1574,3 +1574,40 @@ export const REASSIGN_TRANSFERS = {
   moves: ["برنامه‌ها و تاریخچه‌ی اجرا", "گزارش کارهای شبانه و جمع هفته‌ها", "کارنامه‌های آپلودشده", "دفترچه‌ی غلط‌ها"],
   stays: ["یادداشت‌های خصوصی مشاور قبلی (قول «فقط خودت می‌بینی»)", "گفتگوهای قبلی با مشاور قبلی"],
 };
+
+// ---------------------------------------------------------------------
+// Sessions run on an outside platform the mentor already uses — no
+// in-site video. Google Meet works in Iran today but Google services have
+// had repeated disruptions, so domestic Skyroom (reachable during
+// international-internet cuts) or any link is allowed. Plus a phone
+// fallback for when the link won't open.
+// ---------------------------------------------------------------------
+
+export type MeetingProvider = "google_meet" | "skyroom" | "other";
+
+export const MEETING_PROVIDERS: Record<MeetingProvider, { label: string; example: string; pattern: RegExp }> = {
+  google_meet: {
+    label: "گوگل میت",
+    example: "https://meet.google.com/abc-defg-hij",
+    pattern: /^https:\/\/meet\.google\.com\/[a-z]{3}-[a-z]{4}-[a-z]{3}$/,
+  },
+  skyroom: {
+    label: "اسکای‌روم",
+    example: "https://www.skyroom.online/ch/sara-mohammadi/room",
+    pattern: /^https:\/\/(www\.)?skyroom\.online\/\S+$/,
+  },
+  other: {
+    label: "لینک دیگه",
+    example: "https://…",
+    pattern: /^https:\/\/\S+\.\S+$/,
+  },
+};
+
+export type MeetingSetup = { provider: MeetingProvider; url: string; fallbackPhone: string };
+
+// سارا محمدی's room — the logged-in mentor of this demo.
+export const DEFAULT_MEETING: MeetingSetup = {
+  provider: "google_meet",
+  url: "https://meet.google.com/xpl-konk-uri",
+  fallbackPhone: "۰۹۱۲ ۹۹۹ ۸۸۷۷",
+};

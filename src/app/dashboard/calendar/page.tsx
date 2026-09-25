@@ -16,8 +16,8 @@ const ROWS: { label: string; render: (d: CalendarDay) => React.ReactNode }[] = [
     label: "جلسه با مشاور",
     render: (d) =>
       d.session && (
-        <span className="inline-flex items-center gap-1 rounded-x-sm bg-blue-100 px-1.5 py-1 text-[11px] leading-tight text-blue-600">
-          {d.session.mode === "video" ? <Video size={11} /> : <Phone size={11} />}
+        <span className="inline-flex items-center gap-1 rounded-x-md bg-blue-100 px-2.5 py-1.5 text-sm leading-tight text-blue-600">
+          {d.session.mode === "video" ? <Video size={14} /> : <Phone size={14} />}
           <span className="tnum">{d.session.time}</span>
         </span>
       ),
@@ -26,8 +26,8 @@ const ROWS: { label: string; render: (d: CalendarDay) => React.ReactNode }[] = [
     label: "آزمون",
     render: (d) =>
       d.exam && (
-        <span className="inline-flex items-start gap-1 rounded-x-sm bg-orange-500/15 px-1.5 py-1 text-[11px] leading-tight text-orange-500">
-          <FileText size={11} className="mt-px shrink-0" />
+        <span className="inline-flex items-start gap-1 rounded-x-md bg-orange-500/15 px-2.5 py-1.5 text-xs leading-snug text-orange-500">
+          <FileText size={13} className="mt-px shrink-0" />
           {d.exam.provider} — {d.exam.name}
         </span>
       ),
@@ -36,15 +36,15 @@ const ROWS: { label: string; render: (d: CalendarDay) => React.ReactNode }[] = [
     label: "برنامه‌ی درسی",
     render: (d) =>
       d.tasks.length > 0 && (
-        <ul className="space-y-1">
+        <ul className="space-y-2">
           {d.tasks.map((t) => (
             <li
               key={t.subject}
-              className="flex items-center justify-between gap-1.5 whitespace-nowrap text-xs text-text-700"
+              className="flex items-center justify-between gap-2 whitespace-nowrap text-sm text-text-700"
             >
               <span>{t.subject}</span>
               <span className="text-text-500">
-                <span className="tnum">{formatHours(t.hours)}</span> س
+                <span className="tnum">{formatHours(t.hours)}</span> ساعت
               </span>
             </li>
           ))}
@@ -57,7 +57,7 @@ const ROWS: { label: string; render: (d: CalendarDay) => React.ReactNode }[] = [
       const total = d.tasks.reduce((s, t) => s + t.hours, 0);
       return (
         total > 0 && (
-          <span className="text-sm font-bold text-text-900">
+          <span className="text-base font-bold text-text-900">
             <span className="tnum">{formatHours(total)}</span> ساعت
           </span>
         )
@@ -71,7 +71,7 @@ export default function CalendarPage() {
 
   return (
     <StudentShell>
-      <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
+      <div className="mx-auto max-w-5xl px-4 py-6 md:py-10">
         <div className="mb-1 flex items-center gap-2">
           <CalendarDays size={18} className="text-blue-600" />
           <h1 className="text-xl font-bold text-text-900">تقویم هفته</h1>
@@ -85,22 +85,22 @@ export default function CalendarPage() {
 
         <Card className="overflow-hidden p-0">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] border-collapse text-right">
+            <table className="w-full min-w-[960px] border-collapse text-right">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="sticky right-0 z-10 w-24 bg-surface p-3 text-xs font-normal text-text-500" />
+                  <th className="sticky right-0 z-10 w-32 bg-surface p-4 text-sm font-normal text-text-500" />
                   {studentWeekCalendar.map((d) => {
                     const isToday = d.dayName === CURRENT_DAY_NAME;
                     return (
                       <th
                         key={d.dayName}
                         className={cn(
-                          "p-3 text-xs font-medium",
-                          isToday ? "bg-blue-100 text-blue-600" : "text-text-900",
+                          "border-r border-border/60 p-4 text-sm font-bold",
+                          isToday ? "bg-blue-100 text-blue-600" : "text-text-900"
                         )}
                       >
                         {d.dayName}
-                        {isToday && <div className="text-[10px] font-normal">امروز</div>}
+                        {isToday && <div className="mt-0.5 text-xs font-normal">امروز</div>}
                       </th>
                     );
                   })}
@@ -111,16 +111,19 @@ export default function CalendarPage() {
                   <tr key={row.label} className="border-b border-border/60 last:border-0">
                     <th
                       scope="row"
-                      className="sticky right-0 z-10 bg-surface p-3 align-top text-xs font-medium text-text-700"
+                      className="sticky right-0 z-10 whitespace-nowrap bg-surface p-4 align-top text-sm font-medium text-text-700"
                     >
                       {row.label}
                     </th>
                     {studentWeekCalendar.map((d) => (
                       <td
                         key={d.dayName}
-                        className={cn("p-2.5 align-top", d.dayName === CURRENT_DAY_NAME && "bg-blue-100/40")}
+                        className={cn(
+                          "h-20 border-r border-border/60 p-4 align-top",
+                          d.dayName === CURRENT_DAY_NAME && "bg-blue-100/40"
+                        )}
                       >
-                        {row.render(d) || <span className="text-xs text-text-500/50">—</span>}
+                        {row.render(d) || <span className="text-sm text-text-500/50">—</span>}
                       </td>
                     ))}
                   </tr>
