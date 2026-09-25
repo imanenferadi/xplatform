@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { User, Bell, LogOut, GraduationCap, ArrowLeft } from "lucide-react";
+import { User, Bell, LogOut, GraduationCap, ArrowLeft, LifeBuoy } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -118,8 +118,22 @@ export default function ProfilePage() {
         </Card>
 
         <Link
+          href="/help"
+          className="mt-4 flex items-center gap-3 rounded-x-lg border border-border bg-surface p-4 transition-colors hover:bg-surface-2"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
+            <LifeBuoy size={18} className="text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-medium text-text-900">راهنما و سؤالات متداول</div>
+            <div className="text-xs text-text-500">تازه‌واردی؟ اینجا شروع کن</div>
+          </div>
+          <ArrowLeft size={16} className="text-text-500" />
+        </Link>
+
+        <Link
           href="/login"
-          className="mt-4 flex items-center justify-center gap-2 rounded-x-lg border border-border bg-surface p-3.5 text-sm font-medium text-red-500 transition-colors hover:bg-surface-2"
+          className="mt-3 flex items-center justify-center gap-2 rounded-x-lg border border-border bg-surface p-3.5 text-sm font-medium text-red-500 transition-colors hover:bg-surface-2"
         >
           <LogOut size={16} />
           خروج از حساب
