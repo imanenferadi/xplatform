@@ -51,10 +51,10 @@ export default function AiTutorPage() {
 
   return (
     <StudentShell>
-      {/* Mobile height accounts for both the shell's fixed top bar (pt-16 = 4rem)
-          and fixed bottom nav (pb-24 = 6rem); md: the shell adds no padding, so
-          the full viewport height applies. */}
-      <div className="mx-auto flex h-[calc(100vh-10rem)] max-w-2xl flex-col px-4 py-4 md:h-screen md:py-6">
+      {/* Mobile height accounts for the shell's fixed top bar (pt-16 = 4rem),
+          fixed bottom nav (pb-24 = 6rem), and the ابزارها sub-tab bar (h-14 =
+          3.5rem); on md only the sub-tab bar remains. */}
+      <div className="mx-auto flex h-[calc(100vh-13.5rem)] max-w-2xl flex-col px-4 py-4 md:h-[calc(100vh-3.5rem)] md:py-6">
         <div className="mb-4 flex items-center gap-2">
           <Sparkles size={18} className="text-blue-600" />
           <h1 className="text-lg font-bold text-text-900">معلم هوشمند</h1>
