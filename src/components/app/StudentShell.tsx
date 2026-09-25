@@ -14,6 +14,7 @@ import {
   FileText,
   Timer,
   NotebookPen,
+  Gift,
   User,
   Home,
 } from "lucide-react";
@@ -36,6 +37,7 @@ const sidebarLinks = [
   { href: "/dashboard/library", label: "کتابخونه", icon: Library },
   { href: "/dashboard/calculator", label: "ماشین‌حساب درصد", icon: Calculator },
   { href: "/dashboard/reports", label: "گزارش‌ها", icon: BarChart3 },
+  { href: "/dashboard/referral", label: "دعوت از دوستان", icon: Gift },
 ];
 
 const bottomNavLinks = [

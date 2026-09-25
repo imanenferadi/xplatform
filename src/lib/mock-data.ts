@@ -1168,3 +1168,16 @@ export const studentNotes: StudentNote[] = [
     date: "۵ روز پیش",
   },
 ];
+
+// Referral program — invite a friend, both sides get a discount on their
+// next month.
+export type ReferralRecord = { id: string; friendName: string; date: string; status: "joined" | "pending_payment" };
+
+export const referralProgram = {
+  code: "IMAN-K404",
+  discountPercent: 20,
+  invited: [
+    { id: "rf-1", friendName: "علی نوری", date: "۱ هفته پیش", status: "joined" as const },
+    { id: "rf-2", friendName: "مریم صادقی", date: "۳ هفته پیش", status: "pending_payment" as const },
+  ] as ReferralRecord[],
+};
