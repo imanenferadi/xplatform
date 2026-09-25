@@ -1086,3 +1086,54 @@ export const platformLogs: PlatformLogEntry[] = [
     timestamp: "۱ هفته پیش، ۱۰:۰۰",
   },
 ];
+
+// Remainder of A-06 — transactions an admin has to act on (refund
+// requests), not just the revenue overview /admin already has.
+export type Transaction = {
+  id: string;
+  studentName: string;
+  planName: string;
+  amount: number;
+  date: string;
+  type: "purchase" | "refund_request";
+  status: "pending" | "approved" | "rejected";
+};
+
+export const transactions: Transaction[] = [
+  {
+    id: "tx-1",
+    studentName: "رضا نامدار",
+    planName: "پلن همراه",
+    amount: 1490000,
+    date: "۲ روز پیش",
+    type: "refund_request",
+    status: "pending",
+  },
+  {
+    id: "tx-2",
+    studentName: "نگین احمدی",
+    planName: "پلن پایه",
+    amount: 890000,
+    date: "۴ روز پیش",
+    type: "refund_request",
+    status: "pending",
+  },
+  {
+    id: "tx-3",
+    studentName: "امیرحسین رضایی",
+    planName: "پلن همراه",
+    amount: 1490000,
+    date: "۱ هفته پیش",
+    type: "purchase",
+    status: "approved",
+  },
+  {
+    id: "tx-4",
+    studentName: "ایمان",
+    planName: "پلن همراه",
+    amount: 1490000,
+    date: "۱ هفته پیش",
+    type: "refund_request",
+    status: "rejected",
+  },
+];
