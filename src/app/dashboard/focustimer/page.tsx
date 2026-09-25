@@ -27,6 +27,9 @@ const MODE_META = {
   rest: { title: "استراحت", icon: Coffee, ring: "stroke-mint-500", tint: "bg-mint-500/15 text-mint-500" },
 };
 
+const MIN_CUSTOM = 1;
+const MAX_CUSTOM = 180;
+
 function formatTime(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
@@ -41,6 +44,8 @@ export default function FocusTimerPage() {
   const [justFinished, setJustFinished] = useState(false);
   const [focusSessionsToday, setFocusSessionsToday] = useState(0);
   const [focusMinutesToday, setFocusMinutesToday] = useState(0);
+  const [customInput, setCustomInput] = useState("");
+  const [customError, setCustomError] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const totalSeconds = minutes * 60;
@@ -94,6 +99,20 @@ export default function FocusTimerPage() {
     setRemaining(minutes * 60);
   }
 
+  function applyCustom(e: React.FormEvent) {
+    e.preventDefault();
+    const m = Number(customInput.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))));
+    if (!Number.isInteger(m) || m < MIN_CUSTOM || m > MAX_CUSTOM) {
+      setCustomError(`یه عدد صحیح بین ${toPersianDigits(MIN_CUSTOM)} تا ${toPersianDigits(MAX_CUSTOM)} دقیقه وارد کن.`);
+      return;
+    }
+    setCustomError("");
+    setCustomInput("");
+    selectDuration(m);
+  }
+
+  const isPreset = PRESETS[mode].some((p) => p.minutes === minutes);
+
   return (
     <StudentShell>
       <div className="mx-auto max-w-xl px-4 py-6 md:py-10">
@@ -125,8 +144,8 @@ export default function FocusTimerPage() {
           })}
         </div>
 
-        {/* Duration presets */}
-        <div className="mb-6 flex justify-center gap-2">
+        {/* Duration: quick presets + any custom length */}
+        <div className="mb-3 flex flex-wrap justify-center gap-2">
           {PRESETS[mode].map((p) => (
             <button
               key={p.minutes}
@@ -141,7 +160,35 @@ export default function FocusTimerPage() {
               {p.label}
             </button>
           ))}
+          {!isPreset && (
+            <span className="rounded-x-pill border border-blue-600 bg-blue-100 px-4 py-1.5 text-sm font-medium text-text-900">
+              {toPersianDigits(minutes)} دقیقه
+            </span>
+          )}
         </div>
+        <form onSubmit={applyCustom} className="mb-6">
+          <div className="flex items-center justify-center gap-2">
+            <label htmlFor="custom-minutes" className="text-sm text-text-700">
+              زمان دلخواه:
+            </label>
+            <input
+              id="custom-minutes"
+              inputMode="numeric"
+              value={customInput}
+              onChange={(e) => {
+                setCustomInput(e.target.value);
+                setCustomError("");
+              }}
+              placeholder="مثلاً ۴۰"
+              className="h-9 w-24 rounded-x-md border border-border bg-surface px-3 text-center text-sm text-text-900 outline-none focus:border-blue-600"
+            />
+            <span className="text-sm text-text-500">دقیقه</span>
+            <Button type="submit" size="md" variant="secondary" className="h-9 px-4" disabled={!customInput.trim()}>
+              تنظیم
+            </Button>
+          </div>
+          {customError && <p className="mt-2 text-center text-xs text-red-500">{customError}</p>}
+        </form>
 
         {/* Ring */}
         <Card>
