@@ -2,21 +2,51 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ShieldCheck } from "lucide-react";
+import { Check, ShieldCheck, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { pricingPlans } from "@/lib/mock-data";
+import { Toman } from "@/components/ui/Toman";
+import { GUARANTEE_DAYS, PACKAGE_DURATIONS, pricingPlans, type PackageDuration } from "@/lib/mock-data";
+import { packageTotal, saveSubscription, splitInstallments } from "@/lib/subscription-store";
 import { cn, toPersianDigits } from "@/lib/utils";
+
+function toman(n: number) {
+  return `${toPersianDigits(n.toLocaleString("en-US"))} تومان`;
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
   const [selected, setSelected] = useState("companion");
+  const [durationId, setDurationId] = useState<PackageDuration["id"]>("1m");
+  const [installmentCount, setInstallmentCount] = useState(1);
   const [paying, setPaying] = useState(false);
 
   const plan = pricingPlans.find((p) => p.id === selected)!;
+  const duration = PACKAGE_DURATIONS.find((d) => d.id === durationId)!;
+  const isFree = plan.price === 0;
+  const total = isFree ? 0 : packageTotal(plan.price, duration);
+  const count = Math.min(installmentCount, duration.maxInstallments);
+  const schedule = splitInstallments(total, count);
+
+  function chooseDuration(d: PackageDuration) {
+    setDurationId(d.id);
+    setInstallmentCount(1);
+  }
 
   function pay() {
     setPaying(true);
+    if (!isFree) {
+      saveSubscription({
+        planId: plan.id,
+        planName: plan.name,
+        durationId: duration.id,
+        durationLabel: duration.label,
+        total,
+        installments: schedule,
+        purchasedDaysAgo: 0,
+        refund: null,
+      });
+    }
     setTimeout(() => router.push("/dashboard"), 1400);
   }
 
@@ -24,7 +54,9 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-background px-4 py-10">
       <div className="mx-auto max-w-2xl">
         <h1 className="text-2xl font-bold text-text-900">انتخاب پلن</h1>
-        <p className="mt-1 text-text-500">تعیین سطح و مشاهده‌ی مشاوران همیشه رایگان بود؛ این مرحله فقط برای ادامه‌ی مسیر است.</p>
+        <p className="mt-1 text-text-500">
+          تعیین سطح و مشاهده‌ی مشاوران همیشه رایگان بود؛ این مرحله فقط برای ادامه‌ی مسیر است.
+        </p>
 
         <div className="mt-6 space-y-3">
           {pricingPlans.map((p) => (
@@ -33,14 +65,14 @@ export default function CheckoutPage() {
               onClick={() => setSelected(p.id)}
               className={cn(
                 "flex w-full items-center justify-between rounded-x-lg border-2 p-4 text-right transition-colors",
-                selected === p.id ? "border-blue-600 bg-blue-100" : "border-border bg-surface"
+                selected === p.id ? "border-blue-600 bg-blue-100" : "border-border bg-surface",
               )}
             >
               <div className="flex items-center gap-3">
                 <div
                   className={cn(
                     "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2",
-                    selected === p.id ? "border-blue-600 bg-blue-600" : "border-border"
+                    selected === p.id ? "border-blue-600 bg-blue-600" : "border-border",
                   )}
                 >
                   {selected === p.id && <Check size={12} className="text-white" />}
@@ -53,23 +85,112 @@ export default function CheckoutPage() {
                   <div className="text-xs text-text-500">{p.features[0]}</div>
                 </div>
               </div>
-              <div className="tnum text-left text-sm font-bold text-text-900">
-                {p.price === 0 ? "رایگان" : `${toPersianDigits(p.price.toLocaleString("en-US"))} تومان`}
+              <div className="text-left text-sm font-bold text-text-900">
+                {p.price === 0 ? "رایگان" : <Toman amount={p.price} />}
                 {p.period && <div className="text-xs font-normal text-text-500">{p.period}</div>}
               </div>
             </button>
           ))}
         </div>
 
+        {!isFree && (
+          <>
+            <h2 className="mb-3 mt-8 text-sm font-bold text-text-900">مدت اشتراک</h2>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {PACKAGE_DURATIONS.map((d) => {
+                const t = packageTotal(plan.price, d);
+                return (
+                  <button
+                    key={d.id}
+                    onClick={() => chooseDuration(d)}
+                    className={cn(
+                      "rounded-x-lg border-2 p-3.5 text-right transition-colors",
+                      durationId === d.id ? "border-blue-600 bg-blue-100" : "border-border bg-surface",
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-text-900">{d.label}</span>
+                      {d.discountPercent > 0 && (
+                        <Badge tone="success">{toPersianDigits(d.discountPercent)}٪ تخفیف</Badge>
+                      )}
+                    </div>
+                    <div className="mt-1.5 text-sm text-text-900">
+                      <Toman amount={t} />
+                    </div>
+                    <div className="mt-0.5 text-xs text-text-500">
+                      {d.months > 1 ? (
+                        <>
+                          ماهی <Toman amount={Math.round(t / d.months / 1000) * 1000} />
+                        </>
+                      ) : (
+                        "ماه‌به‌ماه، هر وقت خواستی لغو کن"
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {duration.maxInstallments > 1 && (
+              <>
+                <h2 className="mb-3 mt-6 text-sm font-bold text-text-900">نحوه‌ی پرداخت</h2>
+                <div className="grid grid-cols-2 gap-2">
+                  {[1, duration.maxInstallments].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => setInstallmentCount(n)}
+                      className={cn(
+                        "rounded-x-md border-2 px-3 py-3 text-sm font-medium transition-colors",
+                        count === n
+                          ? "border-blue-600 bg-blue-100 text-text-900"
+                          : "border-border bg-surface text-text-700 hover:border-blue-300",
+                      )}
+                    >
+                      {n === 1 ? "یک‌جا" : `${toPersianDigits(n)} قسط ماهانه، بدون سود`}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        )}
+
         <div className="mt-6 rounded-x-lg border border-border bg-surface p-5">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-text-500">جمع پرداختی</span>
-            <span className="tnum font-bold text-text-900">
-              {plan.price === 0 ? "رایگان" : `${toPersianDigits(plan.price.toLocaleString("en-US"))} تومان`}
+            <span className="text-text-500">
+              {isFree ? "جمع پرداختی" : `جمع ${duration.label}${count > 1 ? ` (${toPersianDigits(count)} قسط)` : ""}`}
             </span>
+            <span className="font-bold text-text-900">{isFree ? "رایگان" : <Toman amount={total} />}</span>
           </div>
+
+          {count > 1 && (
+            <ol className="mt-3 space-y-1.5 border-t border-border pt-3">
+              {schedule.map((ins, i) => (
+                <li key={i} className="flex items-center justify-between text-sm">
+                  <span className="text-text-700">
+                    قسط {toPersianDigits(i + 1)} — {ins.due}
+                  </span>
+                  <span className={cn(i === 0 ? "font-bold text-text-900" : "text-text-500")}>
+                    <Toman amount={ins.amount} />
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+
+          {!isFree && (
+            <div className="mt-4 flex items-start gap-2 rounded-x-md bg-mint-500/10 p-3 text-xs leading-[1.8] text-text-700">
+              <RotateCcw size={14} className="mt-0.5 shrink-0 text-mint-500" />
+              <span>
+                <span className="font-medium text-text-900">ضمانت {toPersianDigits(GUARANTEE_DAYS)} روزه:</span> اگه تا{" "}
+                {toPersianDigits(GUARANTEE_DAYS)} روز بعد از پرداخت راضی نبودی، کل مبلغی که دادی بدون هیچ سؤالی
+                برمی‌گرده — از بخش «اشتراک من» در پروفایلت.
+              </span>
+            </div>
+          )}
+
           <Button size="lg" className="mt-4 w-full" onClick={pay} disabled={paying}>
-            {paying ? "در حال پرداخت..." : plan.price === 0 ? "شروع رایگان" : "پرداخت و شروع"}
+            {paying ? "در حال پرداخت..." : isFree ? "شروع رایگان" : `پرداخت ${toman(schedule[0].amount)} و شروع`}
           </Button>
           <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-text-500">
             <ShieldCheck size={13} />

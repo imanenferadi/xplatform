@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { User, Bell, LogOut, GraduationCap, ArrowLeft, LifeBuoy } from "lucide-react";
+import { User, Bell, LogOut, GraduationCap, ArrowLeft, LifeBuoy, Users, Lock } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
 import { mentors, targetMajor, studentProfile } from "@/lib/mock-data";
+import { MySubscription } from "@/components/app/MySubscription";
+import { PARENT_ACCESS_LABELS, setParentAccess, useParentAccess, type ParentAccess } from "@/lib/parent-access-store";
 import { cn } from "@/lib/utils";
 
 const NOTIFICATION_LABELS: Record<keyof typeof studentProfile.notificationPrefs, string> = {
@@ -16,27 +18,32 @@ const NOTIFICATION_LABELS: Record<keyof typeof studentProfile.notificationPrefs,
   weeklyReport: "خلاصه‌ی هفتگی پیشرفت",
 };
 
-function Toggle({ checked, onClick }: { checked: boolean; onClick: () => void }) {
+function Toggle({ checked, onClick, label }: { checked: boolean; onClick: () => void; label?: string }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-label={label}
       onClick={onClick}
       className={cn(
         "relative h-6 w-11 shrink-0 rounded-x-pill transition-colors",
-        checked ? "bg-blue-600" : "bg-surface-2"
+        checked ? "bg-blue-600" : "bg-surface-2",
       )}
     >
       <span
         className={cn(
           "absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform",
           checked ? "translate-x-[-1.375rem]" : "translate-x-[-0.125rem]",
-          "right-0.5"
+          "right-0.5",
         )}
       />
     </button>
   );
+}
+
+function Dot() {
+  return <span className="inline-block h-1.5 w-1.5 rounded-full bg-text-500" />;
 }
 
 export default function ProfilePage() {
@@ -44,6 +51,7 @@ export default function ProfilePage() {
   const [name, setName] = useState(studentProfile.name);
   const [city, setCity] = useState(studentProfile.city);
   const [prefs, setPrefs] = useState(studentProfile.notificationPrefs);
+  const parentAccess = useParentAccess();
 
   return (
     <StudentShell>
@@ -82,9 +90,7 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-medium text-text-900">{targetMajor.name}</div>
-                <div className="mt-1 text-xs text-text-500">
-                  مشاور: {mentor.name}
-                </div>
+                <div className="mt-1 text-xs text-text-500">مشاور: {mentor.name}</div>
               </div>
               <Link
                 href={`/mentors/${mentor.id}`}
@@ -93,6 +99,48 @@ export default function ProfilePage() {
                 مشاهده‌ی پروفایل مشاور
                 <ArrowLeft size={12} />
               </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        <MySubscription />
+
+        {/* The student decides what their parent sees — trust with a teenager
+            breaks fast if the parent panel feels like surveillance. */}
+        <Card className="mt-4">
+          <CardContent>
+            <div className="mb-1 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users size={16} className="text-blue-600" />
+                <h2 className="text-sm font-bold text-text-900">والدینم چی ببینن؟</h2>
+              </div>
+              <Link href="/parent" className="text-xs text-blue-600 hover:underline">
+                پیش‌نمایش پنل والد
+              </Link>
+            </div>
+            <p className="mb-3 text-xs text-text-500">هر بخشی رو خاموش کنی، توی پنل والدینت نشون داده نمی‌شه.</p>
+            <div className="space-y-3">
+              {(Object.keys(PARENT_ACCESS_LABELS) as (keyof ParentAccess)[]).map((key) => (
+                <div key={key} className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm text-text-700">{PARENT_ACCESS_LABELS[key].label}</div>
+                    <div className="text-[11px] text-text-500">{PARENT_ACCESS_LABELS[key].hint}</div>
+                  </div>
+                  <Toggle
+                    checked={parentAccess[key]}
+                    label={PARENT_ACCESS_LABELS[key].label}
+                    onClick={() => setParentAccess(key, !parentAccess[key])}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 space-y-1.5 border-t border-border pt-3 text-[11px] text-text-500">
+              <div className="flex items-center gap-1.5">
+                <Dot /> اشتراک و پرداخت همیشه برای والدین پیداست — پرداخت‌کننده خودشونن.
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Lock size={11} /> گفتگوهات با مشاور و معلم AI هیچ‌وقت به والدین نشون داده نمی‌شه.
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -109,6 +157,7 @@ export default function ProfilePage() {
                   <span className="text-sm text-text-700">{NOTIFICATION_LABELS[key]}</span>
                   <Toggle
                     checked={prefs[key]}
+                    label={NOTIFICATION_LABELS[key]}
                     onClick={() => setPrefs((p) => ({ ...p, [key]: !p[key] }))}
                   />
                 </div>

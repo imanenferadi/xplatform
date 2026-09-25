@@ -129,8 +129,13 @@
   --shadow-x-lg: var(--x-shadow-lg);
 }
 
-* {
-  border-color: var(--x-border);
+/* Must live in a layer: unlayered rules beat every @layer utility, so as a
+   bare `*` rule this silently disabled all border-color utilities
+   (border-blue-600 on selected cards, border-red-500/30 on alerts, …). */
+@layer base {
+  * {
+    border-color: var(--x-border);
+  }
 }
 
 html {

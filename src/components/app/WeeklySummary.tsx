@@ -10,7 +10,15 @@ type Week = NightlyCheckIn["week"];
 
 // Totals every nightly check-in of a week subject by subject (hours + tests).
 // Same component on the student's «جمع هفته» and the mentor's case file.
-export function WeeklySummary({ checkIns, audience }: { checkIns: NightlyCheckIn[]; audience: "student" | "mentor" }) {
+export function WeeklySummary({
+  checkIns,
+  audience,
+  showSleep = true,
+}: {
+  checkIns: NightlyCheckIn[];
+  audience: "student" | "mentor" | "parent";
+  showSleep?: boolean; // the parent panel hides sleep unless the student shares it
+}) {
   const [week, setWeek] = useState<Week>("this");
   const summary = aggregateWeek(checkIns, week);
   const maxMinutes = summary.subjects[0]?.minutes ?? 0;
@@ -65,7 +73,7 @@ export function WeeklySummary({ checkIns, audience }: { checkIns: NightlyCheckIn
               <div className={cn("mt-1 text-[10px]", future ? "text-text-500/60" : "text-text-500")}>
                 {d.slice(0, 2)}
               </div>
-              {slept != null && (
+              {showSleep && slept != null && (
                 <div
                   className={cn(
                     "text-[10px]",
@@ -81,7 +89,7 @@ export function WeeklySummary({ checkIns, audience }: { checkIns: NightlyCheckIn
         })}
       </div>
 
-      {summary.sleep.nights > 0 && (
+      {showSleep && summary.sleep.nights > 0 && (
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-x-md bg-surface-2 px-3 py-2 text-xs text-text-700">
           <span className="flex items-center gap-1 font-medium text-text-900">
             <BedDouble size={13} className="text-blue-600" /> خواب

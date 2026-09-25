@@ -1382,3 +1382,57 @@ export const studentMistakes: MistakeEntry[] = [
   seedMistake("sm-8", "1", "زیست", "سلول", "آزمون قلم‌چی ۴ مهر", "concept"),
   seedMistake("sm-9", "1", "فیزیک", "الکتریسیته", "آزمون قلم‌چی ۴ مهر", "forgot"),
 ];
+
+// ---------------------------------------------------------------------
+// Packages (مدت اشتراک) + installments. Benchmark: darsbama.com sells the
+// same three terms (1 month / 3 months / until konkur) with ~5% off for
+// 3 months. Our discounts are a business decision — change them here.
+// ---------------------------------------------------------------------
+
+export type PackageDuration = {
+  id: "1m" | "3m" | "konkur";
+  label: string;
+  months: number;
+  discountPercent: number;
+  maxInstallments: number; // 1 = pay in full only
+};
+
+export const PACKAGE_DURATIONS: PackageDuration[] = [
+  { id: "1m", label: "یک‌ماهه", months: 1, discountPercent: 0, maxInstallments: 1 },
+  { id: "3m", label: "سه‌ماهه", months: 3, discountPercent: 10, maxInstallments: 3 },
+  { id: "konkur", label: "تا کنکور", months: 9, discountPercent: 20, maxInstallments: 4 },
+];
+
+// Money-back window after paying for a new package, no questions asked.
+export const GUARANTEE_DAYS = 7;
+
+// Monthly due dates counted from the demo's today (۷ مهر).
+export const INSTALLMENT_DUE_LABELS = ["امروز", "۷ آبان", "۷ آذر", "۷ دی"];
+
+// ---------------------------------------------------------------------
+// Admin-only mentor reassignment (تعویض مشاور). The student can't trigger
+// this from their panel — they ask support, and ops decides.
+// ---------------------------------------------------------------------
+
+export type StudentAssignment = { userId: string; name: string; group: ExamGroup; mentorId: string };
+
+export const studentAssignments: StudentAssignment[] = [
+  { userId: "u-1", name: "ایمان", group: "تجربی", mentorId: "sara-mohammadi" },
+  { userId: "u-2", name: "امیرحسین رضایی", group: "تجربی", mentorId: "sara-mohammadi" },
+  { userId: "u-4", name: "رضا نامدار", group: "تجربی", mentorId: "negar-ahmadi" },
+  { userId: "u-5", name: "نگین احمدی", group: "ریاضی", mentorId: "amirhossein-rezaei" },
+];
+
+export const REASSIGN_REASONS = [
+  "مشاور پاسخگو نیست",
+  "درخواست دانش‌آموز یا والد",
+  "ناسازگاری سبک مشاوره",
+  "مشاور غیرفعال شده",
+  "سایر",
+];
+
+// What the new mentor inherits — and what deliberately stays behind.
+export const REASSIGN_TRANSFERS = {
+  moves: ["برنامه‌ها و تاریخچه‌ی اجرا", "چک‌این‌های شبانه و جمع هفته‌ها", "کارنامه‌های آپلودشده", "دفترچه‌ی غلط‌ها"],
+  stays: ["یادداشت‌های خصوصی مشاور قبلی (قول «فقط خودت می‌بینی»)", "گفتگوهای قبلی با مشاور قبلی"],
+};

@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Users, ShieldAlert, Search, Ban, RotateCcw } from "lucide-react";
+import Link from "next/link";
+import { Users, ShieldAlert, Search, Ban, RotateCcw, ArrowLeftRight } from "lucide-react";
 import { AdminShell } from "@/components/app/AdminShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { adminUsers as initialUsers, complaints, type AdminUser } from "@/lib/mock-data";
+import { adminUsers as initialUsers, complaints, studentAssignments, type AdminUser } from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
 
 export default function AdminUsersPage() {
@@ -16,12 +17,12 @@ export default function AdminUsersPage() {
 
   const filtered = useMemo(
     () => users.filter((u) => u.name.includes(query) || u.phone.includes(query)),
-    [users, query]
+    [users, query],
   );
 
   function toggleStatus(id: string) {
     setUsers((us) =>
-      us.map((u) => (u.id === id ? { ...u, status: u.status === "active" ? "suspended" : "active" } : u))
+      us.map((u) => (u.id === id ? { ...u, status: u.status === "active" ? "suspended" : "active" } : u)),
     );
   }
 
@@ -88,7 +89,8 @@ export default function AdminUsersPage() {
           <h2 className="text-xl font-bold text-text-900">شکایات</h2>
         </div>
         <p className="mb-4 text-sm text-text-500">
-          <span className="tnum">{toPersianDigits(complaints.filter((c) => c.status === "open").length)}</span> شکایت باز
+          <span className="tnum">{toPersianDigits(complaints.filter((c) => c.status === "open").length)}</span> شکایت
+          باز
         </p>
         <div className="space-y-2">
           {complaints.map((c) => (
@@ -99,9 +101,19 @@ export default function AdminUsersPage() {
                   <div className="mt-0.5 text-xs text-text-700">{c.reason}</div>
                   <div className="mt-1 text-xs text-text-500">{c.date}</div>
                 </div>
-                <Badge tone={c.status === "open" ? "warning" : "success"}>
-                  {c.status === "open" ? "باز" : "حل‌شده"}
-                </Badge>
+                <div className="flex shrink-0 items-center gap-2">
+                  {c.status === "open" && studentAssignments.some((a) => a.name === c.fromName) && (
+                    <Link
+                      href={`/admin/reassign?student=${studentAssignments.find((a) => a.name === c.fromName)!.userId}`}
+                      className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                    >
+                      <ArrowLeftRight size={12} /> تعویض مشاور
+                    </Link>
+                  )}
+                  <Badge tone={c.status === "open" ? "warning" : "success"}>
+                    {c.status === "open" ? "باز" : "حل‌شده"}
+                  </Badge>
+                </div>
               </CardContent>
             </Card>
           ))}
