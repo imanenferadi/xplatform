@@ -1,73 +1,121 @@
 import Link from "next/link";
-import { CalendarDays, Video, Phone, FileText, ArrowLeft } from "lucide-react";
+import { CalendarDays, Video, Phone, FileText, ArrowLeft, Check, Moon, Upload } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Card } from "@/components/ui/Card";
-import { CURRENT_DAY_NAME, studentWeekCalendar, type CalendarDay } from "@/lib/mock-data";
+import { CURRENT_DAY_NAME, WEEK_DAYS, mentors, studentWeekCalendar, type CalendarDay } from "@/lib/mock-data";
 import { cn, toPersianDigits } from "@/lib/utils";
 
 function formatHours(h: number): string {
   return toPersianDigits(Number.isInteger(h) ? h : h.toFixed(1));
 }
 
-// Days are columns, kinds of commitment are rows — the whole week reads at
-// a glance. On a phone the row labels stay pinned while the days scroll.
+const dayTotal = (d: CalendarDay) => d.tasks.reduce((s, t) => s + t.hours, 0);
+const todayIndex = WEEK_DAYS.indexOf(CURRENT_DAY_NAME);
+const isPast = (d: CalendarDay) => WEEK_DAYS.indexOf(d.dayName) < todayIndex;
+
+// Nightly/after-exam nudges, same idea as the mentor's «یادآوری‌ها» row.
+const REMINDERS: Record<string, { text: string; href: string; icon: typeof Moon }[]> = {
+  [CURRENT_DAY_NAME]: [{ text: "گزارش کار امشب", href: "/dashboard/report", icon: Moon }],
+  جمعه: [{ text: "کارنامه‌ی آزمون رو آپلود کن", href: "/dashboard/karnameh", icon: Upload }],
+};
+
+// Same look as the mentor's week table (equal day columns, chips, faded
+// past days), but the rows stay "kinds of commitment", not hours — a
+// student plans in time blocks per subject, not a minute-by-minute grid.
 const ROWS: { label: string; render: (d: CalendarDay) => React.ReactNode }[] = [
   {
     label: "جلسه با مشاور",
-    render: (d) =>
-      d.session && (
-        <span className="inline-flex items-center gap-1 rounded-x-md bg-blue-100 px-2.5 py-1.5 text-sm leading-tight text-blue-600">
-          {d.session.mode === "video" ? <Video size={14} /> : <Phone size={14} />}
-          <span className="tnum">{d.session.time}</span>
-        </span>
-      ),
+    render: (d) => {
+      if (!d.session) return null;
+      const mentor = mentors.find((m) => m.name === d.session!.mentorName);
+      const chip = (
+        <>
+          <div className="truncate text-sm font-medium text-text-900">{d.session.mentorName}</div>
+          <div className="mt-0.5 flex items-center gap-1 text-xs">
+            {d.session.mode === "video" ? <Video size={12} /> : <Phone size={12} />}
+            <span className="tnum">{d.session.time}</span>
+            {isPast(d) && (
+              <span className="flex items-center gap-0.5 text-mint-500">
+                <Check size={11} /> برگزار شد
+              </span>
+            )}
+          </div>
+        </>
+      );
+      return isPast(d) || !mentor ? (
+        <div className="rounded-x-md bg-blue-100 px-2.5 py-2 text-blue-600">{chip}</div>
+      ) : (
+        <Link
+          href={`/session/${mentor.id}`}
+          className="block rounded-x-md bg-blue-100 px-2.5 py-2 text-blue-600 transition-colors hover:bg-blue-600/20"
+        >
+          {chip}
+        </Link>
+      );
+    },
   },
   {
     label: "آزمون",
     render: (d) =>
       d.exam && (
-        <span className="inline-flex items-start gap-1 rounded-x-md bg-orange-500/15 px-2.5 py-1.5 text-xs leading-snug text-orange-500">
-          <FileText size={13} className="mt-px shrink-0" />
-          {d.exam.provider} — {d.exam.name}
-        </span>
+        <div className="rounded-x-md bg-orange-500/15 px-2.5 py-2 text-orange-500">
+          <div className="flex items-center gap-1 text-sm font-medium">
+            <FileText size={13} className="shrink-0" /> {d.exam.provider}
+          </div>
+          <div className="mt-0.5 text-xs leading-snug">{d.exam.name}</div>
+        </div>
       ),
   },
   {
     label: "برنامه‌ی درسی",
     render: (d) =>
       d.tasks.length > 0 && (
-        <ul className="space-y-2">
+        <div className="space-y-1.5">
           {d.tasks.map((t) => (
-            <li
-              key={t.subject}
-              className="flex items-center justify-between gap-2 whitespace-nowrap text-sm text-text-700"
-            >
-              <span>{t.subject}</span>
-              <span className="text-text-500">
+            <div key={t.subject} className="rounded-x-md bg-surface-2 px-2.5 py-1.5">
+              <div className="text-sm font-medium text-text-900">{t.subject}</div>
+              <div className="text-xs text-text-500">
                 <span className="tnum">{formatHours(t.hours)}</span> ساعت
-              </span>
-            </li>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       ),
   },
   {
     label: "جمع ساعت",
-    render: (d) => {
-      const total = d.tasks.reduce((s, t) => s + t.hours, 0);
-      return (
-        total > 0 && (
-          <span className="text-base font-bold text-text-900">
-            <span className="tnum">{formatHours(total)}</span> ساعت
-          </span>
-        )
-      );
-    },
+    render: (d) =>
+      dayTotal(d) > 0 && (
+        <span className="text-base font-bold text-text-900">
+          <span className="tnum">{formatHours(dayTotal(d))}</span> ساعت
+        </span>
+      ),
+  },
+  {
+    label: "یادآوری‌ها",
+    render: (d) =>
+      !isPast(d) &&
+      (REMINDERS[d.dayName] ?? []).length > 0 && (
+        <div className="space-y-1.5">
+          {REMINDERS[d.dayName].map((r) => (
+            <Link
+              key={r.text}
+              href={r.href}
+              className="flex items-start gap-1 rounded-x-md bg-mint-500/10 px-2.5 py-1.5 text-xs leading-snug text-mint-500 transition-colors hover:bg-mint-500/20"
+            >
+              <r.icon size={12} className="mt-px shrink-0" />
+              {r.text}
+            </Link>
+          ))}
+        </div>
+      ),
   },
 ];
 
 export default function CalendarPage() {
-  const weekTotal = studentWeekCalendar.reduce((s, d) => s + d.tasks.reduce((a, t) => a + t.hours, 0), 0);
+  const weekTotal = studentWeekCalendar.reduce((s, d) => s + dayTotal(d), 0);
+  const remaining = studentWeekCalendar.filter((d) => !isPast(d)).reduce((s, d) => s + dayTotal(d), 0);
+  const exam = studentWeekCalendar.find((d) => d.exam);
 
   return (
     <StudentShell>
@@ -76,16 +124,23 @@ export default function CalendarPage() {
           <CalendarDays size={18} className="text-blue-600" />
           <h1 className="text-xl font-bold text-text-900">تقویم هفته</h1>
         </div>
-        <p className="mb-6 text-sm text-text-500">
-          جلسه‌ها، آزمون دوهفتگی و ساعت هر درس، کل هفته در یک جدول. جمع برنامه‌ی این هفته:{" "}
+        <p className="mb-5 text-sm text-text-500">
+          <span className="tnum">{formatHours(weekTotal)}</span> ساعت برنامه‌ی این هفته ·{" "}
           <span className="font-medium text-text-900">
-            <span className="tnum">{formatHours(weekTotal)}</span> ساعت
-          </span>
+            <span className="tnum">{formatHours(remaining)}</span> ساعت
+          </span>{" "}
+          از امروز تا آخر هفته
+          {exam && (
+            <>
+              {" "}
+              · آزمون {exam.exam!.provider}: {exam.dayName}
+            </>
+          )}
         </p>
 
         <Card className="overflow-hidden p-0">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[960px] border-collapse text-right">
+            <table className="w-full min-w-[960px] table-fixed border-collapse text-right">
               <thead>
                 <tr className="border-b border-border">
                   <th className="sticky right-0 z-10 w-32 bg-surface p-4 text-sm font-normal text-text-500" />
@@ -96,7 +151,7 @@ export default function CalendarPage() {
                         key={d.dayName}
                         className={cn(
                           "border-r border-border/60 p-4 text-sm font-bold",
-                          isToday ? "bg-blue-100 text-blue-600" : "text-text-900"
+                          isToday ? "bg-blue-100 text-blue-600" : isPast(d) ? "text-text-500" : "text-text-900"
                         )}
                       >
                         {d.dayName}
@@ -119,11 +174,12 @@ export default function CalendarPage() {
                       <td
                         key={d.dayName}
                         className={cn(
-                          "h-20 border-r border-border/60 p-4 align-top",
-                          d.dayName === CURRENT_DAY_NAME && "bg-blue-100/40"
+                          "h-20 border-r border-border/60 p-2.5 align-top",
+                          d.dayName === CURRENT_DAY_NAME && "bg-blue-100/40",
+                          isPast(d) && "opacity-60"
                         )}
                       >
-                        {row.render(d) || <span className="text-sm text-text-500/50">—</span>}
+                        {row.render(d) || null}
                       </td>
                     ))}
                   </tr>
@@ -132,6 +188,21 @@ export default function CalendarPage() {
             </table>
           </div>
         </Card>
+
+        <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-text-500">
+          <span className="flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded-sm bg-blue-100" /> جلسه (کلیک ← ورود به جلسه)
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded-sm bg-orange-500/30" /> آزمون
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded-sm bg-surface-2" /> درس و ساعتش
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded-sm bg-mint-500/20" /> یادآوری (کلیک ← انجامش بده)
+          </span>
+        </div>
 
         <Link
           href="/dashboard/plan"
