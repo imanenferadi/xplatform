@@ -109,7 +109,7 @@ export default function MentorsListPage() {
                     : "border-border bg-surface text-text-700"
                 )}
               >
-                {r === 0 ? "همه‌ی امتیازها" : `${r}+`}
+                {r === 0 ? "همه‌ی امتیازها" : `${toPersianDigits(r)}+`}
               </button>
             ))}
           </div>
@@ -179,7 +179,7 @@ export default function MentorsListPage() {
                       ) : (
                         <span className="flex items-center gap-1">
                           <Star size={13} className="fill-yellow-400 text-yellow-400" />
-                          <span className="tnum">{m.rating}</span> ({m.reviewCount} نظر)
+                          <span className="tnum">{toPersianDigits(m.rating)}</span> ({toPersianDigits(m.reviewCount)} نظر)
                         </span>
                       )}
                       <span>

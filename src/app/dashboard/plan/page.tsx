@@ -119,7 +119,7 @@ export default function PlanPage() {
             {day.relativeLabel && <span className="font-normal text-text-500"> · {day.dayName}</span>}
           </h2>
           <span className="tnum text-xs text-text-500">
-            {doneCount} از {day.tasks.length} انجام‌شده
+            {toPersianDigits(doneCount)} از {toPersianDigits(day.tasks.length)} انجام‌شده
           </span>
         </div>
 

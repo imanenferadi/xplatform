@@ -4,9 +4,10 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/Progress";
 import { TrendChart } from "@/components/ui/TrendChart";
 import { levelProfile, studentPlan, studentWeeklyHistory } from "@/lib/mock-data";
+import { toPersianDigits } from "@/lib/utils";
 
 const metrics = [
-  { label: "ساعت مطالعه", value: `${studentPlan.weekCompletedHours} از ${studentPlan.weekHours}`, delta: "+۲ نسبت به هفته قبل" },
+  { label: "ساعت مطالعه", value: toPersianDigits(`${studentPlan.weekCompletedHours} از ${studentPlan.weekHours}`), delta: "+۲ نسبت به هفته قبل" },
   { label: "اجرای برنامه", value: "۶۸٪", delta: "+۵٪ نسبت به هفته قبل" },
   { label: "تست‌های زده‌شده", value: "۱۲۰", delta: "بدون تغییر" },
 ];
@@ -50,7 +51,7 @@ export default function ReportsPage() {
                 <div key={s.name}>
                   <div className="mb-1.5 flex items-center justify-between text-sm">
                     <span className="text-text-700">{s.name}</span>
-                    <span className="tnum text-text-500">{s.value}٪</span>
+                    <span className="tnum text-text-500">{toPersianDigits(s.value)}٪</span>
                   </div>
                   <ProgressBar value={s.value} tone={s.value >= 75 ? "success" : s.value >= 55 ? "brand" : "warning"} />
                 </div>

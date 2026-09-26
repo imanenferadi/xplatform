@@ -76,7 +76,9 @@ export default function ProfilePage() {
             <Avatar name={name} size="lg" />
             <div>
               <div className="font-bold text-text-900">{name}</div>
-              <div className="tnum text-xs text-text-500">{studentProfile.phone}</div>
+              <div dir="ltr" className="tnum text-right text-xs text-text-500">
+                {studentProfile.phone}
+              </div>
               <div className="mt-1 text-xs text-text-500">عضو از {studentProfile.joinedAt}</div>
             </div>
           </CardContent>

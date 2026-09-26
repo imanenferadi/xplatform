@@ -371,9 +371,11 @@ function Results({ sections, spent, onRestart }: { sections: Section[]; spent: n
                         diff == null ? "text-text-500" : diff > 0 ? "text-orange-500" : "text-mint-500"
                       )}
                     >
-                      {diff == null
-                        ? "نرسیدی"
-                        : `${diff > 0 ? "+" : diff < 0 ? "−" : ""}${formatSpent(Math.abs(diff))}`}
+                      {diff == null ? (
+                        "نرسیدی"
+                      ) : (
+                        <span dir="ltr">{`${diff > 0 ? "+" : diff < 0 ? "−" : ""}${formatSpent(Math.abs(diff))}`}</span>
+                      )}
                     </td>
                   </tr>
                 );

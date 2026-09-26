@@ -6,7 +6,7 @@ import { Sparkles, Pause, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StepProgress } from "@/components/app/StepProgress";
 import { placementQuestions } from "@/lib/mock-data";
-import { cn } from "@/lib/utils";
+import { cn, toPersianDigits } from "@/lib/utils";
 
 type Phase = "intro" | "question" | "paused" | "analyzing";
 
@@ -50,7 +50,7 @@ export default function PlacementPage() {
 
           <div className="mt-8 grid grid-cols-3 gap-3 text-sm">
             <InfoTile label="زمان" value="۳۰–۴۵ دقیقه" />
-            <InfoTile label="تعداد سؤال" value={`${total} سؤال`} />
+            <InfoTile label="تعداد سؤال" value={`${toPersianDigits(total)} سؤال`} />
             <InfoTile label="قابل توقف" value="بله" />
           </div>
 

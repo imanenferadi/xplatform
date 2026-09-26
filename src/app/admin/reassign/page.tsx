@@ -188,7 +188,7 @@ function Reassign() {
                             <div className="flex items-center gap-1 text-xs text-text-500">
                               {m.rank} · {m.style} ·
                               <Star size={11} className="fill-yellow-400 text-yellow-400" />
-                              <span className="tnum">{m.rating}</span>
+                              <span className="tnum">{toPersianDigits(m.rating)}</span>
                             </div>
                             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-text-500">
                               <span>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ArrowLeft, Sparkles } from "lucide-react";
+import { toPersianDigits } from "@/lib/utils";
 
 export function Hero() {
   return (
@@ -83,7 +84,7 @@ function HeroLevelProfileCard() {
           <div key={s.name}>
             <div className="mb-1 flex items-center justify-between text-xs">
               <span className="text-text-700">{s.name}</span>
-              <span className="tnum text-text-500">{s.value}٪</span>
+              <span className="tnum text-text-500">{toPersianDigits(s.value)}٪</span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-x-pill bg-surface-2">
               <div

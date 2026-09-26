@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { BroadcastComposer } from "@/components/app/BroadcastComposer";
 import { mentorStudents, mentorMessageThreads } from "@/lib/mock-data";
+import { toPersianDigits } from "@/lib/utils";
 
 export default function MentorMessagesPage() {
   return (
@@ -33,7 +34,7 @@ export default function MentorMessagesPage() {
                     </div>
                     {s.unreadMessages > 0 && (
                       <span className="tnum flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white">
-                        {s.unreadMessages}
+                        {toPersianDigits(s.unreadMessages)}
                       </span>
                     )}
                   </CardContent>

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Vazirmatn } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const vazirmatn = Vazirmatn({
@@ -45,10 +46,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${vazirmatn.variable} h-full`}
       suppressHydrationWarning
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
       <body className="min-h-full flex flex-col bg-background text-text-700 antialiased">
+        {/* next/script, not a raw <script>: React warns about raw script tags
+            rendered on the client; beforeInteractive still runs before
+            hydration, so there's no light/dark flash. */}
+        <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         {children}
       </body>
     </html>

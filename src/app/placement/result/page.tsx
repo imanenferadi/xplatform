@@ -52,7 +52,7 @@ export default function PlacementResultPage() {
               <div key={s.name}>
                 <div className="mb-1.5 flex items-center justify-between text-sm">
                   <span className="font-medium text-text-700">{s.name}</span>
-                  <span className="tnum text-text-500">{s.value}٪</span>
+                  <span className="tnum text-text-500">{toPersianDigits(s.value)}٪</span>
                 </div>
                 <ProgressBar
                   value={s.value}
@@ -159,7 +159,7 @@ function ShareModal({ onClose }: { onClose: () => void }) {
             {levelProfile.subjects.map((s) => (
               <div key={s.name} className="flex items-center justify-between text-xs">
                 <span>{s.name}</span>
-                <span className="tnum">{s.value}٪</span>
+                <span className="tnum">{toPersianDigits(s.value)}٪</span>
               </div>
             ))}
           </div>

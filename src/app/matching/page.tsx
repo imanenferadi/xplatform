@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { mentors, type Mentor } from "@/lib/mock-data";
+import { toPersianDigits } from "@/lib/utils";
 
 const reasons: Record<string, string> = {
   "sara-mohammadi":
@@ -73,9 +74,9 @@ export default function MatchingPage() {
                 <div className="mt-4 flex items-center justify-between text-xs text-text-500">
                   <span className="flex items-center gap-1">
                     <Star size={13} className="fill-yellow-400 text-yellow-400" />
-                    <span className="tnum">{m.rating}</span> ({m.reviewCount} نظر)
+                    <span className="tnum">{toPersianDigits(m.rating)}</span> ({toPersianDigits(m.reviewCount)} نظر)
                   </span>
-                  <span className="tnum">{m.capacity} ظرفیت باقی‌مانده</span>
+                  <span className="tnum">{toPersianDigits(m.capacity)} ظرفیت باقی‌مانده</span>
                 </div>
               </CardContent>
               <CardFooter className="flex-col gap-2">
@@ -116,7 +117,7 @@ function WhyDrawer({ mentor, onClose }: { mentor: Mentor; onClose: () => void })
             {mentor.strengths.map((s) => (
               <div key={s.subject} className="mb-1.5 flex items-center justify-between text-sm">
                 <span className="text-text-700">{s.subject}</span>
-                <span className="tnum text-text-500">{s.score}٪ در کنکور</span>
+                <span className="tnum text-text-500">{toPersianDigits(s.score)}٪ در کنکور</span>
               </div>
             ))}
           </WhyRow>
@@ -129,7 +130,7 @@ function WhyDrawer({ mentor, onClose }: { mentor: Mentor; onClose: () => void })
             <div className="flex flex-wrap gap-2">
               <Badge tone="info">{mentor.style}</Badge>
               <Badge tone="neutral" className="tnum">
-                {mentor.capacity} از {mentor.capacityTotal} ظرفیت آزاد
+                {toPersianDigits(mentor.capacity)} از {toPersianDigits(mentor.capacityTotal)} ظرفیت آزاد
               </Badge>
             </div>
           </WhyRow>

@@ -43,7 +43,11 @@ export default function MentorDashboardPage() {
             label="جلسات امروز"
             value={toPersianDigits(upcomingSessions.filter((x) => x.dayName === CURRENT_DAY_NAME).length)}
           />
-          <SmallStat icon={MessageCircle} label="پیام بی‌پاسخ" value="۳" />
+          <SmallStat
+            icon={MessageCircle}
+            label="پیام بی‌پاسخ"
+            value={toPersianDigits(mentorStudents.reduce((n, s) => n + s.unreadMessages, 0))}
+          />
           <SmallStat icon={AlertCircle} label="نیاز به بازبینی برنامه" value={toPersianDigits(planNotReady.length)} />
         </div>
 
@@ -77,12 +81,12 @@ export default function MentorDashboardPage() {
                         </div>
                       </div>
                       <div className="text-left">
-                        <div className="tnum text-sm font-bold text-text-900">{s.planCompletion}٪</div>
+                        <div className="tnum text-sm font-bold text-text-900">{toPersianDigits(s.planCompletion)}٪</div>
                         <div className="text-[11px] text-text-500">برنامه</div>
                       </div>
                       {s.unreadMessages > 0 && (
                         <span className="tnum flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white">
-                          {s.unreadMessages}
+                          {toPersianDigits(s.unreadMessages)}
                         </span>
                       )}
                     </CardContent>

@@ -998,22 +998,23 @@ export const mentorWeekNotes: { dayName: string; text: string; tone: "exam" | "d
 
 export type StudentEarning = {
   studentId: string;
-  planName: "برنزی" | "نقره‌ای" | "طلایی";
+  planName: "پایه" | "همراه" | "ویژه"; // same plans and prices as /checkout
   monthlyFee: number; // تومان
   paidThisMonth: boolean;
 };
 
 export const studentEarnings: StudentEarning[] = [
-  { studentId: "1", planName: "نقره‌ای", monthlyFee: 1200000, paidThisMonth: true },
-  { studentId: "2", planName: "برنزی", monthlyFee: 800000, paidThisMonth: true },
-  { studentId: "3", planName: "طلایی", monthlyFee: 1800000, paidThisMonth: false },
-  { studentId: "me", planName: "نقره‌ای", monthlyFee: 1490000, paidThisMonth: true },
+  { studentId: "1", planName: "همراه", monthlyFee: 1490000, paidThisMonth: true },
+  { studentId: "2", planName: "پایه", monthlyFee: 890000, paidThisMonth: true },
+  { studentId: "3", planName: "ویژه", monthlyFee: 2190000, paidThisMonth: false },
+  { studentId: "me", planName: "همراه", monthlyFee: 1490000, paidThisMonth: true },
 ];
 
+// سارا's gross per month — شهریور matches her payout record (mentorPayouts po-1).
 export const earningsHistory: { monthLabel: string; total: number }[] = [
-  { monthLabel: "تیر", total: 2600000 },
-  { monthLabel: "مرداد", total: 3200000 },
-  { monthLabel: "شهریور", total: 3800000 },
+  { monthLabel: "تیر", total: 13410000 },
+  { monthLabel: "مرداد", total: 15900000 },
+  { monthLabel: "شهریور", total: 17880000 },
 ];
 
 // ---------------------------------------------------------------------
@@ -1034,10 +1035,10 @@ export type NewsArticle = {
 
 export const newsArticles: NewsArticle[] = [
   {
-    slug: "konkur-1406-date-announced",
-    title: "تاریخ برگزاری کنکور سراسری ۱۴۰۶ اعلام شد",
-    excerpt: "سازمان سنجش زمان دقیق برگزاری کنکور سراسری سال آینده را اعلام کرد.",
-    body: "طبق اعلام سازمان سنجش آموزش کشور، کنکور سراسری ۱۴۰۶ در تیرماه برگزار خواهد شد. دانش‌آموزان و داوطلبان می‌توانند از طریق سامانه‌ی سازمان سنجش، برنامه‌ی دقیق هر رشته را مشاهده کنند. مشاوران ما توصیه می‌کنند برنامه‌ریزی نیم‌سال دوم را با در نظر گرفتن این تاریخ تنظیم کنید.",
+    slug: "konkur-1406-what-we-know",
+    title: "کنکور ۱۴۰۶: تا الان چه می‌دونیم؟",
+    excerpt: "سازمان سنجش هنوز تاریخ دقیق کنکور ۱۴۰۶ رو اعلام نکرده؛ این یادداشت می‌گه تا اون موقع چطور برنامه‌ریزی کنید.",
+    body: "تا امروز سازمان سنجش آموزش کشور تاریخ رسمی کنکور سراسری ۱۴۰۶ رو اعلام نکرده. کنکور ۱۴۰۵ روز ۲۹ مرداد برگزار شد، پس هر تاریخی که الان در شبکه‌های اجتماعی دست‌به‌دست می‌شه غیررسمیه. روزشمار داشبورد شما فعلاً با یک تاریخ تخمینی (۱۵ تیر ۱۴۰۶) کار می‌کنه و به‌محض اعلام رسمی به‌روز می‌شه. پیشنهاد مشاوران ما: برنامه‌ی نیم‌سال اول رو بر اساس امتحانات نهایی دی و آزمون‌های آزمایشی بچینید، نه بر اساس یک تاریخ حدسی برای کنکور.",
     date: "۱ مهر ۱۴۰۵",
     category: "تقویم کنکور",
   },

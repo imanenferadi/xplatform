@@ -111,7 +111,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-text-500">
-          با ورود، <Link href="#" className="text-blue-600 hover:underline">قوانین و حریم خصوصی</Link> را می‌پذیری.
+          با ورود، <Link href="/privacy" className="text-blue-600 hover:underline">قوانین و حریم خصوصی</Link> را می‌پذیری.
         </p>
 
         {/* Demo-only shortcuts — a real product would route these through

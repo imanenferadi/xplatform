@@ -7,6 +7,7 @@ import { BadgeCheck, Star } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { buttonVariants } from "@/components/ui/Button";
 import { mentors, type Mentor, type Subject } from "@/lib/mock-data";
+import { toPersianDigits } from "@/lib/utils";
 import { useApprovedMentors } from "@/lib/mentor-applications-store";
 
 const ALL_SUBJECTS: Subject[] = ["ریاضی", "فیزیک", "شیمی", "زیست"];
@@ -64,13 +65,13 @@ function ComparePageInner() {
             {pair.map((m) => (
               <span key={m.id} className="flex items-center justify-center gap-1">
                 <Star size={13} className="fill-yellow-400 text-yellow-400" />
-                <span className="tnum">{m.rating}</span>
-                <span className="text-text-500">({m.reviewCount})</span>
+                <span className="tnum">{toPersianDigits(m.rating)}</span>
+                <span className="text-text-500">({toPersianDigits(m.reviewCount)})</span>
               </span>
             ))}
           </CompareRow>
           <CompareRow label="ظرفیت باقی‌مانده">
-            {pair.map((m) => (m.capacity === 0 ? "تکمیل" : <span key={m.id} className="tnum">{m.capacity}</span>))}
+            {pair.map((m) => (m.capacity === 0 ? "تکمیل" : <span key={m.id} className="tnum">{toPersianDigits(m.capacity)}</span>))}
           </CompareRow>
           {ALL_SUBJECTS.map((subject) => (
             <CompareRow key={subject} label={`نقطه‌قوت — ${subject}`}>
@@ -78,7 +79,7 @@ function ComparePageInner() {
                 const score = strengthScore(m, subject);
                 return score !== null ? (
                   <span key={m.id} className="tnum">
-                    {score}٪
+                    {toPersianDigits(score)}٪
                   </span>
                 ) : (
                   <span key={m.id} className="text-text-500">

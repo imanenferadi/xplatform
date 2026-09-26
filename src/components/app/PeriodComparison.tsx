@@ -87,11 +87,11 @@ export function PeriodComparison({ history }: { history: WeeklyHistoryPoint[] })
                   <td className="py-2.5 text-text-900">{r.label}</td>
                   <td className="tnum py-2.5 text-center text-text-500">
                     {toPersianDigits(r.past)}
-                    {r.unit}
+                    {r.unit === "٪" ? "٪" : ` ${r.unit}`}
                   </td>
                   <td className="tnum py-2.5 text-center font-medium text-text-900">
                     {toPersianDigits(r.current)}
-                    {r.unit}
+                    {r.unit === "٪" ? "٪" : ` ${r.unit}`}
                   </td>
                   <td className="py-2.5 text-center">
                     <span
@@ -104,9 +104,14 @@ export function PeriodComparison({ history }: { history: WeeklyHistoryPoint[] })
                             : "bg-orange-500/15 text-orange-500"
                       )}
                     >
-                      {delta > 0 ? "+" : ""}
-                      {toPersianDigits(delta)}
-                      {r.unit}
+                      {/* Signed number LTR so the sign stays in front; a word unit
+                          stays outside, in the RTL flow. */}
+                      <span dir="ltr">
+                        {delta > 0 ? "+" : ""}
+                        {toPersianDigits(delta)}
+                        {r.unit === "٪" ? "٪" : ""}
+                      </span>
+                      {r.unit !== "٪" && ` ${r.unit}`}
                     </span>
                   </td>
                 </tr>

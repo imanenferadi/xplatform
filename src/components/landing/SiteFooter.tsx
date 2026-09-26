@@ -1,17 +1,31 @@
+import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 
 const columns = [
   {
     title: "محصول",
-    links: ["امکانات", "تعرفه‌ها", "مشاوران", "دمو زنده"],
+    links: [
+      { label: "امکانات", href: "/#features" },
+      { label: "تعرفه‌ها", href: "/#pricing" },
+      { label: "مشاوران", href: "/mentors" },
+      { label: "دمو", href: "/#demo" },
+    ],
   },
   {
-    title: "شرکت",
-    links: ["درباره ما", "بلاگ", "فرصت‌های همکاری"],
+    title: "همکاری",
+    links: [
+      { label: "مشاور شو", href: "/mentor/apply" },
+      { label: "مدارس و آموزشگاه‌ها", href: "/school" },
+      { label: "اخبار کنکور", href: "/news" },
+    ],
   },
   {
     title: "پشتیبانی",
-    links: ["مرکز راهنما", "تماس با ما", "حریم خصوصی"],
+    links: [
+      { label: "راهنما و سؤالات متداول", href: "/help" },
+      { label: "تماس با پشتیبانی", href: "/support" },
+      { label: "قوانین و حریم خصوصی", href: "/privacy" },
+    ],
   },
 ];
 
@@ -31,10 +45,10 @@ export function SiteFooter() {
               <h4 className="mb-3 text-sm font-semibold text-text-900">{c.title}</h4>
               <ul className="space-y-2">
                 {c.links.map((l) => (
-                  <li key={l}>
-                    <a href="#" className="text-sm text-text-500 hover:text-text-900">
-                      {l}
-                    </a>
+                  <li key={l.href}>
+                    <Link href={l.href} className="text-sm text-text-500 hover:text-text-900">
+                      {l.label}
+                    </Link>
                   </li>
                 ))}
               </ul>

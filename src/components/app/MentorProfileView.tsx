@@ -56,7 +56,7 @@ export function MentorProfileView({
             ) : (
               <>
                 <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                <span className="tnum">{mentor.rating}</span> ({mentor.reviewCount} نظر)
+                <span className="tnum">{toPersianDigits(mentor.rating)}</span> ({toPersianDigits(mentor.reviewCount)} نظر)
               </>
             )}
             {" · "}

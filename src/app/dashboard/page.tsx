@@ -187,13 +187,13 @@ export default function DashboardPage() {
               <h3 className="text-sm font-bold text-text-900">پیشرفت این هفته</h3>
               <span className="flex items-center gap-1 text-xs text-orange-500">
                 <Flame size={14} />
-                <span className="tnum">{studentPlan.streakDays}</span> روز پشت‌سرهم
+                <span className="tnum">{toPersianDigits(studentPlan.streakDays)}</span> روز پشت‌سرهم
               </span>
             </div>
             <div className="mb-1.5 flex items-center justify-between text-sm">
               <span className="text-text-700">ساعت مطالعه</span>
               <span className="tnum text-text-500">
-                {studentPlan.weekCompletedHours} از {studentPlan.weekHours} ساعت
+                {toPersianDigits(studentPlan.weekCompletedHours)} از {toPersianDigits(studentPlan.weekHours)} ساعت
               </span>
             </div>
             <ProgressBar value={(studentPlan.weekCompletedHours / studentPlan.weekHours) * 100} />

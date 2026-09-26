@@ -66,7 +66,7 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
                 {examResults[0].examProvider} — {examResults[0].examName}
               </div>
               <div className="tnum text-xs text-text-500">
-                {examResults[0].date} · درصد کل: {examResults[0].overallPercentage}٪
+                {examResults[0].date} · درصد کل: {toPersianDigits(examResults[0].overallPercentage)}٪
               </div>
             </div>
             <Button size="md" variant="secondary">
@@ -114,7 +114,7 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
               <div key={s.name}>
                 <div className="mb-1 flex items-center justify-between text-sm">
                   <span className="text-text-700">{s.name}</span>
-                  <span className="tnum text-text-500">{s.value}٪</span>
+                  <span className="tnum text-text-500">{toPersianDigits(s.value)}٪</span>
                 </div>
                 <ProgressBar value={s.value} />
               </div>
@@ -135,7 +135,7 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
         >
           <p className="text-sm leading-[1.9] text-text-700">
             بیشترین اثر منفی روی رتبه از <span className="font-medium text-text-900">{rootCause.subject}</span> می‌آید
-            (درصد {rootCause.percentage}٪ × ضریب {rootCause.coefficient}). با توجه به نیمرخ سطح، ریشه‌ش احتمالاً این
+            (درصد {toPersianDigits(rootCause.percentage)}٪ × ضریب {toPersianDigits(rootCause.coefficient)}). با توجه به نیمرخ سطح، ریشه‌ش احتمالاً این
             مباحث‌اند:
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -161,7 +161,7 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
                   key={p.subject}
                   hint={<BooksHint studentId={student.id} subject={p.subject} />}
                   subject={p.subject}
-                  topic={`درصد ${p.percentage}٪ × ضریب ${p.coefficient}`}
+                  topic={`درصد ${toPersianDigits(p.percentage)}٪ × ضریب ${toPersianDigits(p.coefficient)}`}
                   hours={p.hours}
                   detail={p.detail}
                   aiGenerated

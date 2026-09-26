@@ -162,7 +162,7 @@ export default function AdminUsersPage() {
                         <FollowUpBadges entityKey={key} />
                       </div>
                       <div className="tnum mt-0.5 text-xs text-text-500">
-                        {u.phone} · {u.city}
+                        <span dir="ltr">{u.phone}</span> · {u.city}
                       </div>
                     </div>
                     <Badge tone={u.status === "active" ? "success" : "danger"}>
@@ -178,7 +178,7 @@ export default function AdminUsersPage() {
                       rows={[
                         [
                           "موبایل",
-                          <span key="p" className="tnum">
+                          <span key="p" dir="ltr" className="tnum">
                             {u.phone}
                           </span>,
                         ],

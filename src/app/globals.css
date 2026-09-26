@@ -154,11 +154,12 @@ h1, h2, h3, h4, .no-break {
   word-break: keep-all;
 }
 
-/* Numbers in tables / metrics: force Latin digits + tabular alignment */
+/* Numbers in tables / metrics: tabular alignment only. It used to also
+   force direction:ltr, which rendered every "number + Persian word" inside
+   it backwards («ساعت ۳»). Persian digits read fine in RTL; things that
+   truly need LTR (phone numbers, signed deltas) set dir="ltr" themselves. */
 .tnum {
   font-variant-numeric: tabular-nums;
-  direction: ltr;
-  unicode-bidi: isolate;
 }
 
 ::selection {

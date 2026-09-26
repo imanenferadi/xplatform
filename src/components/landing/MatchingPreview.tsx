@@ -3,6 +3,8 @@ import { BadgeCheck, Star } from "lucide-react";
 import { buttonVariants } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/Card";
+import { mentors as allMentors } from "@/lib/mock-data";
+import { toPersianDigits } from "@/lib/utils";
 
 const mentors = [
   {
@@ -13,8 +15,7 @@ const mentors = [
     school: "دانشجوی پزشکی، دانشگاه تهران",
     style: "همراه و آرام",
     capacity: "۳ ظرفیت باقی‌مانده",
-    reason:
-      "شیمی نقطه‌ضعف توئه و شیمیِ سارا در کنکور ۹۲٪ بوده. او هم سال دهم از صفر شروع کرد.",
+    reason: "شیمی نقطه‌ضعف توئه و شیمیِ سارا در کنکور ۹۲٪ بوده. او هم سال دهم از صفر شروع کرد.",
   },
   {
     id: "amirhossein-rezaei",
@@ -24,8 +25,7 @@ const mentors = [
     school: "مهندسی برق، شریف",
     style: "داده‌محور",
     capacity: "۵ ظرفیت باقی‌مانده",
-    reason:
-      "الگوی تست‌زنی تو «سریع ولی نامطمئن» است. امیرحسین دقیقاً همین مشکل را با تحلیل زمان‌بندی حل کرد.",
+    reason: "الگوی تست‌زنی تو «سریع ولی نامطمئن» است. امیرحسین دقیقاً همین مشکل را با تحلیل زمان‌بندی حل کرد.",
   },
   {
     id: "negar-ahmadi",
@@ -39,14 +39,14 @@ const mentors = [
   },
 ];
 
+const mentorById = (id: string) => allMentors.find((x) => x.id === id);
+
 export function MatchingPreview() {
   return (
     <section id="demo" className="mx-auto max-w-[1200px] px-4 py-16 md:px-8 md:py-24">
       <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div className="max-w-2xl">
-          <h2 className="text-2xl font-bold text-text-900 md:text-[32px]">
-            بر اساس نیمرخ تو، ۳ نفر رو پیدا کردیم
-          </h2>
+          <h2 className="text-2xl font-bold text-text-900 md:text-[32px]">بر اساس نیمرخ تو، ۳ نفر رو پیدا کردیم</h2>
           <p className="mt-3 text-text-500">
             نه یک لیست ۵۰ نفره — سه مشاور تأییدشده که مسیرشان به مسیر تو نزدیک‌تر است.
           </p>
@@ -88,7 +88,9 @@ export function MatchingPreview() {
 
               <div className="mt-4 flex items-center justify-between text-xs text-text-500">
                 <span className="flex items-center gap-1">
-                  <Star size={13} className="fill-yellow-400 text-yellow-400" /> ۴.۹ (۳۳ نظر)
+                  <Star size={13} className="fill-yellow-400 text-yellow-400" />{" "}
+                  {toPersianDigits(mentorById(m.id)?.rating ?? 0)} (
+                  {toPersianDigits(mentorById(m.id)?.reviewCount ?? 0)} نظر)
                 </span>
                 <span>{m.capacity}</span>
               </div>
@@ -104,9 +106,9 @@ export function MatchingPreview() {
 
       <p className="mt-6 text-center text-sm text-text-500">
         هیچ‌کدام مناسب نبود؟{" "}
-        <a href="#" className="text-blue-600 hover:underline">
+        <Link href="/mentors" className="text-blue-600 hover:underline">
           گزینه‌های بیشتر را ببین
-        </a>
+        </Link>
       </p>
     </section>
   );

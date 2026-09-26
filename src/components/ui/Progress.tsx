@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn, toPersianDigits } from "@/lib/utils";
 
 export function ProgressBar({
   value,
@@ -79,7 +79,7 @@ export function ProgressCircle({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        {children ?? <span className="tnum text-xl font-extrabold text-text-900">{Math.round(value)}%</span>}
+        {children ?? <span className="tnum text-xl font-extrabold text-text-900">{toPersianDigits(Math.round(value))}٪</span>}
         {label && <span className="text-[11px] text-text-500">{label}</span>}
       </div>
     </div>
