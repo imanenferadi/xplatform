@@ -10,6 +10,7 @@ import {
   Wallet,
   ShieldAlert,
   Lock,
+  LifeBuoy,
   Search,
   Download,
   ChevronDown,
@@ -39,6 +40,7 @@ const CATEGORY_ICON: Record<LogCategory, React.ComponentType<{ size?: number; cl
   مالی: Wallet,
   شکایات: ShieldAlert,
   امنیت: Lock,
+  پشتیبانی: LifeBuoy,
 };
 const CATEGORIES = Object.keys(CATEGORY_ICON) as LogCategory[];
 const ROLES: LogActorRole[] = ["ادمین", "سیستم", "دانش‌آموز", "مشاور", "والد"];

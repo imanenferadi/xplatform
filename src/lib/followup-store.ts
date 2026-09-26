@@ -5,7 +5,7 @@ import type { LogFollowUp } from "./mock-data";
 import { toPersianDigits } from "./utils";
 
 // The editable follow-up layer for anything an admin tracks: log events,
-// users, complaints, transactions, mentor applications, payouts, mentor
+// users, transactions, mentor applications, payouts, mentor
 // swaps. Keyed "kind:id" (e.g. "user:u-1"). Every edit is appended to that
 // entity's own history. localStorage bridge until there's a backend.
 

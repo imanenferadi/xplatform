@@ -249,7 +249,7 @@ export default function ParentPage() {
                     <div
                       className={cn(
                         "flex h-6 w-6 items-center justify-center rounded-full",
-                        h.status === "paid" ? "bg-mint-500/15 text-mint-500" : "bg-red-500/15 text-red-500",
+                        h.status === "paid" ? "bg-mint-500/15 text-mint-500" : "bg-red-500/15 text-red-500"
                       )}
                     >
                       {h.status === "paid" ? <Check size={12} /> : <XIcon size={12} />}
@@ -271,7 +271,13 @@ export default function ParentPage() {
           می‌ماند.
         </p>
 
-        <div className="mt-8 text-center print:hidden">
+        <div className="mt-6 text-center print:hidden">
+          <Link href="/parent/support" className="text-sm text-blue-600 hover:underline">
+            سؤال یا مشکلی دارید؟ تیکت پشتیبانی ثبت کنید
+          </Link>
+        </div>
+
+        <div className="mt-6 text-center print:hidden">
           <Link href="/" className="text-xs text-text-500 hover:text-text-900">
             بازگشت به صفحه‌ی اصلی
           </Link>

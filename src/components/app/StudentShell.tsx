@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CalendarDays, MessageCircle, BarChart3, Wrench, Home } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, toPersianDigits } from "@/lib/utils";
 import { Logo } from "@/components/brand/Logo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
+import { useUnreadTicketCount } from "@/lib/ticket-store";
 
 type NavSection = { href: string; label: string };
 type NavGroup = { label: string; icon: React.ComponentType<{ size?: number }>; sections: NavSection[] };
@@ -57,6 +58,7 @@ const accountGroup: NavGroup = {
   sections: [
     { href: "/profile", label: "پروفایل" },
     { href: "/dashboard/referral", label: "دعوت از دوستان" },
+    { href: "/support", label: "پشتیبانی" },
   ],
 };
 
@@ -68,6 +70,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const activeGroup = findGroup(pathname);
   const showSubTabs = activeGroup && activeGroup.sections.length > 1;
+  const unreadSupport = useUnreadTicketCount("ایمان");
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -106,10 +109,15 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
               activeGroup === accountGroup ? "bg-blue-100" : "hover:bg-surface-2"
             )}
           >
-            <Avatar name="ایمان" size="sm" />
+            <span className="relative">
+              <Avatar name="ایمان" size="sm" />
+              {unreadSupport > 0 && <UnreadDot />}
+            </span>
             <div className="min-w-0">
               <div className="truncate text-sm font-medium text-text-900">ایمان</div>
-              <div className="truncate text-xs text-text-500">پروفایل و دعوت از دوستان</div>
+              <div className="truncate text-xs text-text-500">
+                {unreadSupport > 0 ? "پاسخ جدید از پشتیبانی" : "پروفایل، دعوت و پشتیبانی"}
+              </div>
             </div>
           </Link>
         </div>
@@ -120,8 +128,9 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
         <Logo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link href="/profile" aria-label="حساب من">
+          <Link href="/profile" aria-label="حساب من" className="relative">
             <Avatar name="ایمان" size="sm" />
+            {unreadSupport > 0 && <UnreadDot />}
           </Link>
         </div>
       </div>
@@ -143,6 +152,11 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                 )}
               >
                 {s.label}
+                {s.href === "/support" && unreadSupport > 0 && (
+                  <span className="tnum mr-1 rounded-full bg-red-500 px-1.5 text-[10px] text-white">
+                    {toPersianDigits(unreadSupport)}
+                  </span>
+                )}
               </Link>
             ))}
           </div>
@@ -172,4 +186,8 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
       </nav>
     </div>
   );
+}
+
+function UnreadDot() {
+  return <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-surface bg-red-500" />;
 }

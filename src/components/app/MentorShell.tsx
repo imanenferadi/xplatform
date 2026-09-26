@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, MessageCircle, CalendarDays, Wallet, User, Library } from "lucide-react";
+import { LayoutDashboard, MessageCircle, CalendarDays, Wallet, User, Library, LifeBuoy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
@@ -16,6 +16,7 @@ const links = [
   { href: "/mentor/calendar", label: "تقویم", icon: CalendarDays },
   { href: "/mentor/earnings", label: "درآمد", icon: Wallet },
   { href: "/mentor/profile", label: "پروفایل من", icon: User },
+  { href: "/mentor/support", label: "پشتیبانی", icon: LifeBuoy },
 ];
 
 export function MentorShell({ children }: { children: React.ReactNode }) {

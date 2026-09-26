@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { User, Bell, LogOut, GraduationCap, ArrowLeft, LifeBuoy, Users, Lock } from "lucide-react";
+import {
+  User,
+  Bell,
+  LogOut,
+  GraduationCap,
+  ArrowLeft,
+  LifeBuoy,
+  Users,
+  Lock,
+  MessageSquareWarning,
+} from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -28,14 +38,14 @@ function Toggle({ checked, onClick, label }: { checked: boolean; onClick: () => 
       onClick={onClick}
       className={cn(
         "relative h-6 w-11 shrink-0 rounded-x-pill transition-colors",
-        checked ? "bg-blue-600" : "bg-surface-2",
+        checked ? "bg-blue-600" : "bg-surface-2"
       )}
     >
       <span
         className={cn(
           "absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform",
           checked ? "translate-x-[-1.375rem]" : "translate-x-[-0.125rem]",
-          "right-0.5",
+          "right-0.5"
         )}
       />
     </button>
@@ -167,8 +177,22 @@ export default function ProfilePage() {
         </Card>
 
         <Link
-          href="/help"
+          href="/support"
           className="mt-4 flex items-center gap-3 rounded-x-lg border border-border bg-surface p-4 transition-colors hover:bg-surface-2"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
+            <MessageSquareWarning size={18} className="text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-medium text-text-900">پشتیبانی و تیکت‌ها</div>
+            <div className="text-xs text-text-500">مشکل فنی، پرداخت یا درخواست تعویض مشاور</div>
+          </div>
+          <ArrowLeft size={16} className="text-text-500" />
+        </Link>
+
+        <Link
+          href="/help"
+          className="mt-3 flex items-center gap-3 rounded-x-lg border border-border bg-surface p-4 transition-colors hover:bg-surface-2"
         >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
             <LifeBuoy size={18} className="text-blue-600" />

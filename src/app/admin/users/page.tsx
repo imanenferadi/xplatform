@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Users, ShieldAlert, Ban, RotateCcw, ArrowLeftRight, CheckCircle2 } from "lucide-react";
+import { Users, Ban, RotateCcw, ArrowLeftRight, LifeBuoy } from "lucide-react";
 import { AdminShell } from "@/components/app/AdminShell";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -21,13 +21,12 @@ import {
 import {
   SUSPEND_REASONS,
   adminUsers as initialUsers,
-  complaints as initialComplaints,
   mentors,
   studentAssignments,
   type AdminUser,
-  type Complaint,
 } from "@/lib/mock-data";
 import { logEvent } from "@/lib/admin-log-store";
+import { useTickets } from "@/lib/ticket-store";
 import { downloadCsv, toCsv } from "@/lib/csv";
 import { toPersianDigits } from "@/lib/utils";
 
@@ -41,12 +40,12 @@ function currentMentor(name: string) {
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState(initialUsers);
-  const [complaints, setComplaints] = useState(initialComplaints);
+  const tickets = useTickets();
   const [query, setQuery] = useState("");
   const [role, setRole] = useState<Role | "همه">("همه");
   const [status, setStatus] = useState<Status | "همه">("همه");
   const [openId, setOpenId] = useState<string | null>(null);
-  const [prompt, setPrompt] = useState<string | null>(null); // user or complaint id awaiting a reason
+  const [prompt, setPrompt] = useState<string | null>(null); // user id awaiting a reason
 
   const filtered = useMemo(
     () =>
@@ -80,19 +79,6 @@ export default function AdminUsersPage() {
         ...(reason ? [{ label: "دلیل", value: reason }] : []),
         ...(note ? [{ label: "توضیح", value: note }] : []),
       ],
-      href: "/admin/users",
-    });
-  }
-
-  function resolveComplaint(c: Complaint, resolution: string) {
-    setComplaints((cs) => cs.map((x) => (x.id === c.id ? { ...x, status: "resolved", resolution } : x)));
-    setPrompt(null);
-    logEvent({
-      category: "شکایات",
-      action: "بستن شکایت به‌عنوان حل‌شده",
-      target: `${c.fromName} — ${c.reason}`,
-      severity: "info",
-      details: [{ label: "راه‌حل", value: resolution }],
       href: "/admin/users",
     });
   }
@@ -161,7 +147,7 @@ export default function AdminUsersPage() {
           {filtered.map((u) => {
             const key = `user:${u.id}`;
             const mentor = u.role === "دانش‌آموز" ? currentMentor(u.name) : null;
-            const userComplaints = complaints.filter((c) => c.fromName === u.name);
+            const userTickets = tickets.filter((t) => t.requester.name === u.name);
             return (
               <AdminRow
                 key={u.id}
@@ -208,8 +194,19 @@ export default function AdminUsersPage() {
                         ["جمع پرداختی", u.totalPaid ? <Toman key="t" amount={u.totalPaid} /> : "—"],
                         ["آخرین ورود", `${u.lastLogin} · ${u.device}`],
                         [
-                          "شکایت‌ها",
-                          userComplaints.length ? `${toPersianDigits(userComplaints.length)} مورد` : "ندارد",
+                          "تیکت‌ها",
+                          userTickets.length ? (
+                            <Link
+                              key="tk"
+                              href="/admin/tickets"
+                              className="flex items-center gap-1 text-blue-600 hover:underline"
+                            >
+                              <LifeBuoy size={11} /> {toPersianDigits(userTickets.length)} تیکت
+                              {userTickets.some((t) => t.status !== "closed") && " (باز)"}
+                            </Link>
+                          ) : (
+                            "ندارد"
+                          ),
                         ],
                       ]}
                     />
@@ -258,86 +255,6 @@ export default function AdminUsersPage() {
           {filtered.length === 0 && (
             <p className="py-8 text-center text-sm text-text-500">کاربری با این مشخصات پیدا نشد.</p>
           )}
-        </div>
-
-        <div className="mb-1 mt-10 flex items-center gap-2">
-          <ShieldAlert size={18} className="text-orange-500" />
-          <h2 className="text-xl font-bold text-text-900">شکایات</h2>
-        </div>
-        <p className="mb-4 text-sm text-text-500">
-          <span className="tnum">{toPersianDigits(complaints.filter((c) => c.status === "open").length)}</span> شکایت
-          باز
-        </p>
-        <div className="space-y-2">
-          {complaints.map((c) => {
-            const key = `complaint:${c.id}`;
-            const from = studentAssignments.find((a) => a.name === c.fromName);
-            return (
-              <AdminRow
-                key={c.id}
-                open={openId === c.id}
-                onToggle={() => toggle(c.id)}
-                summary={
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-sm font-medium text-text-900">{c.fromName}</span>
-                        <Badge tone="neutral">{c.category}</Badge>
-                        <FollowUpBadges entityKey={key} />
-                      </div>
-                      <div className="mt-0.5 truncate text-xs text-text-700">{c.reason}</div>
-                    </div>
-                    <Badge tone={c.status === "open" ? "warning" : "success"}>
-                      {c.status === "open" ? "باز" : "حل‌شده"}
-                    </Badge>
-                  </div>
-                }
-              >
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <DetailList
-                      title="جزئیات شکایت"
-                      rows={[
-                        ["از طرف", c.fromName],
-                        ["درباره‌ی", c.aboutName],
-                        ["دسته", c.category],
-                        ["تاریخ", c.date],
-                        ["متن کامل", c.detail],
-                        ...(c.resolution ? ([["راه‌حل", c.resolution]] as [string, React.ReactNode][]) : []),
-                      ]}
-                    />
-                    {c.status === "open" &&
-                      (prompt === c.id ? (
-                        <ReasonPrompt
-                          title="بستن شکایت"
-                          confirmLabel="بستن به‌عنوان حل‌شده"
-                          noteRequired
-                          notePlaceholder="چطور حل شد؟ (اجباری — به کاربر هم نشون داده می‌شه)"
-                          onConfirm={(_, note) => resolveComplaint(c, note)}
-                          onCancel={() => setPrompt(null)}
-                        />
-                      ) : (
-                        <div className="flex flex-wrap items-center gap-3">
-                          <Button size="md" variant="secondary" onClick={() => setPrompt(c.id)}>
-                            <CheckCircle2 size={14} /> بستن با راه‌حل
-                          </Button>
-                          {c.category === "مشاور" && from && (
-                            <Link
-                              href={`/admin/reassign?student=${from.userId}`}
-                              className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                            >
-                              <ArrowLeftRight size={12} /> تعویض مشاور
-                            </Link>
-                          )}
-                        </div>
-                      ))}
-                    <EntityActivity match={c.fromName} />
-                  </div>
-                  <EntityFollowUp entityKey={key} />
-                </div>
-              </AdminRow>
-            );
-          })}
         </div>
       </div>
     </AdminShell>

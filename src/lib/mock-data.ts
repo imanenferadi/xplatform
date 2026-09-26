@@ -1155,41 +1155,7 @@ export const adminUsers: AdminUser[] = [
     city: "شیراز", plan: "پایه", totalPaid: 2670000, lastLogin: "دیروز، ۲۱:۰۵", device: "Chrome روی Windows" },
 ];
 
-export type Complaint = {
-  id: string;
-  fromName: string;
-  aboutName: string;
-  reason: string;
-  date: string;
-  status: "open" | "resolved";
-  category: "مشاور" | "پرداخت" | "فنی" | "سایر";
-  detail: string;
-  resolution?: string;
-};
-
-export const complaints: Complaint[] = [
-  {
-    id: "cp-1",
-    fromName: "رضا نامدار",
-    aboutName: "نگار احمدی",
-    reason: "مشاورم دو هفته‌ست پاسخ پیام نمی‌ده",
-    date: "۳ روز پیش",
-    status: "open",
-    category: "مشاور",
-    detail: "از ۱۹ شهریور سه تا پیام دادم و جواب نگرفتم. جلسه‌ی هفتگی هم برگزار نشد و برنامه‌ی این هفته رو ندارم.",
-  },
-  {
-    id: "cp-2",
-    fromName: "امیرحسین رضایی",
-    aboutName: "—",
-    reason: "پرداخت انجام شد ولی پلن آپدیت نشد",
-    date: "۱ هفته پیش",
-    status: "resolved",
-    category: "پرداخت",
-    detail: "پلن همراه رو خریدم، پول کم شد ولی هنوز پلن پایه نشون می‌ده.",
-    resolution: "پلن دستی به «همراه» تغییر کرد و علت (تأخیر تأیید درگاه) گزارش شد.",
-  },
-];
+// Complaints now live in support tickets (seedTickets, category «مشاور» / «پرداخت و اشتراک»).
 
 export type PlatformRevenuePoint = { monthLabel: string; total: number };
 
@@ -1265,7 +1231,7 @@ export const reassignHistory: ReassignRecord[] = [
 // admin edits is the follow-up layer (status, assignee, tags, note), and
 // every such edit is itself recorded. Live admin actions are appended by
 // admin-log-store.
-export type LogCategory = "مشاوران" | "کاربران" | "مالی" | "شکایات" | "امنیت";
+export type LogCategory = "مشاوران" | "کاربران" | "مالی" | "شکایات" | "امنیت" | "پشتیبانی";
 export type LogActorRole = "ادمین" | "سیستم" | "دانش‌آموز" | "مشاور" | "والد";
 export type LogSeverity = "info" | "warning" | "critical";
 export type FollowUpStatus = "new" | "in_progress" | "reviewed";
@@ -1771,3 +1737,242 @@ export const DEFAULT_MEETING: MeetingSetup = {
   url: "https://meet.google.com/xpl-konk-uri",
   fallbackPhone: "۰۹۱۲ ۹۹۹ ۸۸۷۷",
 };
+
+// ---------------------------------------------------------------------
+// Support tickets — the one official channel for anything that isn't a
+// study conversation with the mentor. Replaces the admin-only complaints
+// list: complaints are now tickets in the «مشاور» / «پرداخت» categories.
+// ---------------------------------------------------------------------
+
+export type TicketCategory = "فنی" | "پرداخت و اشتراک" | "مشاور" | "برنامه و محتوا" | "حساب کاربری" | "سایر";
+export type TicketPriority = "low" | "normal" | "high" | "urgent";
+export type TicketStatus = "new" | "in_progress" | "answered" | "closed";
+export type TicketRole = "دانش‌آموز" | "والد" | "مشاور";
+
+export const TICKET_CATEGORIES: TicketCategory[] = [
+  "فنی",
+  "پرداخت و اشتراک",
+  "مشاور",
+  "برنامه و محتوا",
+  "حساب کاربری",
+  "سایر",
+];
+
+// Default priority per category; the admin can change it.
+export const CATEGORY_PRIORITY: Record<TicketCategory, TicketPriority> = {
+  فنی: "normal",
+  "پرداخت و اشتراک": "high",
+  مشاور: "high",
+  "برنامه و محتوا": "normal",
+  "حساب کاربری": "normal",
+  سایر: "low",
+};
+
+export const TICKET_PRIORITY: Record<TicketPriority, { label: string; slaHours: number; rank: number }> = {
+  urgent: { label: "فوری", slaHours: 2, rank: 0 },
+  high: { label: "بالا", slaHours: 8, rank: 1 },
+  normal: { label: "عادی", slaHours: 24, rank: 2 },
+  low: { label: "پایین", slaHours: 48, rank: 3 },
+};
+
+export const TICKET_STATUS: Record<TicketStatus, { label: string; userLabel: string }> = {
+  new: { label: "جدید", userLabel: "ثبت شد — منتظر بررسی" },
+  in_progress: { label: "در حال بررسی", userLabel: "در حال بررسی" },
+  answered: { label: "پاسخ داده شد", userLabel: "پاسخ داده شد" },
+  closed: { label: "بسته", userLabel: "بسته شد" },
+};
+
+// Maps FAQ sections (lib/faq.ts) to ticket categories for suggestions.
+export const FAQ_FOR_CATEGORY: Partial<Record<TicketCategory, string>> = {
+  فنی: "فنی",
+  "پرداخت و اشتراک": "پرداخت",
+  مشاور: "مشاور",
+  "حساب کاربری": "شروع کار",
+};
+
+export const CANNED_REPLIES = [
+  {
+    title: "دریافت شد",
+    text: "سلام، درخواستت رسید و داریم بررسیش می‌کنیم. نتیجه رو همین‌جا بهت خبر می‌دیم.",
+  },
+  {
+    title: "اطلاعات بیشتر",
+    text: "سلام، برای بررسی دقیق‌تر لطفاً یه اسکرین‌شات از مشکل و مدل گوشی/مرورگرت رو بفرست.",
+  },
+  {
+    title: "بازگشت وجه",
+    text: "سلام، درخواست بازگشت وجهت ثبت شد و حداکثر تا ۴۸ ساعت کاری به همون کارتی که باهاش پرداخت کردی برمی‌گرده.",
+  },
+  {
+    title: "تعویض مشاور",
+    text: "سلام، شرایطت رو بررسی کردیم و یه مشاور جایگزین از همون گروه آزمایشی برات انتخاب می‌کنیم. برنامه و گزارش کارهات کامل منتقل می‌شن.",
+  },
+];
+
+export type TicketMessage = {
+  id: string;
+  from: "user" | "support" | "internal";
+  author: string;
+  text: string;
+  time: string;
+  attachment?: string;
+};
+
+export type Ticket = {
+  id: string;
+  subject: string;
+  category: TicketCategory;
+  priority: TicketPriority;
+  status: TicketStatus;
+  requester: { name: string; role: TicketRole; userId?: string };
+  createdAt: string;
+  createdHoursAgo: number; // demo clock doesn't move; drives the SLA check
+  assignee: string;
+  messages: TicketMessage[];
+  unreadForUser: boolean; // support replied and the requester hasn't opened it
+  rating?: number;
+  history: { by: string; at: string; change: string }[];
+};
+
+export const seedTickets: Ticket[] = [
+  {
+    id: "T-1045",
+    subject: "تغییر شماره شبا برای تسویه",
+    category: "حساب کاربری",
+    priority: "normal",
+    status: "new",
+    requester: { name: "سارا محمدی", role: "مشاور", userId: "u-3" },
+    createdAt: "۷ مهر، ۰۸:۲۰",
+    createdHoursAgo: 1,
+    assignee: "",
+    messages: [
+      {
+        id: "m1",
+        from: "user",
+        author: "سارا محمدی",
+        text: "سلام، حسابم رو عوض کردم. لطفاً تسویه‌ی شهریور رو به شبای جدید واریز کنید. شبای جدید رو پیوست کردم.",
+        time: "۷ مهر، ۰۸:۲۰",
+        attachment: "sheba-new.jpg",
+      },
+    ],
+    unreadForUser: false,
+    history: [],
+  },
+  {
+    id: "T-1044",
+    subject: "فاکتور رسمی برای پرداخت اشتراک",
+    category: "پرداخت و اشتراک",
+    priority: "high",
+    status: "new",
+    requester: { name: "والد ایمان", role: "والد" },
+    createdAt: "۶ مهر، ۲۱:۴۰",
+    createdHoursAgo: 12,
+    assignee: "علی (مالی)",
+    messages: [
+      {
+        id: "m1",
+        from: "user",
+        author: "والد ایمان",
+        text: "سلام، برای ارائه به محل کارم فاکتور رسمی پرداخت شهریور رو لازم دارم. امکانش هست؟",
+        time: "۶ مهر، ۲۱:۴۰",
+      },
+    ],
+    unreadForUser: false,
+    history: [],
+  },
+  {
+    id: "T-1043",
+    subject: "فایل کارنامه آپلود نمی‌شه",
+    category: "فنی",
+    priority: "normal",
+    status: "answered",
+    requester: { name: "ایمان", role: "دانش‌آموز", userId: "u-1" },
+    createdAt: "۶ مهر، ۱۸:۰۵",
+    createdHoursAgo: 15,
+    assignee: "مریم (پشتیبانی)",
+    messages: [
+      {
+        id: "m1",
+        from: "user",
+        author: "ایمان",
+        text: "سلام، عکس کارنامه‌ی قلم‌چی رو که می‌زنم، خطا می‌ده و آپلود نمی‌شه.",
+        time: "۶ مهر، ۱۸:۰۵",
+      },
+      {
+        id: "m2",
+        from: "internal",
+        author: "مریم (پشتیبانی)",
+        text: "احتمالاً فایل HEIC آیفونه؛ هنوز پشتیبانی نمی‌کنیم. به تیم فنی گزارش شد.",
+        time: "۶ مهر، ۱۹:۰۰",
+      },
+      {
+        id: "m2b",
+        from: "support",
+        author: "مریم (پشتیبانی)",
+        text: "سلام ایمان، به احتمال زیاد فرمت عکس HEIC آیفونه. فعلاً از تنظیمات دوربین حالت «Most Compatible» رو بزن یا از کارنامه اسکرین‌شات بگیر و همون رو آپلود کن. اگه باز نشد خبرمون کن.",
+        time: "۶ مهر، ۱۹:۱۰",
+      },
+    ],
+    unreadForUser: true,
+    history: [{ by: "مریم (پشتیبانی)", at: "۶ مهر، ۱۹:۱۰", change: "وضعیت: جدید ← پاسخ داده شد" }],
+  },
+  {
+    id: "T-1041",
+    subject: "مشاورم دو هفته‌ست پاسخ پیام نمی‌ده",
+    category: "مشاور",
+    priority: "high",
+    status: "in_progress",
+    requester: { name: "رضا نامدار", role: "دانش‌آموز", userId: "u-4" },
+    createdAt: "۴ مهر، ۰۹:۱۵",
+    createdHoursAgo: 72,
+    assignee: "ادمین پلتفرم",
+    messages: [
+      {
+        id: "m1",
+        from: "user",
+        author: "رضا نامدار",
+        text: "از ۱۹ شهریور سه تا پیام دادم و جواب نگرفتم. جلسه‌ی هفتگی هم برگزار نشد و برنامه‌ی این هفته رو ندارم.",
+        time: "۴ مهر، ۰۹:۱۵",
+      },
+      {
+        id: "m2",
+        from: "internal",
+        author: "ادمین پلتفرم",
+        text: "آخرین پیام نگار احمدی ۱۹ شهریوره؛ میانگین پاسخش ۴۱ ساعت. گزینه‌ی تعویض به سارا محمدی بررسی بشه.",
+        time: "۴ مهر، ۱۱:۰۰",
+      },
+    ],
+    unreadForUser: false,
+    history: [{ by: "ادمین پلتفرم", at: "۴ مهر، ۱۱:۰۰", change: "وضعیت: جدید ← در حال بررسی" }],
+  },
+  {
+    id: "T-1038",
+    subject: "پرداخت انجام شد ولی پلن آپدیت نشد",
+    category: "پرداخت و اشتراک",
+    priority: "high",
+    status: "closed",
+    requester: { name: "امیرحسین رضایی", role: "دانش‌آموز", userId: "u-2" },
+    createdAt: "۳۰ شهریور، ۱۰:۰۰",
+    createdHoursAgo: 190,
+    assignee: "علی (مالی)",
+    messages: [
+      {
+        id: "m1",
+        from: "user",
+        author: "امیرحسین رضایی",
+        text: "پلن همراه رو خریدم، پول کم شد ولی هنوز پلن پایه نشون می‌ده.",
+        time: "۳۰ شهریور، ۱۰:۰۰",
+      },
+      {
+        id: "m2",
+        from: "support",
+        author: "علی (مالی)",
+        text: "سلام، تأیید درگاه با تأخیر رسیده بود. پلنت دستی به «همراه» تغییر کرد. ببخشید بابت تأخیر.",
+        time: "۳۰ شهریور، ۱۳:۱۰",
+      },
+    ],
+    unreadForUser: false,
+    rating: 4,
+    history: [{ by: "علی (مالی)", at: "۳۰ شهریور، ۱۳:۱۲", change: "وضعیت: پاسخ داده شد ← بسته" }],
+  },
+];
