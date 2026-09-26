@@ -2,106 +2,265 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Users, ShieldAlert, Search, Ban, RotateCcw, ArrowLeftRight } from "lucide-react";
+import { Users, ShieldAlert, Ban, RotateCcw, ArrowLeftRight, CheckCircle2 } from "lucide-react";
 import { AdminShell } from "@/components/app/AdminShell";
-import { Card, CardContent } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { adminUsers as initialUsers, complaints, studentAssignments, type AdminUser } from "@/lib/mock-data";
-import { toPersianDigits } from "@/lib/utils";
+import { Toman } from "@/components/ui/Toman";
+import {
+  AdminRow,
+  DetailList,
+  EntityActivity,
+  EntityFollowUp,
+  ExportButton,
+  FilterSelect,
+  FollowUpBadges,
+  ReasonPrompt,
+  SearchBox,
+} from "@/components/admin/AdminKit";
+import {
+  SUSPEND_REASONS,
+  adminUsers as initialUsers,
+  complaints as initialComplaints,
+  mentors,
+  studentAssignments,
+  type AdminUser,
+  type Complaint,
+} from "@/lib/mock-data";
 import { logEvent } from "@/lib/admin-log-store";
+import { downloadCsv, toCsv } from "@/lib/csv";
+import { toPersianDigits } from "@/lib/utils";
+
+type Role = AdminUser["role"];
+type Status = AdminUser["status"];
+
+function currentMentor(name: string) {
+  const a = studentAssignments.find((x) => x.name === name);
+  return a ? (mentors.find((m) => m.id === a.mentorId)?.name ?? "—") : null;
+}
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState(initialUsers);
+  const [complaints, setComplaints] = useState(initialComplaints);
   const [query, setQuery] = useState("");
+  const [role, setRole] = useState<Role | "همه">("همه");
+  const [status, setStatus] = useState<Status | "همه">("همه");
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState<string | null>(null); // user or complaint id awaiting a reason
 
   const filtered = useMemo(
-    () => users.filter((u) => u.name.includes(query) || u.phone.includes(query)),
-    [users, query]
+    () =>
+      users.filter(
+        (u) =>
+          (role === "همه" || u.role === role) &&
+          (status === "همه" || u.status === status) &&
+          (!query.trim() || [u.name, u.phone, u.city].some((v) => v.includes(query.trim())))
+      ),
+    [users, query, role, status]
   );
 
-  function toggleStatus(id: string) {
-    const user = users.find((u) => u.id === id);
-    if (user) {
-      const suspending = user.status === "active";
-      logEvent({
-        category: "کاربران",
-        action: suspending ? "مسدودسازی حساب" : "رفع مسدودیت حساب",
-        target: user.name,
-        severity: suspending ? "warning" : "info",
-        details: [
-          { label: "نقش", value: user.role },
-          { label: "موبایل", value: user.phone },
-          { label: "وضعیت", value: suspending ? "فعال ← مسدود" : "مسدود ← فعال" },
-        ],
-        href: "/admin/users",
-      });
-    }
-    setUsers((us) =>
-      us.map((u) => (u.id === id ? { ...u, status: u.status === "active" ? "suspended" : "active" } : u))
+  function toggle(id: string) {
+    setOpenId(openId === id ? null : id);
+    setPrompt(null);
+  }
+
+  function setUserStatus(u: AdminUser, next: Status, reason: string, note: string) {
+    setUsers((us) => us.map((x) => (x.id === u.id ? { ...x, status: next } : x)));
+    setPrompt(null);
+    const suspending = next === "suspended";
+    logEvent({
+      category: "کاربران",
+      action: suspending ? "مسدودسازی حساب" : "رفع مسدودیت حساب",
+      target: u.name,
+      severity: suspending ? "warning" : "info",
+      details: [
+        { label: "نقش", value: u.role },
+        { label: "موبایل", value: u.phone },
+        { label: "وضعیت", value: suspending ? "فعال ← مسدود" : "مسدود ← فعال" },
+        ...(reason ? [{ label: "دلیل", value: reason }] : []),
+        ...(note ? [{ label: "توضیح", value: note }] : []),
+      ],
+      href: "/admin/users",
+    });
+  }
+
+  function resolveComplaint(c: Complaint, resolution: string) {
+    setComplaints((cs) => cs.map((x) => (x.id === c.id ? { ...x, status: "resolved", resolution } : x)));
+    setPrompt(null);
+    logEvent({
+      category: "شکایات",
+      action: "بستن شکایت به‌عنوان حل‌شده",
+      target: `${c.fromName} — ${c.reason}`,
+      severity: "info",
+      details: [{ label: "راه‌حل", value: resolution }],
+      href: "/admin/users",
+    });
+  }
+
+  function exportUsers() {
+    downloadCsv(
+      "x-platform-users.csv",
+      toCsv(
+        ["نام", "نقش", "موبایل", "شهر", "پلن", "جمع پرداختی", "عضو از", "آخرین ورود", "وضعیت"],
+        filtered.map((u) => [
+          u.name,
+          u.role,
+          u.phone,
+          u.city,
+          u.plan,
+          String(u.totalPaid),
+          u.joinedAt,
+          u.lastLogin,
+          u.status === "active" ? "فعال" : "مسدود",
+        ])
+      )
     );
   }
 
   return (
     <AdminShell>
-      <div className="mx-auto max-w-3xl px-6 py-8">
-        <div className="mb-1 flex items-center gap-2">
-          <Users size={18} className="text-blue-600" />
-          <h1 className="text-xl font-bold text-text-900">کاربران</h1>
+      <div className="mx-auto max-w-4xl px-6 py-8">
+        <div className="mb-1 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Users size={18} className="text-blue-600" />
+            <h1 className="text-xl font-bold text-text-900">کاربران</h1>
+          </div>
+          <ExportButton count={filtered.length} onExport={exportUsers} />
         </div>
         <p className="mb-4 text-sm text-text-500">
-          <span className="tnum">{toPersianDigits(users.length)}</span> کاربر ثبت‌شده
+          <span className="tnum">{toPersianDigits(users.length)}</span> کاربر ثبت‌شده ·{" "}
+          <span className="tnum">{toPersianDigits(users.filter((u) => u.status === "suspended").length)}</span> مسدود
         </p>
 
-        <div className="relative mb-4">
-          <Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-500" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="جستجو با نام یا شماره تماس..."
-            className="pr-11"
+        <SearchBox value={query} onChange={setQuery} placeholder="جستجو با نام، شماره تماس یا شهر..." />
+        <div className="mb-4 mt-3 flex flex-wrap items-center gap-2">
+          <FilterSelect
+            label="نقش"
+            value={role}
+            onChange={setRole}
+            options={[
+              { value: "دانش‌آموز", label: "دانش‌آموز" },
+              { value: "مشاور", label: "مشاور" },
+            ]}
           />
+          <FilterSelect
+            label="وضعیت"
+            value={status}
+            onChange={setStatus}
+            options={[
+              { value: "active", label: "فعال" },
+              { value: "suspended", label: "مسدود" },
+            ]}
+          />
+          <span className="mr-auto text-xs text-text-500">
+            <span className="tnum">{toPersianDigits(filtered.length)}</span> کاربر
+          </span>
         </div>
 
         <div className="space-y-2">
-          {filtered.map((u: AdminUser) => (
-            <Card key={u.id}>
-              <CardContent className="flex items-center justify-between gap-4 py-3.5">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-text-900">{u.name}</span>
-                    <Badge tone="neutral">{u.role}</Badge>
+          {filtered.map((u) => {
+            const key = `user:${u.id}`;
+            const mentor = u.role === "دانش‌آموز" ? currentMentor(u.name) : null;
+            const userComplaints = complaints.filter((c) => c.fromName === u.name);
+            return (
+              <AdminRow
+                key={u.id}
+                open={openId === u.id}
+                onToggle={() => toggle(u.id)}
+                summary={
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-sm font-medium text-text-900">{u.name}</span>
+                        <Badge tone="neutral">{u.role}</Badge>
+                        <FollowUpBadges entityKey={key} />
+                      </div>
+                      <div className="tnum mt-0.5 text-xs text-text-500">
+                        {u.phone} · {u.city}
+                      </div>
+                    </div>
+                    <Badge tone={u.status === "active" ? "success" : "danger"}>
+                      {u.status === "active" ? "فعال" : "مسدود"}
+                    </Badge>
                   </div>
-                  <div className="tnum mt-0.5 text-xs text-text-500">
-                    {u.phone} · عضو از {u.joinedAt}
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <Badge tone={u.status === "active" ? "success" : "danger"}>
-                    {u.status === "active" ? "فعال" : "مسدود"}
-                  </Badge>
-                  <Button size="md" variant="secondary" onClick={() => toggleStatus(u.id)}>
-                    {u.status === "active" ? (
-                      <>
-                        <Ban size={14} /> مسدود کن
-                      </>
+                }
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-4">
+                    <DetailList
+                      title="مشخصات"
+                      rows={[
+                        [
+                          "موبایل",
+                          <span key="p" className="tnum">
+                            {u.phone}
+                          </span>,
+                        ],
+                        ["شهر", u.city],
+                        [
+                          "عضو از",
+                          <span key="j" className="tnum">
+                            {u.joinedAt}
+                          </span>,
+                        ],
+                        ["پلن", u.plan],
+                        ...(mentor ? ([["مشاور فعلی", mentor]] as [string, React.ReactNode][]) : []),
+                        ["جمع پرداختی", u.totalPaid ? <Toman key="t" amount={u.totalPaid} /> : "—"],
+                        ["آخرین ورود", `${u.lastLogin} · ${u.device}`],
+                        [
+                          "شکایت‌ها",
+                          userComplaints.length ? `${toPersianDigits(userComplaints.length)} مورد` : "ندارد",
+                        ],
+                      ]}
+                    />
+                    {prompt === u.id ? (
+                      <ReasonPrompt
+                        title={u.status === "active" ? `مسدود کردن ${u.name}` : `رفع مسدودیت ${u.name}`}
+                        reasons={u.status === "active" ? SUSPEND_REASONS : undefined}
+                        noteRequired={u.status !== "active"}
+                        notePlaceholder={u.status === "active" ? "توضیح بیشتر (اختیاری)" : "چرا رفع مسدودیت؟ (اجباری)"}
+                        confirmLabel={u.status === "active" ? "مسدود کن" : "فعال کن"}
+                        onConfirm={(reason, note) =>
+                          setUserStatus(u, u.status === "active" ? "suspended" : "active", reason, note)
+                        }
+                        onCancel={() => setPrompt(null)}
+                      />
                     ) : (
-                      <>
-                        <RotateCcw size={14} /> فعال کن
-                      </>
+                      <div className="flex flex-wrap gap-2">
+                        <Button size="md" variant="secondary" onClick={() => setPrompt(u.id)}>
+                          {u.status === "active" ? (
+                            <>
+                              <Ban size={14} /> مسدود کن
+                            </>
+                          ) : (
+                            <>
+                              <RotateCcw size={14} /> فعال کن
+                            </>
+                          )}
+                        </Button>
+                        {mentor && (
+                          <Link
+                            href={`/admin/reassign?student=${u.id}`}
+                            className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                          >
+                            <ArrowLeftRight size={12} /> تعویض مشاور
+                          </Link>
+                        )}
+                      </div>
                     )}
-                  </Button>
+                    <EntityActivity match={u.name} />
+                  </div>
+                  <EntityFollowUp entityKey={key} />
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </AdminRow>
+            );
+          })}
           {filtered.length === 0 && (
             <p className="py-8 text-center text-sm text-text-500">کاربری با این مشخصات پیدا نشد.</p>
           )}
         </div>
 
-        <div className="mb-1 mt-8 flex items-center gap-2">
+        <div className="mb-1 mt-10 flex items-center gap-2">
           <ShieldAlert size={18} className="text-orange-500" />
           <h2 className="text-xl font-bold text-text-900">شکایات</h2>
         </div>
@@ -110,30 +269,75 @@ export default function AdminUsersPage() {
           باز
         </p>
         <div className="space-y-2">
-          {complaints.map((c) => (
-            <Card key={c.id}>
-              <CardContent className="flex items-center justify-between gap-4 py-3.5">
-                <div>
-                  <div className="text-sm font-medium text-text-900">{c.fromName}</div>
-                  <div className="mt-0.5 text-xs text-text-700">{c.reason}</div>
-                  <div className="mt-1 text-xs text-text-500">{c.date}</div>
+          {complaints.map((c) => {
+            const key = `complaint:${c.id}`;
+            const from = studentAssignments.find((a) => a.name === c.fromName);
+            return (
+              <AdminRow
+                key={c.id}
+                open={openId === c.id}
+                onToggle={() => toggle(c.id)}
+                summary={
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-sm font-medium text-text-900">{c.fromName}</span>
+                        <Badge tone="neutral">{c.category}</Badge>
+                        <FollowUpBadges entityKey={key} />
+                      </div>
+                      <div className="mt-0.5 truncate text-xs text-text-700">{c.reason}</div>
+                    </div>
+                    <Badge tone={c.status === "open" ? "warning" : "success"}>
+                      {c.status === "open" ? "باز" : "حل‌شده"}
+                    </Badge>
+                  </div>
+                }
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-4">
+                    <DetailList
+                      title="جزئیات شکایت"
+                      rows={[
+                        ["از طرف", c.fromName],
+                        ["درباره‌ی", c.aboutName],
+                        ["دسته", c.category],
+                        ["تاریخ", c.date],
+                        ["متن کامل", c.detail],
+                        ...(c.resolution ? ([["راه‌حل", c.resolution]] as [string, React.ReactNode][]) : []),
+                      ]}
+                    />
+                    {c.status === "open" &&
+                      (prompt === c.id ? (
+                        <ReasonPrompt
+                          title="بستن شکایت"
+                          confirmLabel="بستن به‌عنوان حل‌شده"
+                          noteRequired
+                          notePlaceholder="چطور حل شد؟ (اجباری — به کاربر هم نشون داده می‌شه)"
+                          onConfirm={(_, note) => resolveComplaint(c, note)}
+                          onCancel={() => setPrompt(null)}
+                        />
+                      ) : (
+                        <div className="flex flex-wrap items-center gap-3">
+                          <Button size="md" variant="secondary" onClick={() => setPrompt(c.id)}>
+                            <CheckCircle2 size={14} /> بستن با راه‌حل
+                          </Button>
+                          {c.category === "مشاور" && from && (
+                            <Link
+                              href={`/admin/reassign?student=${from.userId}`}
+                              className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                            >
+                              <ArrowLeftRight size={12} /> تعویض مشاور
+                            </Link>
+                          )}
+                        </div>
+                      ))}
+                    <EntityActivity match={c.fromName} />
+                  </div>
+                  <EntityFollowUp entityKey={key} />
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  {c.status === "open" && studentAssignments.some((a) => a.name === c.fromName) && (
-                    <Link
-                      href={`/admin/reassign?student=${studentAssignments.find((a) => a.name === c.fromName)!.userId}`}
-                      className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                    >
-                      <ArrowLeftRight size={12} /> تعویض مشاور
-                    </Link>
-                  )}
-                  <Badge tone={c.status === "open" ? "warning" : "success"}>
-                    {c.status === "open" ? "باز" : "حل‌شده"}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+              </AdminRow>
+            );
+          })}
         </div>
       </div>
     </AdminShell>

@@ -1,76 +1,167 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { UserCheck, Check, X, Send, Copy, Link2, Eye, FileText } from "lucide-react";
+import { UserCheck, Check, X, Send, Copy, Link2, Eye, FileText, ShieldCheck } from "lucide-react";
 import { AdminShell } from "@/components/app/AdminShell";
 import { MentorProfileView } from "@/components/app/MentorProfileView";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
-import { mentorApplications as initialApplications, type MentorApplication } from "@/lib/mock-data";
+import {
+  AdminRow,
+  DetailList,
+  EntityActivity,
+  EntityFollowUp,
+  ExportButton,
+  FilterSelect,
+  FollowUpBadges,
+  ReasonPrompt,
+  SearchBox,
+} from "@/components/admin/AdminKit";
+import {
+  MENTOR_REJECT_REASONS,
+  MENTOR_VERIFY_STEPS,
+  mentorApplications as initialApplications,
+  type ExamGroup,
+  type Mentor,
+} from "@/lib/mock-data";
 import { setApplicationStatus, useStoredApplications } from "@/lib/mentor-applications-store";
 import { logEvent } from "@/lib/admin-log-store";
-
+import { nowClock } from "@/lib/followup-store";
+import { downloadCsv, toCsv } from "@/lib/csv";
 import { toPersianDigits } from "@/lib/utils";
 
-type DirectInvite = { id: string; name: string; link: string };
+type Status = "pending" | "approved" | "rejected";
+type Source = "site" | "queue";
 
-const statusMeta: Record<MentorApplication["status"], { label: string; tone: "warning" | "success" | "danger" }> = {
+// One shape for both queues: the public /mentor/apply form (full built
+// profile, kept in the browser) and the older seeded queue.
+type AppRow = {
+  id: string;
+  source: Source;
+  name: string;
+  rank: string;
+  year: string;
+  school: string;
+  major: string;
+  group: ExamGroup;
+  style: string;
+  capacity: number;
+  phone: string;
+  karnamehFile: string;
+  appliedAt: string;
+  status: Status;
+  mentor?: Mentor;
+};
+
+type DirectInvite = { id: string; name: string; link: string; createdAt: string; copied: boolean };
+
+const statusMeta: Record<Status, { label: string; tone: "warning" | "success" | "danger" }> = {
   pending: { label: "در انتظار بررسی", tone: "warning" },
   approved: { label: "تأییدشده", tone: "success" },
   rejected: { label: "رد شده", tone: "danger" },
 };
+const sourceLabel: Record<Source, string> = { site: "ثبت‌نام از سایت", queue: "صف قبلی" };
 
 function generateToken(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
-function logMentorDecision(name: string, rank: string, status: string, source = "صف تأیید") {
-  const approved = status === "approved";
-  logEvent({
-    category: "مشاوران",
-    action: approved ? "تأیید درخواست مشاور" : "رد درخواست مشاور",
-    target: name,
-    severity: "info",
-    details: [
-      { label: "رتبه", value: rank },
-      { label: "منبع درخواست", value: source },
-      { label: "وضعیت", value: `در انتظار ← ${approved ? "تأییدشده" : "رد شده"}` },
-    ],
-    href: "/admin/mentors",
-  });
-}
-
 export default function AdminMentorsPage() {
-  const [applications, setApplications] = useState(initialApplications);
+  const [seedApps, setSeedApps] = useState(initialApplications);
+  const stored = useStoredApplications();
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState<Status | "همه">("همه");
+  const [source, setSource] = useState<Source | "همه">("همه");
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [rejecting, setRejecting] = useState<string | null>(null);
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  // Verification checklist per application — approval needs every step.
+  const [checks, setChecks] = useState<Record<string, boolean[]>>({});
   const [inviteName, setInviteName] = useState("");
   const [invites, setInvites] = useState<DirectInvite[]>([]);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const nextId = useRef(1);
 
-  function setStatus(id: string, status: MentorApplication["status"]) {
-    const app = applications.find((a) => a.id === id);
-    setApplications((apps) => apps.map((a) => (a.id === id ? { ...a, status } : a)));
-    if (app) logMentorDecision(app.name, `${app.rank} · ${app.year}`, status);
+  const rows: AppRow[] = useMemo(
+    () => [
+      ...stored.map((a) => ({
+        id: a.id,
+        source: "site" as const,
+        name: a.mentor.name,
+        rank: a.mentor.rank,
+        year: a.mentor.year,
+        school: a.mentor.school,
+        major: a.mentor.major,
+        group: a.mentor.group,
+        style: a.mentor.style,
+        capacity: a.mentor.capacityTotal,
+        phone: a.phone,
+        karnamehFile: a.karnamehFileName,
+        appliedAt: a.appliedAt,
+        status: a.status,
+        mentor: a.mentor,
+      })),
+      ...seedApps.map((a) => ({ ...a, source: "queue" as const, karnamehFile: a.karnamehFile })),
+    ],
+    [stored, seedApps]
+  );
+
+  const filtered = rows.filter(
+    (r) =>
+      (status === "همه" || r.status === status) &&
+      (source === "همه" || r.source === source) &&
+      (!query.trim() || [r.name, r.school, r.major, r.phone].some((v) => v.includes(query.trim())))
+  );
+  const pendingCount = rows.filter((r) => r.status === "pending").length;
+
+  function decide(r: AppRow, next: "approved" | "rejected", reason = "", note = "") {
+    if (r.source === "site") setApplicationStatus(r.id, next);
+    else setSeedApps((apps) => apps.map((a) => (a.id === r.id ? { ...a, status: next } : a)));
+    setRejecting(null);
+    const approved = next === "approved";
+    logEvent({
+      category: "مشاوران",
+      action: approved ? "تأیید درخواست مشاور" : "رد درخواست مشاور",
+      target: r.name,
+      severity: "info",
+      details: [
+        { label: "رتبه", value: `${r.rank} · ${r.year}` },
+        { label: "منبع درخواست", value: sourceLabel[r.source] },
+        { label: "مدرک احراز", value: r.karnamehFile },
+        ...(approved
+          ? [{ label: "احراز", value: MENTOR_VERIFY_STEPS.join("، ") }]
+          : [{ label: "دلیل رد", value: note ? `${reason} — ${note}` : reason }]),
+        { label: "وضعیت", value: `در انتظار ← ${approved ? "تأییدشده" : "رد شده"}` },
+      ],
+      href: "/admin/mentors",
+    });
   }
 
-  function decideStored(id: string, name: string, rank: string, status: "approved" | "rejected") {
-    setApplicationStatus(id, status);
-    logMentorDecision(name, rank, status, "ثبت‌نام از سایت");
+  function toggleCheck(id: string, i: number) {
+    setChecks((c) => {
+      const list = c[id] ?? MENTOR_VERIFY_STEPS.map(() => false);
+      return { ...c, [id]: list.map((v, j) => (j === i ? !v : v)) };
+    });
   }
 
   function generateInviteLink() {
     if (!inviteName.trim()) return;
     const link = `https://x-platform.ir/mentor-invite/${generateToken()}`;
-    setInvites((inv) => [{ id: `di-${nextId.current++}`, name: inviteName.trim(), link }, ...inv]);
+    setInvites((inv) => [
+      { id: `di-${nextId.current++}`, name: inviteName.trim(), link, createdAt: `امروز، ${nowClock()}`, copied: false },
+      ...inv,
+    ]);
     logEvent({
       category: "مشاوران",
       action: "ساخت لینک دعوت مستقیم مشاور",
       target: inviteName.trim(),
       severity: "info",
-      details: [{ label: "لینک", value: link }],
+      details: [
+        { label: "لینک", value: link },
+        { label: "انقضا", value: "۷ روز" },
+      ],
       href: "/admin/mentors",
     });
     setInviteName("");
@@ -79,92 +170,67 @@ export default function AdminMentorsPage() {
   async function copyInviteLink(invite: DirectInvite) {
     try {
       await navigator.clipboard.writeText(invite.link);
-      setCopiedId(invite.id);
-      setTimeout(() => setCopiedId(null), 2000);
+      setInvites((inv) => inv.map((x) => (x.id === invite.id ? { ...x, copied: true } : x)));
     } catch {
       // Clipboard access can fail (permissions, insecure context) — the
       // link is still visible on screen to copy manually.
     }
   }
 
-  const pending = applications.filter((a) => a.status === "pending");
-  const decided = applications.filter((a) => a.status !== "pending");
-
-  // Self-registered via /mentor/apply — these carry a full built profile.
-  const stored = useStoredApplications();
-  const storedPending = stored.filter((a) => a.status === "pending");
-  const storedDecided = stored.filter((a) => a.status !== "pending");
-  const [previewId, setPreviewId] = useState<string | null>(null);
+  function exportApps() {
+    downloadCsv(
+      "x-platform-mentor-applications.csv",
+      toCsv(
+        [
+          "نام",
+          "منبع",
+          "رتبه",
+          "سال",
+          "گروه",
+          "دانشگاه",
+          "رشته",
+          "سبک",
+          "ظرفیت",
+          "موبایل",
+          "کارنامه",
+          "تاریخ",
+          "وضعیت",
+        ],
+        filtered.map((r) => [
+          r.name,
+          sourceLabel[r.source],
+          r.rank,
+          r.year,
+          r.group,
+          r.school,
+          r.major,
+          r.style,
+          String(r.capacity),
+          r.phone,
+          r.karnamehFile,
+          r.appliedAt,
+          statusMeta[r.status].label,
+        ])
+      )
+    );
+  }
 
   return (
     <AdminShell>
-      <div className="mx-auto max-w-3xl px-6 py-8">
-        <div className="mb-1 flex items-center gap-2">
-          <UserCheck size={18} className="text-blue-600" />
-          <h1 className="text-xl font-bold text-text-900">تأیید مشاوران</h1>
+      <div className="mx-auto max-w-4xl px-6 py-8">
+        <div className="mb-1 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <UserCheck size={18} className="text-blue-600" />
+            <h1 className="text-xl font-bold text-text-900">تأیید مشاوران</h1>
+          </div>
+          <ExportButton count={filtered.length} onExport={exportApps} />
         </div>
-        <p className="mb-6 text-sm text-text-500">
-          <span className="tnum">{toPersianDigits(pending.length + storedPending.length)}</span> درخواست در انتظار بررسی
+        <p className="mb-5 text-sm text-text-500">
+          <span className="tnum">{toPersianDigits(pendingCount)}</span> درخواست در انتظار بررسی
         </p>
 
-        {storedPending.length > 0 && (
-          <div className="mb-6 space-y-3">
-            {storedPending.map((a) => (
-              <Card key={a.id} className="border-blue-600/30">
-                <CardContent>
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-text-900">{a.mentor.name}</span>
-                        <Badge tone="info">ثبت‌نام از سایت</Badge>
-                      </div>
-                      <div className="mt-0.5 text-xs text-text-500">
-                        {a.mentor.rank} · {a.mentor.year} · {a.mentor.group} · {a.mentor.major} — {a.mentor.school}
-                      </div>
-                      <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-text-500">
-                        <span dir="ltr" className="tnum">
-                          {a.phone}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <FileText size={12} /> کارنامه: {a.karnamehFileName}
-                        </span>
-                        <span>{a.appliedAt}</span>
-                      </div>
-                    </div>
-                    <div className="flex shrink-0 gap-2">
-                      <Button
-                        size="md"
-                        variant="secondary"
-                        onClick={() => decideStored(a.id, a.mentor.name, a.mentor.rank, "rejected")}
-                      >
-                        <X size={15} /> رد
-                      </Button>
-                      <Button size="md" onClick={() => decideStored(a.id, a.mentor.name, a.mentor.rank, "approved")}>
-                        <Check size={15} /> تأیید و انتشار
-                      </Button>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setPreviewId(previewId === a.id ? null : a.id)}
-                    className="mt-3 flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                  >
-                    <Eye size={13} />
-                    {previewId === a.id ? "بستن پیش‌نمایش" : "پیش‌نمایش پروفایلی که منتشر می‌شه"}
-                  </button>
-                  {previewId === a.id && (
-                    <div className="mt-3 max-h-[480px] overflow-y-auto rounded-x-lg border border-border">
-                      <MentorProfileView mentor={a.mentor} preview />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Direct invite — complements the public application form above:
-            admin can invite a specific top-rank student directly instead
-            of waiting for them to apply. */}
+        {/* Direct invite — complements the public application form: admin
+            can invite a specific top-rank student directly. */}
         <Card className="mb-6">
           <CardContent>
             <div className="mb-3 flex items-center gap-2">
@@ -183,23 +249,28 @@ export default function AdminMentorsPage() {
                 تولید لینک دعوت
               </Button>
             </div>
-
             {invites.length > 0 && (
               <div className="mt-4 space-y-2">
                 {invites.map((inv) => (
                   <div key={inv.id} className="flex items-center justify-between gap-3 rounded-x-md bg-surface-2 p-3">
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-text-900">{inv.name}</div>
+                      <div className="flex items-center gap-2 text-sm font-medium text-text-900">
+                        {inv.name}
+                        <Badge tone={inv.copied ? "success" : "neutral"}>
+                          {inv.copied ? "کپی شد" : "هنوز ارسال نشده"}
+                        </Badge>
+                      </div>
                       <div dir="ltr" className="tnum truncate text-xs text-text-500">
                         {inv.link}
                       </div>
+                      <div className="mt-0.5 text-[11px] text-text-500">ساخته‌شده {inv.createdAt} · انقضا: ۷ روز</div>
                     </div>
                     <button
                       onClick={() => copyInviteLink(inv)}
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-x-md border border-border bg-surface text-text-700 transition-colors hover:bg-surface-2"
                       aria-label="کپی لینک"
                     >
-                      {copiedId === inv.id ? <Check size={14} className="text-mint-500" /> : <Copy size={14} />}
+                      {inv.copied ? <Check size={14} className="text-mint-500" /> : <Copy size={14} />}
                     </button>
                   </div>
                 ))}
@@ -208,75 +279,159 @@ export default function AdminMentorsPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-3">
-          {pending.map((a) => (
-            <Card key={a.id}>
-              <CardContent className="flex items-center justify-between gap-4">
-                <div>
-                  <div className="font-medium text-text-900">{a.name}</div>
-                  <div className="mt-0.5 text-xs text-text-500">
-                    {a.rank} · {a.year} · {a.major} — {a.school}
-                  </div>
-                  <div className="mt-1 text-xs text-text-500">درخواست: {a.appliedAt}</div>
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  <Button size="md" variant="secondary" onClick={() => setStatus(a.id, "rejected")}>
-                    <X size={15} /> رد
-                  </Button>
-                  <Button size="md" onClick={() => setStatus(a.id, "approved")}>
-                    <Check size={15} /> تأیید
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {pending.length === 0 && (
-            <p className="py-8 text-center text-sm text-text-500">درخواست جدیدی در انتظار نیست.</p>
-          )}
+        <SearchBox value={query} onChange={setQuery} placeholder="جستجو با نام، دانشگاه، رشته یا موبایل..." />
+        <div className="mb-4 mt-3 flex flex-wrap items-center gap-2">
+          <FilterSelect
+            label="وضعیت"
+            value={status}
+            onChange={setStatus}
+            options={(Object.keys(statusMeta) as Status[]).map((s) => ({ value: s, label: statusMeta[s].label }))}
+          />
+          <FilterSelect
+            label="منبع"
+            value={source}
+            onChange={setSource}
+            options={(Object.keys(sourceLabel) as Source[]).map((s) => ({ value: s, label: sourceLabel[s] }))}
+          />
+          <span className="mr-auto text-xs text-text-500">
+            <span className="tnum">{toPersianDigits(filtered.length)}</span> درخواست
+          </span>
         </div>
 
-        {decided.length + storedDecided.length > 0 && (
-          <>
-            <h2 className="mb-3 mt-8 text-sm font-bold text-text-900">تصمیم‌های قبلی</h2>
-            <div className="space-y-2">
-              {storedDecided.map((a) => (
-                <div
-                  key={a.id}
-                  className="flex items-center justify-between rounded-x-md border border-border bg-surface p-3.5"
-                >
-                  <div>
-                    <div className="text-sm font-medium text-text-900">{a.mentor.name}</div>
-                    <div className="text-xs text-text-500">
-                      {a.mentor.major} — {a.mentor.school}
+        <div className="space-y-2">
+          {filtered.map((r) => {
+            const key = `app:${r.id}`;
+            const list = checks[r.id] ?? MENTOR_VERIFY_STEPS.map(() => false);
+            const verified = list.every(Boolean);
+            return (
+              <AdminRow
+                key={r.id}
+                open={openId === r.id}
+                onToggle={() => {
+                  setOpenId(openId === r.id ? null : r.id);
+                  setRejecting(null);
+                }}
+                className={r.status === "pending" && r.source === "site" ? "border-blue-600/30" : undefined}
+                summary={
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-sm font-medium text-text-900">{r.name}</span>
+                        <Badge tone={r.source === "site" ? "info" : "neutral"}>{sourceLabel[r.source]}</Badge>
+                        <FollowUpBadges entityKey={key} />
+                      </div>
+                      <div className="mt-0.5 text-xs text-text-500">
+                        {r.rank} · {r.year} · {r.group} · {r.major} — {r.school}
+                      </div>
                     </div>
+                    <Badge tone={statusMeta[r.status].tone}>{statusMeta[r.status].label}</Badge>
                   </div>
-                  <div className="flex items-center gap-3">
-                    {a.status === "approved" && (
-                      <Link href={`/mentors/${a.id}`} className="text-xs text-blue-600 hover:underline">
-                        مشاهده روی سایت
-                      </Link>
+                }
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-4">
+                    <DetailList
+                      title="مشخصات درخواست"
+                      rows={[
+                        ["رتبه و سال", `${r.rank} · ${r.year}`],
+                        ["گروه آزمایشی", r.group],
+                        ["دانشگاه و رشته", `${r.major} — ${r.school}`],
+                        ["سبک مشاوره", r.style],
+                        ["ظرفیت اعلام‌شده", `${toPersianDigits(r.capacity)} دانش‌آموز`],
+                        [
+                          "موبایل",
+                          <span key="p" dir="ltr" className="tnum">
+                            {r.phone}
+                          </span>,
+                        ],
+                        [
+                          "کارنامه",
+                          <span key="k" className="flex items-center gap-1">
+                            <FileText size={12} /> {r.karnamehFile}
+                          </span>,
+                        ],
+                        ["تاریخ درخواست", r.appliedAt],
+                      ]}
+                    />
+
+                    {r.status === "pending" && (
+                      <div>
+                        <div className="mb-2 flex items-center gap-1 text-xs font-bold text-text-900">
+                          <ShieldCheck size={12} className="text-blue-600" /> چک‌لیست احراز
+                        </div>
+                        <div className="space-y-1.5">
+                          {MENTOR_VERIFY_STEPS.map((step, i) => (
+                            <label key={step} className="flex items-center gap-2 text-xs text-text-700">
+                              <input type="checkbox" checked={list[i]} onChange={() => toggleCheck(r.id, i)} />
+                              {step}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
                     )}
-                    <Badge tone={statusMeta[a.status].tone}>{statusMeta[a.status].label}</Badge>
+
+                    {r.status === "pending" &&
+                      (rejecting === r.id ? (
+                        <ReasonPrompt
+                          title={`رد درخواست ${r.name}`}
+                          reasons={MENTOR_REJECT_REASONS}
+                          confirmLabel="رد درخواست"
+                          onConfirm={(reason, note) => decide(r, "rejected", reason, note)}
+                          onCancel={() => setRejecting(null)}
+                        />
+                      ) : (
+                        <div>
+                          <div className="flex gap-2">
+                            <Button size="md" variant="secondary" onClick={() => setRejecting(r.id)}>
+                              <X size={15} /> رد
+                            </Button>
+                            <Button size="md" disabled={!verified} onClick={() => decide(r, "approved")}>
+                              <Check size={15} /> {r.source === "site" ? "تأیید و انتشار" : "تأیید"}
+                            </Button>
+                          </div>
+                          {!verified && (
+                            <p className="mt-1.5 text-[11px] text-text-500">
+                              برای تأیید، همه‌ی مراحل چک‌لیست احراز رو تیک بزن.
+                            </p>
+                          )}
+                        </div>
+                      ))}
+
+                    {r.mentor && (
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setPreviewId(previewId === r.id ? null : r.id)}
+                            className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                          >
+                            <Eye size={13} />
+                            {previewId === r.id ? "بستن پیش‌نمایش" : "پیش‌نمایش پروفایلی که منتشر می‌شه"}
+                          </button>
+                          {r.status === "approved" && (
+                            <Link href={`/mentors/${r.id}`} className="text-xs text-blue-600 hover:underline">
+                              مشاهده روی سایت
+                            </Link>
+                          )}
+                        </div>
+                        {previewId === r.id && (
+                          <div className="mt-3 max-h-[480px] overflow-y-auto rounded-x-lg border border-border">
+                            <MentorProfileView mentor={r.mentor} preview />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <EntityActivity match={r.name} />
                   </div>
+                  <EntityFollowUp entityKey={key} />
                 </div>
-              ))}
-              {decided.map((a) => (
-                <div
-                  key={a.id}
-                  className="flex items-center justify-between rounded-x-md border border-border bg-surface p-3.5"
-                >
-                  <div>
-                    <div className="text-sm font-medium text-text-900">{a.name}</div>
-                    <div className="text-xs text-text-500">
-                      {a.major} — {a.school}
-                    </div>
-                  </div>
-                  <Badge tone={statusMeta[a.status].tone}>{statusMeta[a.status].label}</Badge>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+              </AdminRow>
+            );
+          })}
+          {filtered.length === 0 && (
+            <p className="py-8 text-center text-sm text-text-500">درخواستی با این فیلترها پیدا نشد.</p>
+          )}
+        </div>
       </div>
     </AdminShell>
   );

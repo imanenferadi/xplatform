@@ -10,20 +10,34 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import {
   mentors,
+  mentorResponseHours,
+  reassignHistory,
   studentAssignments,
   REASSIGN_REASONS,
   REASSIGN_TRANSFERS,
+  type ReassignRecord,
   type StudentAssignment,
 } from "@/lib/mock-data";
+import { AdminRow, DetailList, EntityActivity, EntityFollowUp, FollowUpBadges } from "@/components/admin/AdminKit";
+import { CURRENT_ADMIN, nowClock } from "@/lib/followup-store";
 import { useCapacityOverrides } from "@/lib/capacity-store";
 import { logEvent } from "@/lib/admin-log-store";
 
 import { cn, toPersianDigits } from "@/lib/utils";
 
-type HistoryEntry = { id: number; student: string; from: string; to: string; reason: string };
-
 function mentorName(id: string) {
   return mentors.find((m) => m.id === id)?.name ?? "—";
+}
+
+// Slow replies are the most common reason students ask for a new mentor.
+function ResponseTime({ mentorId }: { mentorId: string }) {
+  const h = mentorResponseHours[mentorId];
+  if (h == null) return null;
+  return (
+    <span className={cn(h > 24 ? "text-red-500" : "text-text-500")}>
+      پاسخ حدود <span className="tnum">{toPersianDigits(h)}</span> ساعت
+    </span>
+  );
 }
 
 // Admin-only: the student asks support (or files a complaint), ops decides
@@ -39,7 +53,9 @@ function Reassign() {
   const [handover, setHandover] = useState("");
   const [errors, setErrors] = useState<{ mentor?: string; reason?: string }>({});
   const [confirming, setConfirming] = useState(false);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [history, setHistory] = useState<ReassignRecord[]>(reassignHistory);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [lastDone, setLastDone] = useState("");
 
   const student = assignments.find((a) => a.userId === userId);
   const candidates = student ? mentors.filter((m) => m.group === student.group && m.id !== student.mentorId) : [];
@@ -77,14 +93,18 @@ function Reassign() {
     });
     setHistory((h) => [
       {
-        id: Date.now(),
+        id: `ra-${Date.now()}`,
         student: student.name,
         from: mentorName(student.mentorId),
         to: mentorName(newMentorId),
         reason,
+        handover: handover.trim(),
+        date: `۷ مهر ۱۴۰۵، ${nowClock()}`,
+        admin: CURRENT_ADMIN,
       },
       ...h,
     ]);
+    setLastDone(`${student.name}: ${mentorName(student.mentorId)} ← ${mentorName(newMentorId)}`);
     setAssignments((as) => as.map((a) => (a.userId === student.userId ? { ...a, mentorId: newMentorId } : a)));
     setUserId("");
     setNewMentorId("");
@@ -94,7 +114,7 @@ function Reassign() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-8">
+    <div className="mx-auto max-w-4xl px-6 py-8">
       <div className="mb-1 flex items-center gap-2">
         <ArrowLeftRight size={18} className="text-blue-600" />
         <h1 className="text-xl font-bold text-text-900">تعویض مشاور</h1>
@@ -103,20 +123,11 @@ function Reassign() {
         فقط از اینجا انجام می‌شه — دانش‌آموز از پشتیبانی یا ثبت شکایت درخواست می‌ده، تیم تصمیم می‌گیره.
       </p>
 
-      {history.length > 0 && (
-        <div className="mb-5 space-y-2">
-          {history.map((h) => (
-            <div
-              key={h.id}
-              className="flex items-center gap-2 rounded-x-md border border-mint-500/30 bg-mint-500/10 p-3 text-sm"
-            >
-              <Check size={15} className="shrink-0 text-mint-500" />
-              <span className="text-text-900">
-                {h.student}: {h.from} ← {h.to}
-              </span>
-              <span className="text-xs text-text-500">· {h.reason} · به دانش‌آموز و هر دو مشاور اطلاع داده شد</span>
-            </div>
-          ))}
+      {lastDone && (
+        <div className="mb-5 flex items-center gap-2 rounded-x-md border border-mint-500/30 bg-mint-500/10 p-3 text-sm">
+          <Check size={15} className="shrink-0 text-mint-500" />
+          <span className="text-text-900">{lastDone}</span>
+          <span className="text-xs text-text-500">· به دانش‌آموز و هر دو مشاور اطلاع داده شد</span>
         </div>
       )}
 
@@ -144,6 +155,10 @@ function Reassign() {
 
             {student && (
               <>
+                <div className="rounded-x-md bg-surface-2 p-3 text-xs text-text-700">
+                  مشاور فعلی: <span className="font-medium text-text-900">{mentorName(student.mentorId)}</span> ·{" "}
+                  <ResponseTime mentorId={student.mentorId} />
+                </div>
                 <div>
                   <div className="mb-1.5 text-sm font-medium text-text-700">
                     مشاور جدید <span className="font-normal text-text-500">(فقط گروه {student.group})</span>
@@ -174,6 +189,13 @@ function Reassign() {
                               {m.rank} · {m.style} ·
                               <Star size={11} className="fill-yellow-400 text-yellow-400" />
                               <span className="tnum">{m.rating}</span>
+                            </div>
+                            <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-text-500">
+                              <span>
+                                <span className="tnum">{toPersianDigits(m.capacityTotal - m.capacity)}</span> دانش‌آموز
+                                فعال
+                              </span>
+                              · <ResponseTime mentorId={m.id} />
                             </div>
                           </div>
                           <Badge tone={seats === 0 ? "danger" : "success"}>
@@ -272,6 +294,56 @@ function Reassign() {
           </form>
         </CardContent>
       </Card>
+
+      <h2 className="mb-3 mt-8 text-sm font-bold text-text-900">
+        سابقه‌ی تعویض‌ها <span className="tnum font-normal text-text-500">({toPersianDigits(history.length)})</span>
+      </h2>
+      <div className="space-y-2">
+        {history.map((h) => {
+          const key = `reassign:${h.id}`;
+          return (
+            <AdminRow
+              key={h.id}
+              open={openId === h.id}
+              onToggle={() => setOpenId(openId === h.id ? null : h.id)}
+              summary={
+                <div>
+                  <div className="flex flex-wrap items-center gap-1.5 text-sm">
+                    <span className="font-medium text-text-900">{h.student}</span>
+                    <span className="text-text-700">
+                      {h.from} ← {h.to}
+                    </span>
+                    <FollowUpBadges entityKey={key} />
+                  </div>
+                  <div className="mt-0.5 text-xs text-text-500">
+                    {h.reason} · {h.date}
+                  </div>
+                </div>
+              }
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-4">
+                  <DetailList
+                    title="جزئیات تعویض"
+                    rows={[
+                      ["دانش‌آموز", h.student],
+                      ["مشاور قبلی", h.from],
+                      ["مشاور جدید", h.to],
+                      ["دلیل", h.reason],
+                      ["یادداشت تحویل", h.handover || "—"],
+                      ["زمان", h.date],
+                      ["انجام‌دهنده", h.admin],
+                      ["منتقل شد", REASSIGN_TRANSFERS.moves.join("، ")],
+                    ]}
+                  />
+                  <EntityActivity match={h.student} />
+                </div>
+                <EntityFollowUp entityKey={key} />
+              </div>
+            </AdminRow>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ScrollText,
@@ -14,16 +15,15 @@ import {
   ChevronDown,
   ArrowLeft,
   X,
-  History,
   MonitorSmartphone,
 } from "lucide-react";
 import { AdminShell } from "@/components/app/AdminShell";
+import { FollowUpEditor } from "@/components/admin/AdminKit";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
-  LOG_ADMINS,
   type FollowUpStatus,
   type LogActorRole,
   type LogCategory,
@@ -59,8 +59,19 @@ const TODAY = "۷ مهر ۱۴۰۵";
 const selectClass = "h-9 rounded-x-pill border border-border bg-surface px-3 text-xs text-text-900";
 
 export default function AdminLogsPage() {
+  return (
+    <AdminShell>
+      <Suspense>
+        <Logs />
+      </Suspense>
+    </AdminShell>
+  );
+}
+
+// Other admin tabs link here with ?q=<name> ("همه در لاگ").
+function Logs() {
   const logs = useLogs();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(useSearchParams().get("q") ?? "");
   const [category, setCategory] = useState<LogCategory | "همه">("همه");
   const [severity, setSeverity] = useState<LogSeverity | "همه">("همه");
   const [status, setStatus] = useState<FollowUpStatus | "همه">("همه");
@@ -117,132 +128,130 @@ export default function AdminLogsPage() {
   }
 
   return (
-    <AdminShell>
-      <div className="mx-auto max-w-4xl px-6 py-8">
-        <div className="mb-1 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <ScrollText size={18} className="text-blue-600" />
-            <h1 className="text-xl font-bold text-text-900">لاگ فعالیت‌ها</h1>
-          </div>
-          <Button size="md" variant="secondary" onClick={exportCsv} disabled={filtered.length === 0}>
-            <Download size={15} /> خروجی CSV ({toPersianDigits(filtered.length)})
-          </Button>
+    <div className="mx-auto max-w-4xl px-6 py-8">
+      <div className="mb-1 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <ScrollText size={18} className="text-blue-600" />
+          <h1 className="text-xl font-bold text-text-900">لاگ فعالیت‌ها</h1>
         </div>
-        <p className="mb-5 text-sm text-text-500">
-          هر کاری که روی پلتفرم انجام می‌شه، با جزئیات. خود رویداد قابل تغییر نیست؛ وضعیت پیگیری، مسئول، برچسب و یادداشت
-          رو می‌تونی ویرایش کنی و هر ویرایش هم ثبت می‌شه.
-        </p>
-
-        <div className="mb-5 grid grid-cols-3 gap-3">
-          <Stat label="رویداد امروز" value={todayCount} />
-          <Stat label="نیاز به پیگیری" value={openCount} onClick={() => setStatus("new")} />
-          <Stat
-            label="بحرانیِ بررسی‌نشده"
-            value={criticalOpen}
-            danger={criticalOpen > 0}
-            onClick={() => setSeverity("critical")}
-          />
-        </div>
-
-        {/* Filters */}
-        <div className="relative mb-3">
-          <Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-500" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="جستجو در نام، کار، هدف، جزئیات، برچسب یا یادداشت..."
-            className="pr-11"
-          />
-        </div>
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          {(["همه", ...CATEGORIES] as const).map((c) => (
-            <button
-              key={c}
-              onClick={() => setCategory(c)}
-              className={cn(
-                "rounded-x-pill border px-3.5 py-1.5 text-xs font-medium transition-colors",
-                category === c ? "border-blue-600 bg-blue-100 text-text-900" : "border-border bg-surface text-text-700"
-              )}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-        <div className="mb-6 flex flex-wrap items-center gap-2">
-          <select
-            value={severity}
-            onChange={(e) => setSeverity(e.target.value as LogSeverity | "همه")}
-            aria-label="شدت"
-            className={selectClass}
-          >
-            <option value="همه">همه‌ی شدت‌ها</option>
-            {(Object.keys(SEVERITY) as LogSeverity[]).map((s) => (
-              <option key={s} value={s}>
-                {SEVERITY[s].label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as FollowUpStatus | "همه")}
-            aria-label="وضعیت پیگیری"
-            className={selectClass}
-          >
-            <option value="همه">همه‌ی وضعیت‌ها</option>
-            {(Object.keys(STATUS) as FollowUpStatus[]).map((s) => (
-              <option key={s} value={s}>
-                {STATUS[s].label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value as LogActorRole | "همه")}
-            aria-label="نقش انجام‌دهنده"
-            className={selectClass}
-          >
-            <option value="همه">همه‌ی نقش‌ها</option>
-            {ROLES.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
-          {anyFilter && (
-            <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
-              <X size={12} /> حذف فیلترها
-            </button>
-          )}
-          <span className="mr-auto text-xs text-text-500">
-            <span className="tnum">{toPersianDigits(filtered.length)}</span> رویداد
-          </span>
-        </div>
-
-        <div className="space-y-6">
-          {byDay.map((g) => (
-            <section key={g.date}>
-              <h2 className="mb-2 text-xs font-bold text-text-500">
-                {g.date}
-                {g.date === TODAY && " — امروز"}
-              </h2>
-              <div className="space-y-2">
-                {g.items.map((log) => (
-                  <LogRow
-                    key={log.id}
-                    log={log}
-                    open={openId === log.id}
-                    onToggle={() => setOpenId(openId === log.id ? null : log.id)}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
-          {filtered.length === 0 && (
-            <p className="py-8 text-center text-sm text-text-500">رویدادی با این فیلترها پیدا نشد.</p>
-          )}
-        </div>
+        <Button size="md" variant="secondary" onClick={exportCsv} disabled={filtered.length === 0}>
+          <Download size={15} /> خروجی CSV ({toPersianDigits(filtered.length)})
+        </Button>
       </div>
-    </AdminShell>
+      <p className="mb-5 text-sm text-text-500">
+        هر کاری که روی پلتفرم انجام می‌شه، با جزئیات. خود رویداد قابل تغییر نیست؛ وضعیت پیگیری، مسئول، برچسب و یادداشت
+        رو می‌تونی ویرایش کنی و هر ویرایش هم ثبت می‌شه.
+      </p>
+
+      <div className="mb-5 grid grid-cols-3 gap-3">
+        <Stat label="رویداد امروز" value={todayCount} />
+        <Stat label="نیاز به پیگیری" value={openCount} onClick={() => setStatus("new")} />
+        <Stat
+          label="بحرانیِ بررسی‌نشده"
+          value={criticalOpen}
+          danger={criticalOpen > 0}
+          onClick={() => setSeverity("critical")}
+        />
+      </div>
+
+      {/* Filters */}
+      <div className="relative mb-3">
+        <Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-500" />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="جستجو در نام، کار، هدف، جزئیات، برچسب یا یادداشت..."
+          className="pr-11"
+        />
+      </div>
+      <div className="mb-3 flex flex-wrap gap-1.5">
+        {(["همه", ...CATEGORIES] as const).map((c) => (
+          <button
+            key={c}
+            onClick={() => setCategory(c)}
+            className={cn(
+              "rounded-x-pill border px-3.5 py-1.5 text-xs font-medium transition-colors",
+              category === c ? "border-blue-600 bg-blue-100 text-text-900" : "border-border bg-surface text-text-700"
+            )}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        <select
+          value={severity}
+          onChange={(e) => setSeverity(e.target.value as LogSeverity | "همه")}
+          aria-label="شدت"
+          className={selectClass}
+        >
+          <option value="همه">همه‌ی شدت‌ها</option>
+          {(Object.keys(SEVERITY) as LogSeverity[]).map((s) => (
+            <option key={s} value={s}>
+              {SEVERITY[s].label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value as FollowUpStatus | "همه")}
+          aria-label="وضعیت پیگیری"
+          className={selectClass}
+        >
+          <option value="همه">همه‌ی وضعیت‌ها</option>
+          {(Object.keys(STATUS) as FollowUpStatus[]).map((s) => (
+            <option key={s} value={s}>
+              {STATUS[s].label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value as LogActorRole | "همه")}
+          aria-label="نقش انجام‌دهنده"
+          className={selectClass}
+        >
+          <option value="همه">همه‌ی نقش‌ها</option>
+          {ROLES.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
+        {anyFilter && (
+          <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
+            <X size={12} /> حذف فیلترها
+          </button>
+        )}
+        <span className="mr-auto text-xs text-text-500">
+          <span className="tnum">{toPersianDigits(filtered.length)}</span> رویداد
+        </span>
+      </div>
+
+      <div className="space-y-6">
+        {byDay.map((g) => (
+          <section key={g.date}>
+            <h2 className="mb-2 text-xs font-bold text-text-500">
+              {g.date}
+              {g.date === TODAY && " — امروز"}
+            </h2>
+            <div className="space-y-2">
+              {g.items.map((log) => (
+                <LogRow
+                  key={log.id}
+                  log={log}
+                  open={openId === log.id}
+                  onToggle={() => setOpenId(openId === log.id ? null : log.id)}
+                />
+              ))}
+            </div>
+          </section>
+        ))}
+        {filtered.length === 0 && (
+          <p className="py-8 text-center text-sm text-text-500">رویدادی با این فیلترها پیدا نشد.</p>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -312,7 +321,11 @@ function LogRow({ log, open, onToggle }: { log: PlatformLogEntry; open: boolean;
         <div className="grid gap-4 border-t border-border p-4 md:grid-cols-2">
           <EventDetails log={log} />
           {/* Remount after each save so the draft starts from the saved values. */}
-          <FollowUpEditor key={log.followUp.history.length} log={log} />
+          <FollowUpEditor
+            key={log.followUp.history.length}
+            value={log.followUp}
+            onSave={(next) => updateFollowUp(log, next)}
+          />
         </div>
       )}
     </Card>
@@ -371,144 +384,6 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
     <div className="flex gap-2">
       <dt className="w-24 shrink-0 text-text-500">{label}</dt>
       <dd className="min-w-0 flex-1 text-text-900">{children}</dd>
-    </div>
-  );
-}
-
-function FollowUpEditor({ log }: { log: PlatformLogEntry }) {
-  const saved = log.followUp;
-  const [draft, setDraft] = useState({
-    status: saved.status,
-    assignee: saved.assignee,
-    tags: saved.tags,
-    note: saved.note,
-  });
-  const [tagInput, setTagInput] = useState("");
-
-  const dirty =
-    draft.status !== saved.status ||
-    draft.assignee !== saved.assignee ||
-    draft.note !== saved.note ||
-    draft.tags.join("،") !== saved.tags.join("،");
-
-  function addTag() {
-    const t = tagInput.trim().replace(/^#/, "");
-    if (t && !draft.tags.includes(t)) setDraft((d) => ({ ...d, tags: [...d.tags, t] }));
-    setTagInput("");
-  }
-
-  return (
-    <div>
-      <div className="mb-2 text-xs font-bold text-text-900">پیگیری</div>
-      <div className="space-y-3">
-        <div className="grid grid-cols-3 gap-1.5">
-          {(Object.keys(STATUS) as FollowUpStatus[]).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setDraft((d) => ({ ...d, status: s }))}
-              className={cn(
-                "rounded-x-md border px-2 py-1.5 text-xs transition-colors",
-                draft.status === s
-                  ? "border-blue-600 bg-blue-100 text-text-900"
-                  : "border-border bg-surface text-text-700"
-              )}
-            >
-              {STATUS[s].label}
-            </button>
-          ))}
-        </div>
-
-        <select
-          value={draft.assignee}
-          onChange={(e) => setDraft((d) => ({ ...d, assignee: e.target.value }))}
-          aria-label="مسئول پیگیری"
-          className="h-9 w-full rounded-x-sm border border-border bg-surface px-3 text-xs text-text-900"
-        >
-          <option value="">بدون مسئول</option>
-          {LOG_ADMINS.map((a) => (
-            <option key={a} value={a}>
-              {a}
-            </option>
-          ))}
-        </select>
-
-        <div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {draft.tags.map((t) => (
-              <span
-                key={t}
-                className="flex items-center gap-1 rounded-x-pill bg-surface-2 px-2 py-0.5 text-[11px] text-text-700"
-              >
-                #{t}
-                <button
-                  type="button"
-                  onClick={() => setDraft((d) => ({ ...d, tags: d.tags.filter((x) => x !== t) }))}
-                  aria-label={`حذف برچسب ${t}`}
-                  className="text-text-500 hover:text-red-500"
-                >
-                  <X size={10} />
-                </button>
-              </span>
-            ))}
-            <input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addTag();
-                }
-              }}
-              onBlur={addTag}
-              placeholder="+ برچسب (Enter)"
-              aria-label="افزودن برچسب"
-              className="h-7 min-w-24 flex-1 bg-transparent text-xs text-text-900 outline-none placeholder:text-text-500"
-            />
-          </div>
-        </div>
-
-        <textarea
-          value={draft.note}
-          onChange={(e) => setDraft((d) => ({ ...d, note: e.target.value }))}
-          rows={2}
-          placeholder="یادداشت داخلی — مثلاً «با والدین تماس گرفته شد، منتظر جواب»"
-          aria-label="یادداشت"
-          className="w-full rounded-x-sm border border-border bg-surface p-2.5 text-xs text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600"
-        />
-
-        <div className="flex items-center gap-2">
-          <Button size="md" disabled={!dirty} onClick={() => updateFollowUp(log, draft)}>
-            ذخیره‌ی پیگیری
-          </Button>
-          {dirty && (
-            <button
-              type="button"
-              onClick={() =>
-                setDraft({ status: saved.status, assignee: saved.assignee, tags: saved.tags, note: saved.note })
-              }
-              className="text-xs text-text-500 hover:text-text-900"
-            >
-              لغو تغییرات
-            </button>
-          )}
-        </div>
-
-        {saved.history.length > 0 && (
-          <div>
-            <div className="mb-1 flex items-center gap-1 text-[11px] font-medium text-text-700">
-              <History size={11} /> تاریخچه‌ی ویرایش
-            </div>
-            <ol className="space-y-1 text-[11px] text-text-500">
-              {[...saved.history].reverse().map((h, i) => (
-                <li key={i}>
-                  <span className="text-text-700">{h.by}</span> · {h.at} · {h.change}
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

@@ -1054,7 +1054,23 @@ export type MentorApplication = {
   major: string;
   appliedAt: string;
   status: "pending" | "approved" | "rejected";
+  phone: string;
+  group: ExamGroup;
+  style: string;
+  capacity: number;
+  karnamehFile: string;
 };
+
+export const MENTOR_REJECT_REASONS = [
+  "کارنامه با رتبه‌ی اعلام‌شده نمی‌خونه",
+  "رتبه یا سال کنکور زیر حد پذیرش",
+  "مصاحبه‌ی ناموفق",
+  "پروفایل ناقص یا غیرحرفه‌ای",
+  "سایر",
+];
+
+// Checked before approval — the approve button stays disabled until all pass.
+export const MENTOR_VERIFY_STEPS = ["کارنامه با رتبه‌ی اعلام‌شده می‌خونه", "تماس تلفنی و احراز هویت", "مصاحبه‌ی کوتاه"];
 
 export const mentorApplications: MentorApplication[] = [
   {
@@ -1066,6 +1082,11 @@ export const mentorApplications: MentorApplication[] = [
     major: "مهندسی برق",
     appliedAt: "۲ روز پیش",
     status: "pending",
+    phone: "۰۹۱۲ ۳۴۵ ۶۷۸۹",
+    group: "ریاضی",
+    style: "داده‌محور",
+    capacity: 10,
+    karnamehFile: "karnameh-asadi-1404.pdf",
   },
   {
     id: "app-2",
@@ -1076,6 +1097,11 @@ export const mentorApplications: MentorApplication[] = [
     major: "پزشکی",
     appliedAt: "۵ روز پیش",
     status: "pending",
+    phone: "۰۹۳۶ ۱۱۲ ۲۳۳۴",
+    group: "تجربی",
+    style: "همراه و آرام",
+    capacity: 12,
+    karnamehFile: "karnameh-rostami-1403.jpg",
   },
   {
     id: "app-3",
@@ -1086,6 +1112,11 @@ export const mentorApplications: MentorApplication[] = [
     major: "مهندسی مکانیک",
     appliedAt: "۱ هفته پیش",
     status: "approved",
+    phone: "۰۹۱۹ ۸۷۶ ۵۴۳۲",
+    group: "ریاضی",
+    style: "تست‌محور",
+    capacity: 8,
+    karnamehFile: "karnameh-1404.pdf",
   },
 ];
 
@@ -1096,13 +1127,32 @@ export type AdminUser = {
   phone: string;
   joinedAt: string;
   status: "active" | "suspended";
+  city: string;
+  plan: string;
+  totalPaid: number;
+  lastLogin: string;
+  device: string;
 };
 
+export const SUSPEND_REASONS = [
+  "رفتار نامناسب در چت",
+  "پرداخت مشکوک یا تکراری",
+  "حساب جعلی یا اشتراکی",
+  "درخواست خود کاربر یا والد",
+  "سایر",
+];
+
 export const adminUsers: AdminUser[] = [
-  { id: "u-1", name: "ایمان", role: "دانش‌آموز", phone: "۰۹۱۲ ۱۲۳ ۴۵۶۷", joinedAt: "۱۴۰۴/۰۴/۱۲", status: "active" },
-  { id: "u-2", name: "امیرحسین رضایی", role: "دانش‌آموز", phone: "۰۹۳۵ ۲۲۲ ۳۳۴۴", joinedAt: "۱۴۰۴/۰۲/۰۱", status: "active" },
-  { id: "u-3", name: "سارا محمدی", role: "مشاور", phone: "۰۹۱۲ ۹۹۹ ۸۸۷۷", joinedAt: "۱۴۰۳/۱۱/۱۰", status: "active" },
-  { id: "u-4", name: "رضا نامدار", role: "دانش‌آموز", phone: "۰۹۳۹ ۴۴۴ ۵۵۶۶", joinedAt: "۱۴۰۴/۰۵/۲۰", status: "suspended" },
+  { id: "u-1", name: "ایمان", role: "دانش‌آموز", phone: "۰۹۱۲ ۱۲۳ ۴۵۶۷", joinedAt: "۱۴۰۴/۰۴/۱۲", status: "active",
+    city: "تهران", plan: "همراه", totalPaid: 4360000, lastLogin: "امروز، ۰۸:۱۲", device: "Chrome روی Android" },
+  { id: "u-2", name: "امیرحسین رضایی", role: "دانش‌آموز", phone: "۰۹۳۵ ۲۲۲ ۳۳۴۴", joinedAt: "۱۴۰۴/۰۲/۰۱", status: "active",
+    city: "کرج", plan: "همراه", totalPaid: 5960000, lastLogin: "۳ روز پیش", device: "اپ اندروید" },
+  { id: "u-3", name: "سارا محمدی", role: "مشاور", phone: "۰۹۱۲ ۹۹۹ ۸۸۷۷", joinedAt: "۱۴۰۳/۱۱/۱۰", status: "active",
+    city: "اصفهان", plan: "—", totalPaid: 0, lastLogin: "امروز، ۰۹:۴۰", device: "Safari روی iPhone" },
+  { id: "u-4", name: "رضا نامدار", role: "دانش‌آموز", phone: "۰۹۳۹ ۴۴۴ ۵۵۶۶", joinedAt: "۱۴۰۴/۰۵/۲۰", status: "suspended",
+    city: "مشهد", plan: "همراه", totalPaid: 1490000, lastLogin: "۶ مهر، ۱۷:۵۰", device: "اپ اندروید" },
+  { id: "u-5", name: "نگین احمدی", role: "دانش‌آموز", phone: "۰۹۱۷ ۳۳۳ ۲۲۱۱", joinedAt: "۱۴۰۴/۰۳/۰۵", status: "active",
+    city: "شیراز", plan: "پایه", totalPaid: 2670000, lastLogin: "دیروز، ۲۱:۰۵", device: "Chrome روی Windows" },
 ];
 
 export type Complaint = {
@@ -1112,16 +1162,21 @@ export type Complaint = {
   reason: string;
   date: string;
   status: "open" | "resolved";
+  category: "مشاور" | "پرداخت" | "فنی" | "سایر";
+  detail: string;
+  resolution?: string;
 };
 
 export const complaints: Complaint[] = [
   {
     id: "cp-1",
     fromName: "رضا نامدار",
-    aboutName: "—",
+    aboutName: "نگار احمدی",
     reason: "مشاورم دو هفته‌ست پاسخ پیام نمی‌ده",
     date: "۳ روز پیش",
     status: "open",
+    category: "مشاور",
+    detail: "از ۱۹ شهریور سه تا پیام دادم و جواب نگرفتم. جلسه‌ی هفتگی هم برگزار نشد و برنامه‌ی این هفته رو ندارم.",
   },
   {
     id: "cp-2",
@@ -1130,6 +1185,9 @@ export const complaints: Complaint[] = [
     reason: "پرداخت انجام شد ولی پلن آپدیت نشد",
     date: "۱ هفته پیش",
     status: "resolved",
+    category: "پرداخت",
+    detail: "پلن همراه رو خریدم، پول کم شد ولی هنوز پلن پایه نشون می‌ده.",
+    resolution: "پلن دستی به «همراه» تغییر کرد و علت (تأخیر تأیید درگاه) گزارش شد.",
   },
 ];
 
@@ -1141,7 +1199,64 @@ export const platformRevenue: PlatformRevenuePoint[] = [
   { monthLabel: "شهریور", total: 63000000 },
 ];
 
-export const pendingMentorPayouts = 8;
+export type MentorPayout = {
+  id: string;
+  mentorId: string;
+  mentorName: string;
+  period: string;
+  students: number;
+  gross: number;
+  sheba: string; // masked
+  status: "pending" | "paid";
+  bankRef?: string;
+};
+
+// What each mentor is owed for the period, after the platform commission.
+export const mentorPayouts: MentorPayout[] = [
+  { id: "po-1", mentorId: "sara-mohammadi", mentorName: "سارا محمدی", period: "شهریور ۱۴۰۵", students: 12, gross: 17880000, sheba: "IR•• •••• •••• 4521", status: "pending" },
+  { id: "po-2", mentorId: "negar-ahmadi", mentorName: "نگار احمدی", period: "شهریور ۱۴۰۵", students: 8, gross: 11920000, sheba: "IR•• •••• •••• 7730", status: "pending" },
+  { id: "po-3", mentorId: "amirhossein-rezaei", mentorName: "امیرحسین رضایی", period: "شهریور ۱۴۰۵", students: 7, gross: 10430000, sheba: "IR•• •••• •••• 0198", status: "pending" },
+  { id: "po-4", mentorId: "mahsa-ghasemi", mentorName: "مهسا قاسمی", period: "شهریور ۱۴۰۵", students: 8, gross: 9860000, sheba: "IR•• •••• •••• 3364", status: "pending" },
+  { id: "po-5", mentorId: "reza-karimi", mentorName: "رضا کریمی", period: "مرداد ۱۴۰۵", students: 10, gross: 14900000, sheba: "IR•• •••• •••• 8812", status: "paid", bankRef: "PAYA-40211" },
+];
+
+export const pendingMentorPayouts = mentorPayouts.filter((p) => p.status === "pending").length;
+
+// Refunds paid out this month — shown next to revenue on the finance tab.
+export const refundsThisMonth = 2682000;
+
+// Average first-reply time to students' messages, for mentor comparison in /admin/reassign.
+export const mentorResponseHours: Record<string, number> = {
+  "sara-mohammadi": 3,
+  "negar-ahmadi": 41,
+  "amirhossein-rezaei": 6,
+  "reza-karimi": 9,
+  "mahsa-ghasemi": 4,
+};
+
+export type ReassignRecord = {
+  id: string;
+  student: string;
+  from: string;
+  to: string;
+  reason: string;
+  handover: string;
+  date: string;
+  admin: string;
+};
+
+export const reassignHistory: ReassignRecord[] = [
+  {
+    id: "ra-1",
+    student: "پرهام صالحی",
+    from: "مهسا قاسمی",
+    to: "امیرحسین رضایی",
+    reason: "ناسازگاری سبک مشاوره",
+    handover: "با برنامه‌ی خیلی دقیق راحت نبود؛ یه سبک منعطف‌تر لازم داره.",
+    date: "۲۰ شهریور ۱۴۰۵، ۱۱:۴۰",
+    admin: "مریم (پشتیبانی)",
+  },
+];
 
 // A-07 — platform activity/audit log. Not user-facing: this is what an
 // admin checks when a complaint comes in ("چرا حساب من مسدود شد؟") or a
@@ -1373,7 +1488,20 @@ export type Transaction = {
   date: string;
   type: "purchase" | "refund_request";
   status: "pending" | "approved" | "rejected";
+  code: string;
+  time: string;
+  method: string;
+  payer: "والد" | "دانش‌آموز";
+  gatewayRef: string;
+  reason?: string; // refund requests: what the student wrote
 };
+
+export const REFUND_REJECT_REASONS = [
+  "خارج از مهلت و جلسات برگزار شده",
+  "درخواست تکراری",
+  "مبلغ قبلاً برگشت داده شده",
+  "سایر",
+];
 
 export const transactions: Transaction[] = [
   {
@@ -1384,6 +1512,12 @@ export const transactions: Transaction[] = [
     date: "۲ روز پیش",
     type: "refund_request",
     status: "pending",
+    code: "TRX-88240",
+    time: "۱۰:۳۰",
+    method: "کارت ****۶۰۳۷",
+    payer: "والد",
+    gatewayRef: "GW-5512093",
+    reason: "مشاورم جواب نمی‌ده، می‌خوام پولم برگرده.",
   },
   {
     id: "tx-2",
@@ -1393,6 +1527,12 @@ export const transactions: Transaction[] = [
     date: "۴ روز پیش",
     type: "refund_request",
     status: "pending",
+    code: "TRX-88199",
+    time: "۱۸:۱۵",
+    method: "کارت ****۱۱۴۲",
+    payer: "دانش‌آموز",
+    gatewayRef: "GW-5511810",
+    reason: "اشتباهی پلن پایه خریدم، همراه می‌خواستم.",
   },
   {
     id: "tx-3",
@@ -1402,6 +1542,11 @@ export const transactions: Transaction[] = [
     date: "۱ هفته پیش",
     type: "purchase",
     status: "approved",
+    code: "TRX-88102",
+    time: "۱۱:۰۰",
+    method: "کارت ****۹۰۰۱",
+    payer: "والد",
+    gatewayRef: "GW-5510044",
   },
   {
     id: "tx-4",
@@ -1411,6 +1556,12 @@ export const transactions: Transaction[] = [
     date: "۱ هفته پیش",
     type: "refund_request",
     status: "rejected",
+    code: "TRX-87950",
+    time: "۰۹:۴۵",
+    method: "کارت ****۴۴۴۴",
+    payer: "والد",
+    gatewayRef: "GW-5509120",
+    reason: "از سبک مشاور راضی نیستم.",
   },
 ];
 
