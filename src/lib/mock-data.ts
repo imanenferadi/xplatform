@@ -693,6 +693,23 @@ export const mentorStudents: MentorStudent[] = [
     ],
     nextWeekPlanReady: true,
   },
+  // The demo's logged-in student — so what ایمان logs on his side (reports,
+  // start-up info, books, school hours) shows up in سارا's panel.
+  {
+    id: "me",
+    name: "ایمان",
+    grade: "پایه دوازدهم — تجربی",
+    lastCheckIn: "دیشب",
+    daysSinceCheckIn: 1,
+    planCompletion: 68,
+    unreadMessages: 0,
+    weeklyHistory: [
+      { weekLabel: "۱۵ شهریور", studyHours: 10, planCompletionPercent: 55 },
+      { weekLabel: "۲۲ شهریور", studyHours: 9, planCompletionPercent: 60 },
+      { weekLabel: "۲۹ شهریور", studyHours: 11, planCompletionPercent: 68 },
+    ],
+    nextWeekPlanReady: false,
+  },
 ];
 
 // ---------------------------------------------------------------------
@@ -939,6 +956,7 @@ export type ChatMessage = {
 
 /** One thread per student, keyed by MentorStudent.id. */
 export const mentorMessageThreads: Record<string, ChatMessage[]> = {
+  me: chatMessages,
   "1": [
     { id: 1, from: "mentor", text: "سلام امیرحسین، این هفته برنامه رو دیدی؟", time: "دیروز ۱۰:۰۰" },
     { id: 2, from: "mentor", text: "چند روزه ازت خبری نیست، حالت خوبه؟", time: "امروز ۰۹:۳۰" },
@@ -966,6 +984,7 @@ export type UpcomingSession = {
 
 export const upcomingSessions: UpcomingSession[] = [
   { id: "s0", studentId: "1", dayName: "شنبه", dayLabel: "شنبه", time: "۱۷:۰۰", mode: "audio", done: true },
+  { id: "s-me", studentId: "me", dayName: "شنبه", dayLabel: "شنبه", time: "۱۸:۰۰", mode: "video", done: true },
   { id: "s1", studentId: "3", dayName: "دوشنبه", dayLabel: "امروز", time: "۱۸:۰۰", mode: "video" },
   { id: "s2", studentId: "2", dayName: "سه‌شنبه", dayLabel: "فردا", time: "۱۹:۳۰", mode: "video" },
   { id: "s3", studentId: "1", dayName: "پنجشنبه", dayLabel: "پنجشنبه", time: "۱۷:۰۰", mode: "audio" },
@@ -988,6 +1007,7 @@ export const studentEarnings: StudentEarning[] = [
   { studentId: "1", planName: "نقره‌ای", monthlyFee: 1200000, paidThisMonth: true },
   { studentId: "2", planName: "برنزی", monthlyFee: 800000, paidThisMonth: true },
   { studentId: "3", planName: "طلایی", monthlyFee: 1800000, paidThisMonth: false },
+  { studentId: "me", planName: "نقره‌ای", monthlyFee: 1490000, paidThisMonth: true },
 ];
 
 export const earningsHistory: { monthLabel: string; total: number }[] = [
@@ -1232,7 +1252,7 @@ export const reassignHistory: ReassignRecord[] = [
 // every such edit is itself recorded. Live admin actions are appended by
 // admin-log-store.
 export type LogCategory = "مشاوران" | "کاربران" | "مالی" | "شکایات" | "امنیت" | "پشتیبانی";
-export type LogActorRole = "ادمین" | "سیستم" | "دانش‌آموز" | "مشاور" | "والد";
+export type LogActorRole = "ادمین" | "سیستم" | "دانش‌آموز" | "مشاور" | "والد" | "آموزشگاه";
 export type LogSeverity = "info" | "warning" | "critical";
 export type FollowUpStatus = "new" | "in_progress" | "reviewed";
 
@@ -2159,3 +2179,178 @@ export const seedChurnResponses: ChurnResponse[] = [
   { id: "ch-7", student: "امید شریفی", plan: "پایه", mentorId: "amirhossein-rezaei", reason: "no_result", text: "دو آزمون درصدم بالا نرفت.", outcome: "cancelled", date: "۲۷ شهریور" },
   { id: "ch-8", student: "نازنین قربانی", plan: "همراه", mentorId: "mahsa-ghasemi", reason: "technical", text: "جلسه‌ها قطع می‌شد.", outcome: "cancelled", date: "۲۵ شهریور" },
 ];
+
+// ---------------------------------------------------------------------
+// «اطلاعات شروع» (/dashboard/setup): the start-up questionnaire, fixed
+// school/class hours, and the student's own books. The mentor reads all
+// three in the case file.
+// ---------------------------------------------------------------------
+
+export type Commitment = { id: string; day: string; title: string; start: string; end: string; kind: "school" | "class" };
+export type BookKind = "درسنامه" | "تست" | "جمع‌بندی";
+export type BookStatus = "have" | "reading" | "done";
+export type BookItem = { id: string; subject: string; title: string; kind: BookKind; status: BookStatus };
+export type Intake = {
+  targetMajor: string;
+  quota: string;
+  exams: string[];
+  dailyHours: string;
+  challenges: string[];
+  finals: string;
+  expectation: string;
+};
+export type StudentSetup = { intake: Intake | null; schedule: Commitment[]; books: BookItem[] };
+
+export const TARGET_MAJORS = ["پزشکی", "دندان‌پزشکی", "داروسازی", "پرستاری", "فیزیوتراپی", "علوم آزمایشگاهی", "مهندسی", "هنوز مطمئن نیستم"];
+export const QUOTAS = ["منطقه ۱", "منطقه ۲", "منطقه ۳", "نمی‌دونم"];
+export const MOCK_EXAM_PROVIDERS = ["قلم‌چی", "گاج", "ماز", "سنجش", "هیچ‌کدوم"];
+export const DAILY_HOURS_OPTIONS = ["کمتر از ۲ ساعت", "۲ تا ۴ ساعت", "۴ تا ۶ ساعت", "بیشتر از ۶ ساعت"];
+export const STUDY_CHALLENGES = ["برنامه‌ریزی", "تمرکز و حواس‌پرتی", "یک درس خاص", "استرس و اضطراب", "انگیزه", "وقت کم به‌خاطر مدرسه"];
+export const FINALS_STATUS = ["هنوز امتحان نهایی ندادم", "نمره‌های نهایی‌ام خوبه", "باید نهایی رو ترمیم کنم"];
+export const BOOK_SUGGESTIONS = ["کتاب درسی", "خیلی سبز", "مهروماه", "گاج", "قلم‌چی (کانون)", "مبتکران", "الگو", "دریافت"];
+export const BOOK_STATUS_LABEL: Record<BookStatus, string> = { have: "دارم", reading: "دارم می‌خونم", done: "تموم شد" };
+
+// Awake window 07:00–23:00 minus school/classes minus a fixed buffer for
+// commute, meals and rest = roughly how much a student can really study.
+export const AWAKE_HOURS = 16;
+export const DAILY_BUFFER_HOURS = 3;
+
+const school = (day: string, end = "13:30"): Commitment => ({
+  id: `sc-${day}`,
+  day,
+  title: "مدرسه",
+  start: "07:30",
+  end,
+  kind: "school",
+});
+
+// ایمان's default week (editable on /dashboard/setup).
+export const DEFAULT_SCHEDULE: Commitment[] = [
+  school("شنبه"),
+  school("یکشنبه"),
+  school("دوشنبه"),
+  school("سه‌شنبه"),
+  school("چهارشنبه"),
+  school("پنجشنبه", "12:00"),
+  { id: "cl-1", day: "دوشنبه", title: "کلاس تقویتی فیزیک", start: "16:00", end: "18:00", kind: "class" },
+];
+
+// Other students' answers, for their case files.
+export const studentSetupSeed: Record<string, StudentSetup> = {
+  "3": {
+    intake: {
+      targetMajor: "پزشکی",
+      quota: "منطقه ۲",
+      exams: ["قلم‌چی"],
+      dailyHours: "بیشتر از ۶ ساعت",
+      challenges: ["استرس و اضطراب"],
+      finals: "نمره‌های نهایی‌ام خوبه",
+      expectation: "می‌خوام کسی باشه که وقتی آزمون بد می‌دم آرومم کنه و مسیر رو درست کنه.",
+    },
+    schedule: [],
+    books: [
+      { id: "b1", subject: "زیست", title: "خیلی سبز", kind: "تست", status: "reading" },
+      { id: "b2", subject: "شیمی", title: "مبتکران", kind: "درسنامه", status: "done" },
+      { id: "b3", subject: "فیزیک", title: "الگو", kind: "تست", status: "have" },
+    ],
+  },
+};
+
+// ---------------------------------------------------------------------
+// Mentor feedback on nightly reports (quick reaction + one line).
+// ---------------------------------------------------------------------
+
+export type ReportReaction = "great" | "keep_going" | "lets_talk";
+export const REPORT_REACTIONS: Record<ReportReaction, { emoji: string; label: string }> = {
+  great: { emoji: "👏", label: "عالی بود" },
+  keep_going: { emoji: "💪", label: "ادامه بده" },
+  lets_talk: { emoji: "💬", label: "بیا صحبت کنیم" },
+};
+export type ReportFeedback = { reaction: ReportReaction; comment: string; at: string };
+
+export const reportFeedbackSeed: Record<string, ReportFeedback> = {
+  "me-8": { reaction: "great", comment: "۳۰ تست شیمی توی ۴۵ دقیقه عالیه؛ همین ریتم رو نگه دار.", at: "یکشنبه، ۰۸:۱۰" },
+  "h3-9": { reaction: "keep_going", comment: "تعادل رو خوب پیش بردی، فردا مثلثات رو جدی‌تر بگیر.", at: "دوشنبه، ۰۷:۴۰" },
+};
+
+// ---------------------------------------------------------------------
+// Wallet: referral credit, spent automatically at checkout.
+// ---------------------------------------------------------------------
+
+export const REFERRAL_CREDIT = 150000; // toman per friend after their first payment
+export type WalletEntry = { id: string; amount: number; label: string; date: string };
+export const walletSeed: { credits: WalletEntry[]; spends: WalletEntry[] } = {
+  credits: [{ id: "wc-1", amount: REFERRAL_CREDIT, label: "دعوت علی نوری", date: "۳۰ شهریور" }],
+  spends: [],
+};
+
+// ---------------------------------------------------------------------
+// Parent → mentor call requests.
+// ---------------------------------------------------------------------
+
+export const CALL_TOPICS = ["روند درسی و برنامه", "روحیه و انگیزه", "انتخاب رشته", "پرداخت یا اشتراک", "سایر"];
+export type CallRequest = {
+  id: string;
+  parentName: string;
+  studentName: string;
+  studentId: string;
+  topic: string;
+  note: string;
+  phone: string;
+  slot: string; // "سه‌شنبه ۲۰:۰۰" — one of the mentor's free slots
+  status: "pending" | "confirmed" | "declined";
+  mentorNote: string;
+  createdAt: string;
+};
+
+export const callRequestSeed: CallRequest[] = [
+  {
+    id: "cr-1",
+    parentName: "والد علی نوری",
+    studentName: "علی نوری",
+    studentId: "3",
+    topic: "انتخاب رشته",
+    note: "می‌خواستیم درباره‌ی پزشکی و داروسازی نظر شما رو بدونیم.",
+    phone: "۰۹۱۲ ۵۵۵ ۴۴۳۳",
+    slot: "سه‌شنبه ۲۰:۰۰",
+    status: "pending",
+    mentorNote: "",
+    createdAt: "امروز، ۰۷:۱۵",
+  },
+];
+
+// ---------------------------------------------------------------------
+// School / institute panel (/school). Bulk seats at a group discount;
+// the school only ever sees aggregate progress, never chats or notes.
+// ---------------------------------------------------------------------
+
+export const SCHOOL_DISCOUNT_PERCENT = 25; // business decision — change here
+export const SCHOOL_SEAT_PLAN_ID = "companion";
+
+export type SchoolStudent = {
+  id: string;
+  name: string;
+  grade: string;
+  mentorName: string;
+  reportRate: number | null; // null = invited, hasn't signed in yet
+  studyHours: number | null;
+  phone: string;
+};
+
+export const schoolSeed = {
+  name: "دبیرستان نمونه‌ی پیشرو (دمو)",
+  city: "تهران",
+  seats: 16,
+  nextInvoice: "۱ آبان ۱۴۰۵",
+  students: [
+    { id: "ss-1", name: "هستی کریمی", grade: "دوازدهم تجربی", mentorName: "سارا محمدی", reportRate: 92, studyHours: 27, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۰" },
+    { id: "ss-2", name: "پرهام صالحی", grade: "دوازدهم تجربی", mentorName: "امیرحسین رضایی", reportRate: 81, studyHours: 22, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۱" },
+    { id: "ss-3", name: "یاسمن نوروزی", grade: "یازدهم تجربی", mentorName: "سارا محمدی", reportRate: 64, studyHours: 14, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۲" },
+    { id: "ss-4", name: "آرین قاسمی", grade: "دوازدهم ریاضی", mentorName: "مهسا قاسمی", reportRate: 38, studyHours: 6, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۳" },
+    { id: "ss-5", name: "مهسا اکبری", grade: "دوازدهم تجربی", mentorName: "نگار احمدی", reportRate: 45, studyHours: 9, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۴" },
+    { id: "ss-6", name: "سینا مرادی", grade: "یازدهم ریاضی", mentorName: "رضا کریمی", reportRate: 88, studyHours: 24, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۵" },
+    { id: "ss-7", name: "نیکا جعفری", grade: "دوازدهم تجربی", mentorName: "سارا محمدی", reportRate: 76, studyHours: 18, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۶" },
+    { id: "ss-8", name: "امیرعلی حسینی", grade: "دوازدهم ریاضی", mentorName: "امیرحسین رضایی", reportRate: 70, studyHours: 16, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۷" },
+    { id: "ss-9", name: "ریحانه موسوی", grade: "یازدهم تجربی", mentorName: "نگار احمدی", reportRate: null, studyHours: null, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۸" },
+  ] as SchoolStudent[],
+};

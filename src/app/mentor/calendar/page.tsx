@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { Video, Phone, CalendarDays, FileText, AlarmClock, Check } from "lucide-react";
+import { Video, Phone, CalendarDays, FileText, AlarmClock, Check, PhoneCall } from "lucide-react";
 import { MentorShell } from "@/components/app/MentorShell";
 import { Card } from "@/components/ui/Card";
 import {
@@ -12,6 +14,7 @@ import {
   upcomingSessions,
 } from "@/lib/mock-data";
 import { cn, toLatinDigits, toPersianDigits } from "@/lib/utils";
+import { useCallRequests } from "@/lib/call-store";
 
 const HOURS = [16, 17, 18, 19, 20];
 
@@ -33,11 +36,20 @@ export default function MentorCalendarPage() {
     });
   const sessionsAt = (day: string, hour: number) =>
     upcomingSessions.filter((s) => s.dayName === day && hourOf(s.time) === hour);
+  // Confirmed parent calls take their slot too.
+  const confirmedCalls = useCallRequests().filter((c) => c.status === "confirmed");
+  const callsAt = (day: string, hour: number) =>
+    confirmedCalls.filter((c) => {
+      const [d, t] = c.slot.split(" ");
+      return d === day && hourOf(t) === hour;
+    });
 
   const remaining = upcomingSessions.filter((s) => !s.done).length;
   const openSlots = availability.filter((a) => {
     const [d, t] = a.split(" ");
-    return WEEK_DAYS.indexOf(d) >= todayIndex && sessionsAt(d, hourOf(t)).length === 0;
+    return (
+      WEEK_DAYS.indexOf(d) >= todayIndex && sessionsAt(d, hourOf(t)).length === 0 && callsAt(d, hourOf(t)).length === 0
+    );
   }).length;
 
   return (
@@ -118,7 +130,19 @@ export default function MentorCalendarPage() {
                               </Link>
                             );
                           })}
-                          {sessions.length === 0 && freeSlot(d, h) && !past && (
+                          {callsAt(d, h).map((c) => (
+                            <div
+                              key={c.id}
+                              className="mt-1 rounded-x-md bg-mint-500/15 px-2.5 py-2 text-mint-500"
+                              title={`${c.topic} — ${c.phone}`}
+                            >
+                              <div className="truncate text-sm font-medium text-text-900">{c.parentName}</div>
+                              <div className="mt-0.5 flex items-center gap-1 text-xs">
+                                <PhoneCall size={12} /> تماس ۱۵ دقیقه‌ای
+                              </div>
+                            </div>
+                          ))}
+                          {sessions.length === 0 && callsAt(d, h).length === 0 && freeSlot(d, h) && !past && (
                             <div className="rounded-x-md border border-dashed border-mint-500/50 px-2.5 py-2 text-xs text-mint-500">
                               وقت آزاد
                             </div>
@@ -177,6 +201,9 @@ export default function MentorCalendarPage() {
           </span>
           <span className="flex items-center gap-1.5">
             <span className="h-3 w-3 rounded-sm border border-dashed border-mint-500" /> وقت آزاد از پروفایلت
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded-sm bg-mint-500/30" /> تماس با والد
           </span>
         </div>
       </div>

@@ -1,17 +1,11 @@
 import Link from "next/link";
-import { AlertCircle, MessageCircle, CalendarClock, Moon, CalendarX } from "lucide-react";
+import { AlertCircle, MessageCircle, CalendarClock, CalendarX } from "lucide-react";
 import { MentorShell } from "@/components/app/MentorShell";
+import { CallRequestsCard, ReportFeed } from "@/components/app/MentorFeed";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
-import {
-  CURRENT_DAY_NAME,
-  mentorStudents,
-  nightlyCheckIns,
-  moodLabels,
-  getRiskInfo,
-  upcomingSessions,
-} from "@/lib/mock-data";
+import { CURRENT_DAY_NAME, mentorStudents, getRiskInfo, upcomingSessions } from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
 
 export default function MentorDashboardPage() {
@@ -53,39 +47,10 @@ export default function MentorDashboardPage() {
           <SmallStat icon={AlertCircle} label="نیاز به بازبینی برنامه" value={toPersianDigits(planNotReady.length)} />
         </div>
 
-        {/* Nightly check-ins — this replaces reading the Telegram group */}
-        <h2 className="mb-3 mt-6 flex items-center gap-1.5 text-sm font-bold text-text-900">
-          <Moon size={15} className="text-blue-600" />
-          گزارش کارهای دیشب
-        </h2>
-        <div className="space-y-2">
-          {nightlyCheckIns.map((ci) => {
-            const student = mentorStudents.find((s) => s.id === ci.studentId);
-            if (!student) return null;
-            return (
-              <Link key={ci.id} href={`/mentor/students/${ci.studentId}`}>
-                <Card interactive className={!ci.mentorSeen ? "border-blue-600/30" : undefined}>
-                  <CardContent className="flex items-center gap-3 py-3">
-                    <Avatar name={student.name} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="truncate text-sm font-medium text-text-900">{student.name}</span>
-                        <span className="text-xs text-text-500">{ci.date}</span>
-                        {!ci.mentorSeen && <Badge tone="info">جدید</Badge>}
-                      </div>
-                      <div className="truncate text-xs text-text-500">
-                        {ci.note || (ci.entries.length === 0 ? "یادداشتی ننوشته" : "بدون یادداشت")}
-                      </div>
-                    </div>
-                    <span className="shrink-0 text-lg" title={moodLabels[ci.mood]}>
-                      {moodLabels[ci.mood].split(" ").pop()}
-                    </span>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
+        <CallRequestsCard />
+
+        {/* Nightly reports — this replaces reading the Telegram group */}
+        <ReportFeed />
 
         <h2 className="mb-3 mt-6 text-sm font-bold text-text-900">دانش‌آموزان</h2>
         <div className="space-y-2">

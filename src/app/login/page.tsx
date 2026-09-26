@@ -129,6 +129,12 @@ export default function LoginPage() {
           </Link>
         </p>
         <p className="mt-1.5 text-center text-xs text-text-500">
+          مدرسه یا آموزشگاهی؟{" "}
+          <Link href="/school" className="text-blue-600 hover:underline">
+            پنل آموزشگاه‌ها
+          </Link>
+        </p>
+        <p className="mt-1.5 text-center text-xs text-text-500">
           تیم پلتفرم هستی؟{" "}
           <Link href="/admin" className="text-blue-600 hover:underline">
             پنل ادمین را ببین

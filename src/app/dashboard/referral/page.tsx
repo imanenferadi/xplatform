@@ -1,18 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Gift, Copy, Check, UserPlus } from "lucide-react";
+import Link from "next/link";
+import { Gift, Copy, Check, UserPlus, Wallet } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { referralProgram } from "@/lib/mock-data";
+import { REFERRAL_CREDIT, referralProgram } from "@/lib/mock-data";
+import { Toman } from "@/components/ui/Toman";
+import { useWallet } from "@/lib/wallet-store";
 import { toPersianDigits } from "@/lib/utils";
 
 const inviteLink = `https://x-platform.ir/r/${referralProgram.code}`;
 
 export default function ReferralPage() {
   const [copied, setCopied] = useState(false);
-  const joinedCount = referralProgram.invited.filter((r) => r.status === "joined").length;
+  const pendingCount = referralProgram.invited.filter((r) => r.status === "pending_payment").length;
+  const wallet = useWallet();
 
   async function copyLink() {
     try {
@@ -33,16 +37,20 @@ export default function ReferralPage() {
           <h1 className="text-xl font-bold text-text-900">دعوت از دوستان</h1>
         </div>
         <p className="mb-6 text-sm text-text-500">
-          هر دوستی که با لینک تو عضو بشه و اشتراک بگیره، هر دوتون{" "}
+          هر دوستی که با لینک تو عضو بشه و اولین پرداختش رو انجام بده، <Toman amount={REFERRAL_CREDIT} /> اعتبار می‌ریزه
+          به کیف پولت و خودش هم{" "}
           <span className="tnum font-medium text-text-900">{toPersianDigits(referralProgram.discountPercent)}٪</span>{" "}
-          تخفیف ماه بعد می‌گیرید.
+          تخفیف ماه اول می‌گیره. اعتبار موقع پرداخت بعدیت خودکار کم می‌شه.
         </p>
 
         <Card>
           <CardContent>
             <div className="mb-2 text-xs text-text-500">لینک دعوت اختصاصی تو</div>
             <div className="flex items-center gap-2">
-              <div dir="ltr" className="tnum flex-1 truncate rounded-x-md bg-surface-2 px-3 py-2.5 text-sm text-text-700">
+              <div
+                dir="ltr"
+                className="tnum flex-1 truncate rounded-x-md bg-surface-2 px-3 py-2.5 text-sm text-text-700"
+              >
                 {inviteLink}
               </div>
               <button
@@ -57,22 +65,52 @@ export default function ReferralPage() {
           </CardContent>
         </Card>
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <Card>
-            <CardContent className="text-center">
-              <div className="tnum text-2xl font-extrabold text-text-900">
-                {toPersianDigits(referralProgram.invited.length)}
-              </div>
-              <div className="mt-1 text-xs text-text-500">دوست دعوت‌شده</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="text-center">
-              <div className="tnum text-2xl font-extrabold text-text-900">{toPersianDigits(joinedCount)}</div>
-              <div className="mt-1 text-xs text-text-500">عضو شده و تخفیف فعال</div>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="mt-4">
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-sm text-text-700">
+                <Wallet size={16} className="text-blue-600" /> موجودی کیف پول
+              </span>
+              <span className="text-lg font-bold text-text-900">
+                <Toman amount={wallet.balance} />
+              </span>
+            </div>
+            {pendingCount > 0 && (
+              <p className="mt-1 text-xs text-text-500">
+                + <Toman amount={pendingCount * REFERRAL_CREDIT} /> در انتظار اولین پرداخت دوستات
+              </p>
+            )}
+            {(wallet.credits.length > 0 || wallet.spends.length > 0) && (
+              <ul className="mt-3 space-y-1 border-t border-border pt-3 text-xs">
+                {wallet.credits.map((c) => (
+                  <li key={c.id} className="flex justify-between text-text-700">
+                    <span>
+                      {c.label} · {c.date}
+                    </span>
+                    <span className="text-mint-500">
+                      + <Toman amount={c.amount} />
+                    </span>
+                  </li>
+                ))}
+                {wallet.spends.map((c) => (
+                  <li key={c.id} className="flex justify-between text-text-700">
+                    <span>
+                      {c.label} · {c.date}
+                    </span>
+                    <span>
+                      − <Toman amount={c.amount} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {wallet.balance > 0 && (
+              <Link href="/checkout" className="mt-3 inline-block text-xs text-blue-600 hover:underline">
+                استفاده در خرید یا تمدید بعدی
+              </Link>
+            )}
+          </CardContent>
+        </Card>
 
         <h2 className="mb-3 mt-6 text-sm font-bold text-text-900">تاریخچه‌ی دعوت‌ها</h2>
         <div className="space-y-2">
@@ -87,7 +125,7 @@ export default function ReferralPage() {
                   <div className="text-xs text-text-500">{r.date}</div>
                 </div>
                 <Badge tone={r.status === "joined" ? "success" : "warning"}>
-                  {r.status === "joined" ? "تخفیف فعال شد" : "در انتظار اشتراک دوستت"}
+                  {r.status === "joined" ? "اعتبار گرفتی" : "در انتظار اولین پرداختش"}
                 </Badge>
               </CardContent>
             </Card>

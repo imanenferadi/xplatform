@@ -18,12 +18,14 @@ import {
 import { recordChurn, undoMyCancellation, useChurn } from "@/lib/churn-store";
 import { createTicket } from "@/lib/ticket-store";
 import { guaranteeDaysLeft, requestRefund, useSubscription } from "@/lib/subscription-store";
+import { cancelLink, payLinkUrl, usePaymentLinks } from "@/lib/purchase";
 import { addDaysIso, cn, formatJalali, toPersianDigits } from "@/lib/utils";
 
 // «اشتراک من» on the student's profile: the package, its installments, and
 // the 7-day no-questions money-back guarantee.
 export function MySubscription() {
   const sub = useSubscription();
+  const pendingLink = usePaymentLinks().find((l) => l.status === "pending");
   const [asking, setAsking] = useState(false);
   const [reason, setReason] = useState("");
 
@@ -35,10 +37,32 @@ export function MySubscription() {
             <CreditCard size={16} className="text-blue-600" />
             <h2 className="text-sm font-bold text-text-900">اشتراک من</h2>
           </div>
-          <Badge tone="brand">
-            {sub ? `${sub.planName} · ${sub.durationLabel}` : `${parentBilling.planName} · ماهانه`}
-          </Badge>
+          <span className="flex items-center gap-1.5">
+            {sub?.paidBy === "parent" && <Badge tone="success">پرداخت‌شده توسط والد</Badge>}
+            <Badge tone="brand">
+              {sub ? `${sub.planName} · ${sub.durationLabel}` : `${parentBilling.planName} · ماهانه`}
+            </Badge>
+          </span>
         </div>
+
+        {pendingLink && (
+          <div className="mb-3 rounded-x-md border border-blue-600/30 bg-blue-100 p-3 text-xs leading-[1.8] text-text-700">
+            <div className="font-medium text-text-900">
+              منتظر پرداخت والد — پلن {pendingLink.order.planName} ({pendingLink.order.durationLabel})،{" "}
+              <Toman amount={pendingLink.order.total} />
+            </div>
+            <div dir="ltr" className="mt-1 truncate text-text-500">
+              {payLinkUrl(pendingLink.token)}
+            </div>
+            <button
+              type="button"
+              onClick={() => cancelLink(pendingLink.token)}
+              className="mt-1 text-text-500 hover:text-red-500"
+            >
+              لغو این لینک
+            </button>
+          </div>
+        )}
 
         {!sub ? (
           <>

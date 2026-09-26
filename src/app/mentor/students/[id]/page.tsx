@@ -12,31 +12,22 @@ import {
   targetMajor,
   examDrivenPriorities,
   rootCauseAnalysis,
-  nightlyCheckIns,
-  checkInHistory,
-  moodLabels,
   mentorPrivateNotes,
-  studentMistakes,
   getRiskInfo,
 } from "@/lib/mock-data";
-import { Sparkles, FileText, Upload, Moon, EyeOff, LineChart, GitCompare } from "lucide-react";
+import { Sparkles, FileText, Upload, EyeOff, LineChart, GitCompare } from "lucide-react";
 import { TrendChart } from "@/components/ui/TrendChart";
 import { PeriodComparison } from "@/components/app/PeriodComparison";
 import { PrivateNotes } from "@/components/app/PrivateNotes";
-import { WeeklySummary } from "@/components/app/WeeklySummary";
-import { MistakePattern } from "@/components/app/MistakePattern";
-import { formatStudyTime, sleepMinutes } from "@/lib/checkins";
+import { StudentMistakes, StudentNightlyReports, StudentWeekly } from "@/components/app/StudentReports";
+import { AboutStudent, BooksHint } from "@/components/app/AboutStudent";
 import { toPersianDigits } from "@/lib/utils";
 
 export function generateStaticParams() {
   return mentorStudents.map((s) => ({ id: s.id }));
 }
 
-export default async function StudentCaseFilePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function StudentCaseFilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const student = mentorStudents.find((s) => s.id === id);
   if (!student) notFound();
@@ -57,6 +48,11 @@ export default async function StudentCaseFilePage({
             {risk.reason && <p className="mt-1 text-xs text-text-500">{risk.reason}</p>}
           </div>
         </div>
+
+        {/* What the student told us at start-up: goals, free time, books */}
+        <Section title="درباره‌ی این دانش‌آموز">
+          <AboutStudent studentId={student.id} />
+        </Section>
 
         {/* Latest Kanoon/Gaj report card — arrives from the exam provider itself,
             the platform only holds a reference + lets the mentor attach the file. */}
@@ -138,9 +134,9 @@ export default async function StudentCaseFilePage({
           }
         >
           <p className="text-sm leading-[1.9] text-text-700">
-            بیشترین اثر منفی روی رتبه از <span className="font-medium text-text-900">{rootCause.subject}</span>{" "}
-            می‌آید (درصد {rootCause.percentage}٪ × ضریب {rootCause.coefficient}). با توجه به نیمرخ سطح، ریشه‌ش
-            احتمالاً این مباحث‌اند:
+            بیشترین اثر منفی روی رتبه از <span className="font-medium text-text-900">{rootCause.subject}</span> می‌آید
+            (درصد {rootCause.percentage}٪ × ضریب {rootCause.coefficient}). با توجه به نیمرخ سطح، ریشه‌ش احتمالاً این
+            مباحث‌اند:
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {rootCause.likelyTopics.map((t) => (
@@ -155,8 +151,7 @@ export default async function StudentCaseFilePage({
             report card above × the student's target-major coefficients */}
         <Section title="برنامه‌ی این هفته">
           <p className="mb-3 text-xs text-text-500">
-            بر اساس کارنامه‌ی {examResults[0].examProvider} ({examResults[0].date}) و ضرایب رشته‌ی{" "}
-            {targetMajor.name}:
+            بر اساس کارنامه‌ی {examResults[0].examProvider} ({examResults[0].date}) و ضرایب رشته‌ی {targetMajor.name}:
           </p>
           <div className="space-y-2">
             {examDrivenPriorities()
@@ -164,6 +159,7 @@ export default async function StudentCaseFilePage({
               .map((p) => (
                 <PlanRow
                   key={p.subject}
+                  hint={<BooksHint studentId={student.id} subject={p.subject} />}
                   subject={p.subject}
                   topic={`درصد ${p.percentage}٪ × ضریب ${p.coefficient}`}
                   hours={p.hours}
@@ -175,64 +171,25 @@ export default async function StudentCaseFilePage({
           </div>
           <div className="mt-3 flex gap-2">
             <Button size="md">تأیید برنامه</Button>
-            <Button size="md" variant="secondary">تغییر بده</Button>
+            <Button size="md" variant="secondary">
+              تغییر بده
+            </Button>
           </div>
         </Section>
 
-        {/* Weekly roll-up of every nightly check-in, subject by subject */}
+        {/* Weekly roll-up of every nightly report, subject by subject */}
         <Section title="جمع هفته از گزارش کارها">
-          <WeeklySummary
-            checkIns={[...nightlyCheckIns, ...checkInHistory].filter((c) => c.studentId === student.id)}
-            audience="mentor"
-          />
+          <StudentWeekly studentId={student.id} />
         </Section>
 
         {/* Why this student gets tests wrong, from their own mistake notebook */}
         <Section title="الگوی غلط‌ها">
-          <MistakePattern entries={studentMistakes.filter((m) => m.studentId === student.id)} audience="mentor" />
+          <StudentMistakes studentId={student.id} />
         </Section>
 
-        {/* Nightly check-ins — replaces reading the Telegram group report */}
-        <Section title="گزارش کارهای شبانه">
-          <div className="space-y-2">
-            {nightlyCheckIns
-              .filter((c) => c.studentId === student.id)
-              .map((c) => (
-                <div
-                  key={c.id}
-                  className="flex items-start gap-3 rounded-x-md border border-border bg-surface-2 p-3"
-                >
-                  <Moon size={15} className="mt-0.5 shrink-0 text-blue-600" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 text-xs text-text-500">
-                      <span>{c.date}</span>
-                      <span>{moodLabels[c.mood]}</span>
-                      {c.sleep && (
-                        <span className="tnum">
-                          · خواب {toPersianDigits(c.sleep.bed)} تا {toPersianDigits(c.sleep.wake)} (
-                          {formatStudyTime(sleepMinutes(c.sleep))})
-                        </span>
-                      )}
-                    </div>
-                    {c.entries.length > 0 && (
-                      <ul className="mt-1 space-y-0.5 text-xs text-text-700">
-                        {c.entries.map((e, i) => (
-                          <li key={i}>
-                            <span className="font-medium text-text-900">{e.subject}</span>
-                            {e.topic && ` — ${e.topic}`} · {formatStudyTime(e.minutes)} ·{" "}
-                            {toPersianDigits(e.tests)} تست
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {c.note && <p className="mt-1 text-sm text-text-900">{c.note}</p>}
-                  </div>
-                </div>
-              ))}
-            {nightlyCheckIns.filter((c) => c.studentId === student.id).length === 0 && (
-              <p className="text-sm text-text-500">هنوز گزارش کاری ثبت نشده.</p>
-            )}
-          </div>
+        {/* Nightly reports + the mentor's quick feedback on each */}
+        <Section title="گزارش کارهای اخیر">
+          <StudentNightlyReports studentId={student.id} />
         </Section>
 
         {/* AI questions */}
@@ -255,15 +212,7 @@ export default async function StudentCaseFilePage({
   );
 }
 
-function Section({
-  title,
-  badge,
-  children,
-}: {
-  title: string;
-  badge?: React.ReactNode;
-  children: React.ReactNode;
-}) {
+function Section({ title, badge, children }: { title: string; badge?: React.ReactNode; children: React.ReactNode }) {
   return (
     <Card className="mt-4">
       <CardContent>
@@ -278,6 +227,7 @@ function Section({
 }
 
 function PlanRow({
+  hint,
   subject,
   topic,
   hours,
@@ -289,13 +239,10 @@ function PlanRow({
   hours?: number;
   detail?: { chapter: string; subtopic: string };
   aiGenerated: boolean;
+  hint?: React.ReactNode;
 }) {
   return (
-    <div
-      className={`rounded-x-sm p-2.5 text-sm ${
-        aiGenerated ? "bg-blue-100" : "border border-border bg-surface"
-      }`}
-    >
+    <div className={`rounded-x-sm p-2.5 text-sm ${aiGenerated ? "bg-blue-100" : "border border-border bg-surface"}`}>
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
@@ -307,6 +254,7 @@ function PlanRow({
             )}
           </div>
           <span className="text-text-500">{topic}</span>
+          {hint}
         </div>
         {aiGenerated && (
           <Badge tone="info">
@@ -319,9 +267,7 @@ function PlanRow({
           که می‌خوان دقیق‌تر بنویسن. یک <details> ساده، بدون نیاز به state. */}
       {detail && (
         <details className="mt-2 border-t border-border/60 pt-2">
-          <summary className="cursor-pointer text-xs text-blue-600 marker:content-none">
-            جزئیات بیشتر
-          </summary>
+          <summary className="cursor-pointer text-xs text-blue-600 marker:content-none">جزئیات بیشتر</summary>
           <div className="mt-1.5 space-y-0.5 text-xs text-text-700">
             <div>فصل: {detail.chapter}</div>
             <div>ریز مبحث: {detail.subtopic}</div>

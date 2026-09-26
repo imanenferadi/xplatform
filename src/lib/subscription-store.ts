@@ -19,6 +19,7 @@ export type Subscription = {
   purchasedDaysAgo: number; // demo time doesn't move, so this stays 0
   refund: null | { status: "pending" | "approved" | "rejected"; amount: number; reason: string };
   discountCode?: string;
+  paidBy?: "student" | "parent";
 };
 
 const store = createLocalStore<Subscription | null>("x-subscription", null);

@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ShieldCheck, RotateCcw, TicketPercent, X } from "lucide-react";
+import { Check, ShieldCheck, RotateCcw, TicketPercent, X, Wallet, Send, Copy } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Toman } from "@/components/ui/Toman";
 import { GUARANTEE_DAYS, PACKAGE_DURATIONS, pricingPlans, type PackageDuration } from "@/lib/mock-data";
-import { packageTotal, saveSubscription, splitInstallments } from "@/lib/subscription-store";
-import { checkCode, discountAmount, redeemCode, useDiscountCodes } from "@/lib/discount-store";
+import { packageTotal, splitInstallments } from "@/lib/subscription-store";
+import { checkCode, discountAmount, useDiscountCodes } from "@/lib/discount-store";
+import { useWallet } from "@/lib/wallet-store";
+import { LINK_VALID_HOURS, completePurchase, createPaymentLink, payLinkUrl, type Order } from "@/lib/purchase";
 import { cn, toPersianDigits } from "@/lib/utils";
 
 function toman(n: number) {
@@ -25,6 +27,10 @@ export default function CheckoutPage() {
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [codeError, setCodeError] = useState("");
   const codes = useDiscountCodes();
+  const wallet = useWallet();
+  const [useCredit, setUseCredit] = useState(true);
+  const [linkToken, setLinkToken] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const plan = pricingPlans.find((p) => p.id === selected)!;
   const duration = PACKAGE_DURATIONS.find((d) => d.id === durationId)!;
@@ -36,7 +42,9 @@ export default function CheckoutPage() {
   // package may not be for another.
   const applied = appliedCode && !isFree ? checkCode(codes, appliedCode, codeContext) : null;
   const discount = applied?.ok ? discountAmount(applied.code, listTotal) : 0;
-  const total = listTotal - discount;
+  // Referral credit comes off after the code, never below zero.
+  const walletUse = useCredit && !isFree ? Math.min(wallet.balance, listTotal - discount) : 0;
+  const total = listTotal - discount - walletUse;
   const count = Math.min(installmentCount, duration.maxInstallments);
   const schedule = splitInstallments(total, count);
 
@@ -57,23 +65,33 @@ export default function CheckoutPage() {
     setCodeInput("");
   }
 
+  const order: Order = {
+    planId: plan.id,
+    planName: plan.name,
+    durationId: duration.id,
+    durationLabel: duration.label,
+    listTotal,
+    discount,
+    ...(discount > 0 && applied?.ok ? { discountCode: applied.code.code } : {}),
+    walletUse,
+    total,
+    installments: schedule,
+  };
+
   function pay() {
     setPaying(true);
-    if (!isFree) {
-      saveSubscription({
-        planId: plan.id,
-        planName: plan.name,
-        durationId: duration.id,
-        durationLabel: duration.label,
-        total,
-        installments: schedule,
-        purchasedDaysAgo: 0,
-        refund: null,
-        ...(discount > 0 && applied?.ok ? { discountCode: applied.code.code } : {}),
-      });
-      if (discount > 0 && applied?.ok) redeemCode(applied.code.code, total, discount, "ایمان");
-    }
+    if (!isFree) completePurchase(order, "student");
     setTimeout(() => router.push("/dashboard"), 1400);
+  }
+
+  async function copyLink() {
+    if (!linkToken) return;
+    try {
+      await navigator.clipboard.writeText(payLinkUrl(linkToken));
+      setCopied(true);
+    } catch {
+      // Clipboard can be blocked — the link is on screen to copy by hand.
+    }
   }
 
   return (
@@ -226,11 +244,25 @@ export default function CheckoutPage() {
               </form>
             )}
             {codeError && <p className="mt-1.5 text-xs text-red-500">{codeError}</p>}
+            {wallet.balance > 0 && (
+              <label className="mt-3 flex items-center justify-between gap-3 rounded-x-md border border-border bg-surface px-4 py-3 text-sm">
+                <span className="flex items-center gap-2 text-text-700">
+                  <Wallet size={16} className="text-blue-600" />
+                  استفاده از اعتبار کیف پول (<Toman amount={wallet.balance} />)
+                </span>
+                <input
+                  type="checkbox"
+                  checked={useCredit}
+                  onChange={(e) => setUseCredit(e.target.checked)}
+                  aria-label="استفاده از اعتبار کیف پول"
+                />
+              </label>
+            )}
           </div>
         )}
 
         <div className="mt-6 rounded-x-lg border border-border bg-surface p-5">
-          {discount > 0 && (
+          {(discount > 0 || walletUse > 0) && (
             <div className="mb-2 space-y-1 border-b border-border pb-2 text-sm">
               <div className="flex items-center justify-between text-text-500">
                 <span>قیمت {duration.label}</span>
@@ -238,12 +270,22 @@ export default function CheckoutPage() {
                   <Toman amount={listTotal} />
                 </span>
               </div>
-              <div className="flex items-center justify-between text-mint-500">
-                <span>کد تخفیف</span>
-                <span>
-                  − <Toman amount={discount} />
-                </span>
-              </div>
+              {discount > 0 && (
+                <div className="flex items-center justify-between text-mint-500">
+                  <span>کد تخفیف</span>
+                  <span>
+                    − <Toman amount={discount} />
+                  </span>
+                </div>
+              )}
+              {walletUse > 0 && (
+                <div className="flex items-center justify-between text-mint-500">
+                  <span>اعتبار کیف پول</span>
+                  <span>
+                    − <Toman amount={walletUse} />
+                  </span>
+                </div>
+              )}
             </div>
           )}
           <div className="flex items-center justify-between text-sm">
@@ -279,9 +321,54 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          <Button size="lg" className="mt-4 w-full" onClick={pay} disabled={paying}>
-            {paying ? "در حال پرداخت..." : isFree ? "شروع رایگان" : `پرداخت ${toman(schedule[0].amount)} و شروع`}
-          </Button>
+          {linkToken ? (
+            <div className="mt-4 rounded-x-md border border-blue-600/30 bg-blue-100 p-3 text-sm">
+              <div className="font-medium text-text-900">لینک پرداخت آماده‌ست</div>
+              <p className="mt-0.5 text-xs text-text-500">
+                برای والدت بفرست؛ تا {toPersianDigits(LINK_VALID_HOURS)} ساعت معتبره. بعد از پرداخت، اشتراکت خودکار فعال
+                می‌شه.
+              </p>
+              <div className="mt-2 flex items-center gap-2">
+                <div dir="ltr" className="flex-1 truncate rounded-x-sm bg-surface px-3 py-2 text-xs text-text-700">
+                  {payLinkUrl(linkToken)}
+                </div>
+                <Button size="md" variant="secondary" onClick={copyLink}>
+                  {copied ? <Check size={14} className="text-mint-500" /> : <Copy size={14} />}
+                  {copied ? "کپی شد" : "کپی"}
+                </Button>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard")}
+                className="mt-2 text-xs text-blue-600 hover:underline"
+              >
+                برگرد به داشبورد
+              </button>
+            </div>
+          ) : (
+            <>
+              <Button size="lg" className="mt-4 w-full" onClick={pay} disabled={paying}>
+                {paying
+                  ? "در حال پرداخت..."
+                  : isFree
+                    ? "شروع رایگان"
+                    : total === 0
+                      ? "شروع با اعتبار کیف پول"
+                      : `پرداخت ${toman(schedule[0].amount)} و شروع`}
+              </Button>
+              {!isFree && total > 0 && (
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="mt-2 w-full"
+                  onClick={() => setLinkToken(createPaymentLink(order))}
+                  disabled={paying}
+                >
+                  <Send size={15} /> لینک پرداخت برای والدم
+                </Button>
+              )}
+            </>
+          )}
           <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-text-500">
             <ShieldCheck size={13} />
             پرداخت امن؛ هر زمان قابل لغو

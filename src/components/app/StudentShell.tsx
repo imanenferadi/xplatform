@@ -57,6 +57,7 @@ const accountGroup: NavGroup = {
   icon: Home,
   sections: [
     { href: "/profile", label: "پروفایل" },
+    { href: "/dashboard/setup", label: "اطلاعات شروع" },
     { href: "/dashboard/referral", label: "دعوت از دوستان" },
     { href: "/support", label: "پشتیبانی" },
   ],

@@ -31,6 +31,7 @@ import { useMyCheckIns } from "@/lib/checkin-store";
 import { aggregateWeek, formatClockTime, formatStudyTime } from "@/lib/checkins";
 import { PARENT_ACCESS_LABELS, useParentAccess, type ParentAccess } from "@/lib/parent-access-store";
 import { useSubscription } from "@/lib/subscription-store";
+import { ParentCallRequest } from "@/components/app/ParentCallRequest";
 
 const trendMeta = {
   improving: { icon: TrendingUp, label: "رو به بهبود", tone: "text-mint-500" },
@@ -180,6 +181,8 @@ export default function ParentPage() {
             {hidden.map((k) => PARENT_ACCESS_LABELS[k].label).join("، ")}
           </div>
         )}
+
+        <ParentCallRequest mentorName={mentor.name} />
 
         {/* Billing — the parent is usually who actually pays for the subscription */}
         <Card className="mt-4">

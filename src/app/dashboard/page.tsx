@@ -1,14 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, MessageCircle, CalendarClock, Flame, Moon, FileText, Timer, Focus, Hourglass } from "lucide-react";
+import {
+  ArrowLeft,
+  MessageCircle,
+  CalendarClock,
+  Flame,
+  Moon,
+  FileText,
+  Timer,
+  Focus,
+  Hourglass,
+  ClipboardCheck,
+} from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { buttonVariants } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/Progress";
 import { Badge } from "@/components/ui/Badge";
-import { KONKUR_DATE, daysUntilKonkur, mentors, studentPlan } from "@/lib/mock-data";
+import { KONKUR_DATE, REPORT_REACTIONS, daysUntilKonkur, mentors, studentPlan } from "@/lib/mock-data";
 import { useCompletedTaskIds } from "@/lib/focus-log-store";
+import { setupSteps, useMySetup } from "@/lib/setup-store";
+import { useMyCheckIns } from "@/lib/checkin-store";
+import { useReportFeedback } from "@/lib/feedback-store";
+import { byRecency } from "@/lib/reports";
 import { toPersianDigits, cn } from "@/lib/utils";
 
 export default function DashboardPage() {
@@ -19,6 +34,12 @@ export default function DashboardPage() {
     done: t.status === "done" || completed.has(t.id),
   }));
   const nextTask = tasks.find((t) => !t.done);
+  const steps = setupSteps(useMySetup());
+  const stepsDone = steps.filter((st) => st.done).length;
+  // The most recent report the mentor reacted to.
+  const feedbackMap = useReportFeedback();
+  const lastWithFeedback = byRecency(useMyCheckIns()).find((c) => feedbackMap[c.id]);
+  const feedback = lastWithFeedback ? feedbackMap[lastWithFeedback.id] : null;
   const todoCount = tasks.filter((t) => !t.done).length;
 
   return (
@@ -33,7 +54,11 @@ export default function DashboardPage() {
           </div>
           <div
             className="flex items-center gap-2 rounded-x-md border border-border bg-surface px-3 py-2"
-            title={KONKUR_DATE.estimated ? `تاریخ تخمینی (${KONKUR_DATE.label}) — هنوز سنجش رسماً اعلام نکرده` : KONKUR_DATE.label}
+            title={
+              KONKUR_DATE.estimated
+                ? `تاریخ تخمینی (${KONKUR_DATE.label}) — هنوز سنجش رسماً اعلام نکرده`
+                : KONKUR_DATE.label
+            }
           >
             <Hourglass size={16} className="text-orange-500" />
             <div>
@@ -47,6 +72,63 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {stepsDone < steps.length && (
+          <Link
+            href="/dashboard/setup"
+            className="mt-5 block rounded-x-lg border border-blue-600/30 bg-surface p-4 transition-colors hover:bg-surface-2"
+          >
+            <div className="flex items-center gap-3">
+              <ClipboardCheck size={18} className="shrink-0 text-blue-600" />
+              <div className="flex-1">
+                <div className="text-sm font-medium text-text-900">
+                  <span className="tnum">{toPersianDigits(steps.length - stepsDone)}</span> قدم تا شروع کامل
+                </div>
+                <div className="text-xs text-text-500">
+                  {steps
+                    .filter((st) => !st.done)
+                    .map((st) => st.label)
+                    .join("، ")}{" "}
+                  — مشاورت برای برنامه‌نویسی لازمشون داره.
+                </div>
+              </div>
+              <ArrowLeft size={16} className="text-text-500" />
+            </div>
+            <div className="mt-3 flex gap-1">
+              {steps.map((st) => (
+                <div
+                  key={st.key}
+                  className={cn("h-1.5 flex-1 rounded-x-pill", st.done ? "bg-mint-500" : "bg-surface-2")}
+                />
+              ))}
+            </div>
+          </Link>
+        )}
+
+        {feedback && lastWithFeedback && (
+          <Card className="mt-4">
+            <CardContent className="flex items-start gap-3">
+              <span className="text-2xl leading-none">{REPORT_REACTIONS[feedback.reaction].emoji}</span>
+              <div className="flex-1">
+                <div className="text-xs text-text-500">
+                  {mentor.name} روی گزارش کار {lastWithFeedback.date} — {feedback.at}
+                </div>
+                <div className="mt-0.5 text-sm font-medium text-text-900">
+                  {REPORT_REACTIONS[feedback.reaction].label}
+                </div>
+                {feedback.comment && <p className="mt-1 text-sm leading-[1.8] text-text-700">«{feedback.comment}»</p>}
+                {feedback.reaction === "lets_talk" && (
+                  <Link
+                    href="/chat"
+                    className={buttonVariants({ size: "md", variant: "secondary", className: "mt-2" })}
+                  >
+                    <MessageCircle size={14} /> جواب بده
+                  </Link>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Hero — one tap into distraction-free focus mode on the next task */}
         {nextTask && (

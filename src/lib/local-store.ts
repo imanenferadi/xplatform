@@ -57,3 +57,14 @@ export function createLocalStore<T>(key: string, fallback: T) {
 
   return { get, set, useValue };
 }
+
+const noop = () => () => {};
+
+/** False during server render and hydration, true once browser storage is readable. */
+export function useHydrated(): boolean {
+  return useSyncExternalStore(
+    noop,
+    () => true,
+    () => false
+  );
+}

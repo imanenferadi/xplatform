@@ -43,7 +43,7 @@ const CATEGORY_ICON: Record<LogCategory, React.ComponentType<{ size?: number; cl
   پشتیبانی: LifeBuoy,
 };
 const CATEGORIES = Object.keys(CATEGORY_ICON) as LogCategory[];
-const ROLES: LogActorRole[] = ["ادمین", "سیستم", "دانش‌آموز", "مشاور", "والد"];
+const ROLES: LogActorRole[] = ["ادمین", "سیستم", "دانش‌آموز", "مشاور", "والد", "آموزشگاه"];
 
 const SEVERITY: Record<LogSeverity, { label: string; tone: "neutral" | "warning" | "danger"; dot: string }> = {
   info: { label: "عادی", tone: "neutral", dot: "bg-text-500" },
