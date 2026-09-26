@@ -13,11 +13,14 @@ export function TrendChart({
   max = 100,
   unit = "٪",
   color = "var(--x-blue-600)",
+  lowerIsBetter = false,
 }: {
   points: Point[];
   max?: number;
   unit?: string;
   color?: string;
+  /** e.g. response time: a rising line is bad news, not growth. */
+  lowerIsBetter?: boolean;
 }) {
   const width = 300;
   const height = 100;
@@ -41,12 +44,7 @@ export function TrendChart({
           same direction to stay aligned with the points. The Persian
           summary line below stays in the page's normal (RTL) flow. */}
       <div dir="ltr">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="w-full"
-          style={{ height: 100 }}
-          preserveAspectRatio="none"
-        >
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height: 100 }} preserveAspectRatio="none">
           <path d={path} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
           {coords.map((c, i) => (
             <circle key={i} cx={c.x} cy={c.y} r={2.5} fill={color} />
@@ -60,10 +58,22 @@ export function TrendChart({
       </div>
       <div className="mt-2 flex items-center justify-between text-sm">
         <span className="text-text-500">
-          از <span className="tnum">{toPersianDigits(points[0]?.value ?? 0)}{unit}</span> به{" "}
-          <span className="tnum">{toPersianDigits(points[points.length - 1]?.value ?? 0)}{unit}</span>
+          از{" "}
+          <span className="tnum">
+            {toPersianDigits(points[0]?.value ?? 0)}
+            {unit}
+          </span>{" "}
+          به{" "}
+          <span className="tnum">
+            {toPersianDigits(points[points.length - 1]?.value ?? 0)}
+            {unit}
+          </span>
         </span>
-        <span className={isUp ? "text-mint-500" : "text-orange-500"}>{isUp ? "↑ رو به رشد" : "↓ رو به افت"}</span>
+        {lowerIsBetter ? (
+          <span className={isUp ? "text-orange-500" : "text-mint-500"}>{isUp ? "↑ بدتر شده" : "↓ بهتر شده"}</span>
+        ) : (
+          <span className={isUp ? "text-mint-500" : "text-orange-500"}>{isUp ? "↑ رو به رشد" : "↓ رو به افت"}</span>
+        )}
       </div>
     </div>
   );

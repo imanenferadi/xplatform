@@ -20,3 +20,17 @@ export function toPersianDigits(input: number | string): string {
 export function toLatinDigits(input: string): string {
   return input.replace(/[۰-۹]/g, (d) => String(persianDigits.indexOf(d)));
 }
+
+/** "2026-10-21" → "۲۹ مهر ۱۴۰۵" (Persian calendar via Intl). */
+export function formatJalali(iso: string): string {
+  return new Intl.DateTimeFormat("fa-IR-u-ca-persian", { day: "numeric", month: "long", year: "numeric" }).format(
+    new Date(`${iso}T12:00:00Z`)
+  );
+}
+
+/** Adds whole days to an ISO date ("2026-09-29" + 30). */
+export function addDaysIso(iso: string, days: number): string {
+  const d = new Date(`${iso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}

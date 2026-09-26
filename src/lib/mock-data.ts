@@ -98,7 +98,7 @@ export const mentors: Mentor[] = [
     style: "انگیزشی",
     capacity: 2,
     capacityTotal: 10,
-    rating: 4.9,
+    rating: 4.2,
     reviewCount: 33,
     story:
       "تا یازدهم رتبه‌ام امیدوارکننده نبود. یک جهش واقعی در دوازدهم زدم، فقط با تغییر برنامه و انگیزه. می‌دونم افت انگیزه توی این مسیر یعنی چی.",
@@ -1975,4 +1975,187 @@ export const seedTickets: Ticket[] = [
     rating: 4,
     history: [{ by: "علی (مالی)", at: "۳۰ شهریور، ۱۳:۱۲", change: "وضعیت: پاسخ داده شد ← بسته" }],
   },
+];
+
+// ---------------------------------------------------------------------
+// Mentor quality (/admin/quality). Response times come from
+// mentorResponseHours; the rest is per-mentor history the backend will
+// compute from real sessions, reports and retention.
+// ---------------------------------------------------------------------
+
+export type MentorQualityData = {
+  mentorId: string;
+  reportRate: number; // % of student-nights with a گزارش کار last 4 weeks
+  retention: number; // % of students still subscribed after month one
+  planOnTime: number; // % of weeks the next plan was ready by Saturday
+  complaints: number; // tickets/complaints about this mentor, last 90 days
+  responseTrend: number[]; // avg first-reply hours, oldest → newest (4 weeks)
+};
+
+export const mentorQuality: MentorQualityData[] = [
+  { mentorId: "sara-mohammadi", reportRate: 88, retention: 92, planOnTime: 95, complaints: 0, responseTrend: [4, 3, 3, 3] },
+  { mentorId: "negar-ahmadi", reportRate: 54, retention: 70, planOnTime: 60, complaints: 2, responseTrend: [18, 26, 35, 41] },
+  { mentorId: "amirhossein-rezaei", reportRate: 81, retention: 88, planOnTime: 85, complaints: 0, responseTrend: [7, 6, 6, 6] },
+  { mentorId: "reza-karimi", reportRate: 76, retention: 85, planOnTime: 90, complaints: 0, responseTrend: [11, 10, 9, 9] },
+  { mentorId: "mahsa-ghasemi", reportRate: 83, retention: 80, planOnTime: 75, complaints: 1, responseTrend: [5, 5, 4, 4] },
+];
+
+// Weights of the 0–100 quality score. Change them here only.
+export const QUALITY_WEIGHTS = { response: 25, reports: 20, retention: 20, rating: 20, planOnTime: 10, complaints: 5 };
+
+// Red-flag thresholds.
+export const QUALITY_FLAGS = { maxResponseHours: 24, minReportRate: 60, minRating: 4.3, maxComplaints: 2 };
+
+export const MENTOR_WARNING_REASONS = [
+  "تأخیر زیاد در پاسخ به دانش‌آموزها",
+  "برنامه‌ی هفتگی دیر آماده می‌شه",
+  "شکایت دانش‌آموز یا والد",
+  "نرخ پایین گزارش کار دانش‌آموزها",
+  "سایر",
+];
+
+// ---------------------------------------------------------------------
+// Discount codes (/admin/discounts, applied on /checkout).
+// ---------------------------------------------------------------------
+
+export type DiscountCode = {
+  code: string;
+  kind: "percent" | "fixed";
+  value: number; // percent, or toman for fixed
+  maxUses: number;
+  used: number;
+  expiresIso: string;
+  planIds: string[]; // empty = every paid plan
+  durationIds: PackageDuration["id"][]; // empty = every duration
+  firstPurchaseOnly: boolean;
+  paused: boolean;
+  createdAt: string;
+  sales: number; // toman paid on purchases that used the code
+  given: number; // toman of discount handed out
+};
+
+export const seedDiscountCodes: DiscountCode[] = [
+  {
+    code: "MEHR1405",
+    kind: "percent",
+    value: 15,
+    maxUses: 100,
+    used: 42,
+    expiresIso: "2026-10-21",
+    planIds: [],
+    durationIds: [],
+    firstPurchaseOnly: false,
+    paused: false,
+    createdAt: "۱ مهر ۱۴۰۵",
+    sales: 71400000,
+    given: 12600000,
+  },
+  {
+    code: "KONKUR20",
+    kind: "percent",
+    value: 20,
+    maxUses: 50,
+    used: 50,
+    expiresIso: "2027-01-20",
+    planIds: ["companion", "premium"],
+    durationIds: ["konkur"],
+    firstPurchaseOnly: false,
+    paused: false,
+    createdAt: "۱۵ شهریور ۱۴۰۵",
+    sales: 402000000,
+    given: 100500000,
+  },
+  {
+    code: "YALDA",
+    kind: "fixed",
+    value: 300000,
+    maxUses: 200,
+    used: 0,
+    expiresIso: "2026-12-22",
+    planIds: [],
+    durationIds: [],
+    firstPurchaseOnly: true,
+    paused: true,
+    createdAt: "۵ مهر ۱۴۰۵",
+    sales: 0,
+    given: 0,
+  },
+  {
+    code: "SUMMER05",
+    kind: "percent",
+    value: 10,
+    maxUses: 300,
+    used: 188,
+    expiresIso: "2026-09-21",
+    planIds: [],
+    durationIds: ["1m"],
+    firstPurchaseOnly: true,
+    paused: false,
+    createdAt: "۱ تیر ۱۴۰۵",
+    sales: 184300000,
+    given: 20500000,
+  },
+];
+
+// ---------------------------------------------------------------------
+// Cancellation survey (/admin/churn): asked before auto-renew is turned
+// off, with a retention offer matched to the reason.
+// ---------------------------------------------------------------------
+
+export type ChurnReason = "price" | "mentor" | "time" | "no_result" | "done" | "technical" | "other";
+
+export const CHURN_REASONS: Record<
+  ChurnReason,
+  { label: string; offer?: { title: string; detail: string; done: string } }
+> = {
+  price: {
+    label: "قیمت برام زیاده",
+    offer: {
+      title: "یک ماه با ۲۰٪ تخفیف",
+      detail: "تمدید بعدیت ۲۰٪ ارزون‌تر حساب می‌شه.",
+      done: "تخفیف ۲۰٪ روی تمدید بعدیت اعمال شد.",
+    },
+  },
+  mentor: {
+    label: "از مشاورم راضی نیستم",
+    offer: {
+      title: "تعویض رایگان مشاور",
+      detail: "یه تیکت برات ثبت می‌کنیم و تیم یه مشاور بهتر برات پیدا می‌کنه.",
+      done: "درخواست تعویض مشاورت ثبت شد؛ تیم به‌زودی مشاور جدیدت رو معرفی می‌کنه.",
+    },
+  },
+  time: {
+    label: "فعلاً وقت ندارم",
+    offer: {
+      title: "توقف ۳۰ روزه",
+      detail: "اشتراکت ۳۰ روز متوقف می‌شه و روزهای باقی‌مونده‌ات از بین نمی‌ره.",
+      done: "اشتراکت ۳۰ روز متوقف شد و روزهای باقی‌مونده‌ات سر جاشه.",
+    },
+  },
+  no_result: { label: "نتیجه‌ای نگرفتم" },
+  done: { label: "دیگه لازم ندارم (کنکور تموم شد)" },
+  technical: { label: "مشکل فنی داشتم" },
+  other: { label: "دلیل دیگه" },
+};
+
+export type ChurnResponse = {
+  id: string;
+  student: string;
+  plan: string;
+  mentorId: string;
+  reason: ChurnReason;
+  text: string;
+  outcome: "cancelled" | "retained";
+  date: string;
+};
+
+export const seedChurnResponses: ChurnResponse[] = [
+  { id: "ch-1", student: "رضا نامدار", plan: "همراه", mentorId: "negar-ahmadi", reason: "mentor", text: "مشاورم جواب نمی‌ده.", outcome: "retained", date: "۴ مهر" },
+  { id: "ch-2", student: "پارمیس کاظمی", plan: "پایه", mentorId: "amirhossein-rezaei", reason: "price", text: "", outcome: "retained", date: "۳ مهر" },
+  { id: "ch-3", student: "آرش یزدانی", plan: "همراه", mentorId: "negar-ahmadi", reason: "mentor", text: "برنامه‌ها همیشه دوشنبه می‌رسید.", outcome: "cancelled", date: "۲ مهر" },
+  { id: "ch-4", student: "ترانه فرهادی", plan: "ویژه", mentorId: "sara-mohammadi", reason: "done", text: "برای نهایی دی دیگه لازم ندارم.", outcome: "cancelled", date: "۱ مهر" },
+  { id: "ch-5", student: "مهدی سلطانی", plan: "پایه", mentorId: "mahsa-ghasemi", reason: "time", text: "مدرسه‌ها شروع شده.", outcome: "retained", date: "۳۱ شهریور" },
+  { id: "ch-6", student: "سپیده رحیمی", plan: "همراه", mentorId: "reza-karimi", reason: "price", text: "", outcome: "cancelled", date: "۲۹ شهریور" },
+  { id: "ch-7", student: "امید شریفی", plan: "پایه", mentorId: "amirhossein-rezaei", reason: "no_result", text: "دو آزمون درصدم بالا نرفت.", outcome: "cancelled", date: "۲۷ شهریور" },
+  { id: "ch-8", student: "نازنین قربانی", plan: "همراه", mentorId: "mahsa-ghasemi", reason: "technical", text: "جلسه‌ها قطع می‌شد.", outcome: "cancelled", date: "۲۵ شهریور" },
 ];

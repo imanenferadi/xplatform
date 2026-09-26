@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ShieldCheck, RotateCcw } from "lucide-react";
+import { Check, ShieldCheck, RotateCcw, TicketPercent, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Toman } from "@/components/ui/Toman";
 import { GUARANTEE_DAYS, PACKAGE_DURATIONS, pricingPlans, type PackageDuration } from "@/lib/mock-data";
 import { packageTotal, saveSubscription, splitInstallments } from "@/lib/subscription-store";
+import { checkCode, discountAmount, redeemCode, useDiscountCodes } from "@/lib/discount-store";
 import { cn, toPersianDigits } from "@/lib/utils";
 
 function toman(n: number) {
@@ -20,17 +21,40 @@ export default function CheckoutPage() {
   const [durationId, setDurationId] = useState<PackageDuration["id"]>("1m");
   const [installmentCount, setInstallmentCount] = useState(1);
   const [paying, setPaying] = useState(false);
+  const [codeInput, setCodeInput] = useState("");
+  const [appliedCode, setAppliedCode] = useState<string | null>(null);
+  const [codeError, setCodeError] = useState("");
+  const codes = useDiscountCodes();
 
   const plan = pricingPlans.find((p) => p.id === selected)!;
   const duration = PACKAGE_DURATIONS.find((d) => d.id === durationId)!;
   const isFree = plan.price === 0;
-  const total = isFree ? 0 : packageTotal(plan.price, duration);
+  const listTotal = isFree ? 0 : packageTotal(plan.price, duration);
+  // The demo student has paid before, so «first purchase only» codes don't apply.
+  const codeContext = { planId: plan.id, durationId: duration.id, firstPurchase: false };
+  // Re-checked on every change of plan/duration: a code valid for one
+  // package may not be for another.
+  const applied = appliedCode && !isFree ? checkCode(codes, appliedCode, codeContext) : null;
+  const discount = applied?.ok ? discountAmount(applied.code, listTotal) : 0;
+  const total = listTotal - discount;
   const count = Math.min(installmentCount, duration.maxInstallments);
   const schedule = splitInstallments(total, count);
 
   function chooseDuration(d: PackageDuration) {
     setDurationId(d.id);
     setInstallmentCount(1);
+  }
+
+  function applyCode(e: React.FormEvent) {
+    e.preventDefault();
+    const check = checkCode(codes, codeInput, codeContext);
+    if (!check.ok) {
+      setCodeError(check.error);
+      return;
+    }
+    setCodeError("");
+    setAppliedCode(check.code.code);
+    setCodeInput("");
   }
 
   function pay() {
@@ -45,7 +69,9 @@ export default function CheckoutPage() {
         installments: schedule,
         purchasedDaysAgo: 0,
         refund: null,
+        ...(discount > 0 && applied?.ok ? { discountCode: applied.code.code } : {}),
       });
+      if (discount > 0 && applied?.ok) redeemCode(applied.code.code, total, discount, "ایمان");
     }
     setTimeout(() => router.push("/dashboard"), 1400);
   }
@@ -65,14 +91,14 @@ export default function CheckoutPage() {
               onClick={() => setSelected(p.id)}
               className={cn(
                 "flex w-full items-center justify-between rounded-x-lg border-2 p-4 text-right transition-colors",
-                selected === p.id ? "border-blue-600 bg-blue-100" : "border-border bg-surface",
+                selected === p.id ? "border-blue-600 bg-blue-100" : "border-border bg-surface"
               )}
             >
               <div className="flex items-center gap-3">
                 <div
                   className={cn(
                     "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2",
-                    selected === p.id ? "border-blue-600 bg-blue-600" : "border-border",
+                    selected === p.id ? "border-blue-600 bg-blue-600" : "border-border"
                   )}
                 >
                   {selected === p.id && <Check size={12} className="text-white" />}
@@ -105,7 +131,7 @@ export default function CheckoutPage() {
                     onClick={() => chooseDuration(d)}
                     className={cn(
                       "rounded-x-lg border-2 p-3.5 text-right transition-colors",
-                      durationId === d.id ? "border-blue-600 bg-blue-100" : "border-border bg-surface",
+                      durationId === d.id ? "border-blue-600 bg-blue-100" : "border-border bg-surface"
                     )}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -143,7 +169,7 @@ export default function CheckoutPage() {
                         "rounded-x-md border-2 px-3 py-3 text-sm font-medium transition-colors",
                         count === n
                           ? "border-blue-600 bg-blue-100 text-text-900"
-                          : "border-border bg-surface text-text-700 hover:border-blue-300",
+                          : "border-border bg-surface text-text-700 hover:border-blue-300"
                       )}
                     >
                       {n === 1 ? "یک‌جا" : `${toPersianDigits(n)} قسط ماهانه، بدون سود`}
@@ -155,7 +181,71 @@ export default function CheckoutPage() {
           </>
         )}
 
+        {!isFree && (
+          <div className="mt-6">
+            {appliedCode ? (
+              <div className="flex items-center justify-between gap-2 rounded-x-md border border-border bg-surface px-4 py-3 text-sm">
+                <span className="flex items-center gap-2">
+                  <TicketPercent size={16} className={applied?.ok ? "text-mint-500" : "text-red-500"} />
+                  <span dir="ltr" className="font-mono font-bold text-text-900">
+                    {appliedCode}
+                  </span>
+                  {applied?.ok ? (
+                    <span className="text-mint-500">
+                      — <Toman amount={discount} /> تخفیف
+                    </span>
+                  ) : (
+                    <span className="text-xs text-red-500">— {applied && !applied.ok ? applied.error : ""}</span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setAppliedCode(null)}
+                  aria-label="حذف کد تخفیف"
+                  className="text-text-500 hover:text-red-500"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={applyCode} className="flex gap-2">
+                <input
+                  dir="ltr"
+                  value={codeInput}
+                  onChange={(e) => {
+                    setCodeInput(e.target.value.toUpperCase());
+                    setCodeError("");
+                  }}
+                  placeholder="کد تخفیف"
+                  aria-label="کد تخفیف"
+                  className="h-10 flex-1 rounded-x-md border border-border bg-surface px-3 text-right font-mono text-sm text-text-900 outline-none placeholder:font-sans placeholder:text-text-500 focus:border-blue-600"
+                />
+                <Button type="submit" size="md" variant="secondary" disabled={!codeInput.trim()}>
+                  اعمال
+                </Button>
+              </form>
+            )}
+            {codeError && <p className="mt-1.5 text-xs text-red-500">{codeError}</p>}
+          </div>
+        )}
+
         <div className="mt-6 rounded-x-lg border border-border bg-surface p-5">
+          {discount > 0 && (
+            <div className="mb-2 space-y-1 border-b border-border pb-2 text-sm">
+              <div className="flex items-center justify-between text-text-500">
+                <span>قیمت {duration.label}</span>
+                <span className="line-through">
+                  <Toman amount={listTotal} />
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-mint-500">
+                <span>کد تخفیف</span>
+                <span>
+                  − <Toman amount={discount} />
+                </span>
+              </div>
+            </div>
+          )}
           <div className="flex items-center justify-between text-sm">
             <span className="text-text-500">
               {isFree ? "جمع پرداختی" : `جمع ${duration.label}${count > 1 ? ` (${toPersianDigits(count)} قسط)` : ""}`}

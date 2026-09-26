@@ -7,9 +7,18 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Toman } from "@/components/ui/Toman";
-import { GUARANTEE_DAYS, parentBilling } from "@/lib/mock-data";
+import {
+  CHURN_REASONS,
+  DEMO_TODAY_ISO,
+  GUARANTEE_DAYS,
+  PACKAGE_DURATIONS,
+  parentBilling,
+  type ChurnReason,
+} from "@/lib/mock-data";
+import { recordChurn, undoMyCancellation, useChurn } from "@/lib/churn-store";
+import { createTicket } from "@/lib/ticket-store";
 import { guaranteeDaysLeft, requestRefund, useSubscription } from "@/lib/subscription-store";
-import { cn, toPersianDigits } from "@/lib/utils";
+import { addDaysIso, cn, formatJalali, toPersianDigits } from "@/lib/utils";
 
 // «اشتراک من» on the student's profile: the package, its installments, and
 // the 7-day no-questions money-back guarantee.
@@ -43,6 +52,7 @@ export function MySubscription() {
             <Link href="/checkout" className="mt-3 inline-block text-xs text-blue-600 hover:underline">
               خرید پکیج سه‌ماهه یا تا کنکور (با تخفیف و اقساط)
             </Link>
+            <AutoRenew planName={parentBilling.planName} activeUntil={parentBilling.nextBillingDate} />
           </>
         ) : (
           <>
@@ -74,6 +84,14 @@ export function MySubscription() {
             )}
 
             <Guarantee sub={sub} asking={asking} setAsking={setAsking} reason={reason} setReason={setReason} />
+            {sub.refund?.status !== "approved" && (
+              <AutoRenew
+                planName={sub.planName}
+                activeUntil={formatJalali(
+                  addDaysIso(DEMO_TODAY_ISO, (PACKAGE_DURATIONS.find((d) => d.id === sub.durationId)?.months ?? 1) * 30)
+                )}
+              />
+            )}
           </>
         )}
       </CardContent>
@@ -102,7 +120,7 @@ function Guarantee({
       <div
         className={cn(
           "mt-4 rounded-x-md p-3 text-xs leading-[1.8]",
-          status === "rejected" ? "bg-red-500/10 text-text-700" : "bg-mint-500/10 text-text-700",
+          status === "rejected" ? "bg-red-500/10 text-text-700" : "bg-mint-500/10 text-text-700"
         )}
       >
         {status === "pending" && (
@@ -166,6 +184,140 @@ function Guarantee({
           درخواست بازگشت وجه
         </button>
       )}
+    </div>
+  );
+}
+
+// Asked before auto-renew is switched off: one question, then a retention
+// offer matched to the answer (see CHURN_REASONS).
+function AutoRenew({ planName, activeUntil }: { planName: string; activeUntil: string }) {
+  const { mine } = useChurn();
+  const [step, setStep] = useState<"idle" | "reason" | "offer">("idle");
+  const [reason, setReason] = useState<ChurnReason | null>(null);
+  const [text, setText] = useState("");
+  const [error, setError] = useState("");
+  const [ticketId, setTicketId] = useState("");
+
+  function finish(outcome: "cancelled" | "retained") {
+    if (!reason) return;
+    if (outcome === "retained" && reason === "mentor") {
+      setTicketId(
+        createTicket({
+          subject: "درخواست تعویض مشاور (از نظرسنجی لغو)",
+          category: "مشاور",
+          text: text.trim() || "از مشاورم راضی نیستم و می‌خوام مشاورم عوض بشه.",
+          requester: { name: "ایمان", role: "دانش‌آموز", userId: "u-1" },
+        })
+      );
+    }
+    recordChurn(
+      { student: "ایمان", plan: planName, mentorId: "sara-mohammadi", reason, text: text.trim(), outcome },
+      CHURN_REASONS[reason].label
+    );
+    setStep("idle");
+  }
+
+  if (mine) {
+    const offer = CHURN_REASONS[mine.reason].offer;
+    return (
+      <div className="mt-4 rounded-x-md bg-surface-2 p-3 text-xs leading-[1.8] text-text-700">
+        {mine.outcome === "cancelled" ? (
+          <>
+            تمدید خودکار خاموشه — اشتراکت تا {activeUntil} فعاله و بعدش تمدید نمی‌شه.{" "}
+            <button type="button" onClick={undoMyCancellation} className="text-blue-600 hover:underline">
+              دوباره روشنش کن
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="font-medium text-mint-500">موندی، ممنون! </span>
+            {offer?.done}
+            {ticketId && (
+              <>
+                {" "}
+                <Link href="/support" className="text-blue-600 hover:underline">
+                  پیگیری تیکت {ticketId}
+                </Link>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
+
+  if (step === "idle") {
+    return (
+      <button
+        type="button"
+        onClick={() => setStep("reason")}
+        className="mt-4 block text-xs text-text-500 hover:text-red-500"
+      >
+        لغو تمدید خودکار
+      </button>
+    );
+  }
+
+  if (step === "reason") {
+    return (
+      <div className="mt-4 rounded-x-md border border-border p-3">
+        <div className="mb-2 text-sm font-medium text-text-900">قبل از رفتن، چرا می‌خوای لغو کنی؟</div>
+        <div className="space-y-1.5">
+          {(Object.keys(CHURN_REASONS) as ChurnReason[]).map((k) => (
+            <label key={k} className="flex items-center gap-2 text-xs text-text-700">
+              <input
+                type="radio"
+                name="churn-reason"
+                checked={reason === k}
+                onChange={() => {
+                  setReason(k);
+                  setError("");
+                }}
+              />
+              {CHURN_REASONS[k].label}
+            </label>
+          ))}
+        </div>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value.slice(0, 500))}
+          rows={2}
+          placeholder="اگه دوست داری بیشتر بگو (اختیاری)"
+          className="mt-2 w-full rounded-x-sm border border-border bg-surface p-2.5 text-xs text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600"
+        />
+        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+        <div className="mt-2 flex gap-2">
+          <Button
+            size="md"
+            onClick={() => {
+              if (!reason) return setError("یکی از دلیل‌ها رو انتخاب کن.");
+              if (CHURN_REASONS[reason].offer) setStep("offer");
+              else finish("cancelled");
+            }}
+          >
+            ادامه
+          </Button>
+          <Button size="md" variant="secondary" onClick={() => setStep("idle")}>
+            منصرف شدم
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const offer = reason ? CHURN_REASONS[reason].offer : undefined;
+  return (
+    <div className="mt-4 rounded-x-md border border-mint-500/40 bg-mint-500/10 p-3">
+      <div className="text-sm font-medium text-text-900">پیشنهاد ما: {offer?.title}</div>
+      <p className="mt-1 text-xs leading-[1.8] text-text-700">{offer?.detail}</p>
+      <div className="mt-2 flex gap-2">
+        <Button size="md" onClick={() => finish("retained")}>
+          قبول می‌کنم
+        </Button>
+        <Button size="md" variant="secondary" onClick={() => finish("cancelled")}>
+          نه، لغو کن
+        </Button>
+      </div>
     </div>
   );
 }

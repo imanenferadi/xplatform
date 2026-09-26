@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Wallet, UserCheck, Users, ScrollText, Receipt, ArrowLeftRight, LifeBuoy } from "lucide-react";
+import { Wallet, UserCheck, Users, ScrollText, Receipt, ArrowLeftRight, LifeBuoy, Gauge, TicketPercent, UserMinus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
@@ -12,7 +12,10 @@ import { Avatar } from "@/components/ui/Avatar";
 const links = [
   { href: "/admin", label: "داشبورد مالی", icon: Wallet },
   { href: "/admin/mentors", label: "تأیید مشاوران", icon: UserCheck },
+  { href: "/admin/quality", label: "کیفیت مشاورها", icon: Gauge },
   { href: "/admin/payments", label: "تراکنش‌ها", icon: Receipt },
+  { href: "/admin/discounts", label: "کد تخفیف", icon: TicketPercent },
+  { href: "/admin/churn", label: "دلایل لغو", icon: UserMinus },
   { href: "/admin/tickets", label: "تیکت‌ها", icon: LifeBuoy },
   { href: "/admin/users", label: "کاربران", icon: Users },
   { href: "/admin/reassign", label: "تعویض مشاور", icon: ArrowLeftRight },

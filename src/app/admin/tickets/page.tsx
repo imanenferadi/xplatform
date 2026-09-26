@@ -125,7 +125,8 @@ function Tickets() {
         <Stat label="تیکت باز" value={toPersianDigits(open.length)} onClick={() => setStatus("همه")} />
         <Stat label="دیرکرده (بیش از مهلت پاسخ)" value={toPersianDigits(overdue)} danger={overdue > 0} />
         <Stat label="منتظر پشتیبانی" value={toPersianDigits(waiting)} onClick={() => setStatus("new")} />
-        <Stat label="میانگین رضایت"
+        <Stat
+          label="میانگین رضایت"
           value={
             rated.length ? (
               <>
