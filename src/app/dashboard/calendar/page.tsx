@@ -27,7 +27,7 @@ import type { Commitment } from "@/lib/mock-data";
 type CalendarDay = {
   dayName: string;
   tasks: PlanTask[];
-  session?: { time: string; mode: SessionMode };
+  session?: { time: string; mode: SessionMode; cancelled?: boolean; movedFrom?: string };
   exam?: { provider: string; name: string };
 };
 
@@ -75,6 +75,13 @@ function buildRows(schedule: Commitment[]): { label: string; render: (d: Calenda
       render: (d) => {
         if (!d.session) return null;
         const mentor = mentors[0];
+        if (d.session.cancelled)
+          return (
+            <div className="rounded-x-md bg-red-500/10 px-2.5 py-2 text-xs text-red-500">
+              <div className="tnum line-through">{d.session.time}</div>
+              این هفته لغو شد
+            </div>
+          );
         const chip = (
           <>
             <div className="truncate text-sm font-medium text-text-900">{mentor.name}</div>
@@ -87,6 +94,9 @@ function buildRows(schedule: Commitment[]): { label: string; render: (d: Calenda
                 </span>
               )}
             </div>
+            {d.session.movedFrom && (
+              <div className="mt-0.5 text-[11px]">فقط این هفته (به‌جای {d.session.movedFrom})</div>
+            )}
           </>
         );
         return isPast(d) || !mentor ? (
@@ -181,7 +191,15 @@ export default function CalendarPage() {
   const studentWeekCalendar: CalendarDay[] = WEEK_DAYS.map((dayName) => ({
     dayName,
     tasks: plan?.days[dayName] ?? [],
-    session: mySession?.day === dayName ? { time: mySession.time, mode: mySession.mode } : undefined,
+    session:
+      mySession?.day === dayName
+        ? {
+            time: mySession.time,
+            mode: mySession.mode,
+            cancelled: mySession.cancelled,
+            movedFrom: mySession.movedFrom,
+          }
+        : undefined,
     exam: weekExams[dayName],
   }));
   const overloaded = studentWeekCalendar.filter(

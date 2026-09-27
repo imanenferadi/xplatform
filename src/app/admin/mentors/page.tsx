@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { Suspense, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { UserCheck, Check, X, Send, Copy, Link2, Eye, FileText, ShieldCheck } from "lucide-react";
 import { AdminShell } from "@/components/app/AdminShell";
@@ -69,10 +70,21 @@ function generateToken(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
-export default function AdminMentorsPage() {
+// Opened from the global search (Ctrl/⌘+K) with ?q= prefilled.
+export default function AdminMentorsPageRoute() {
+  return (
+    <AdminShell>
+      <Suspense>
+        <AdminMentorsPage />
+      </Suspense>
+    </AdminShell>
+  );
+}
+
+function AdminMentorsPage() {
   const [seedApps, setSeedApps] = useState(initialApplications);
   const stored = useStoredApplications();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(useSearchParams().get("q") ?? "");
   const [status, setStatus] = useState<Status | "همه">("همه");
   const [source, setSource] = useState<Source | "همه">("همه");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -216,7 +228,7 @@ export default function AdminMentorsPage() {
   }
 
   return (
-    <AdminShell>
+    <>
       <div className="mx-auto max-w-4xl px-6 py-8">
         <div className="mb-1 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -433,6 +445,6 @@ export default function AdminMentorsPage() {
           )}
         </div>
       </div>
-    </AdminShell>
+    </>
   );
 }

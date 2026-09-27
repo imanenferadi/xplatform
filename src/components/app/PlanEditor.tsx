@@ -5,6 +5,8 @@ import {
   AlertTriangle,
   Check,
   Copy,
+  CopyPlus,
+  GripVertical,
   FileText,
   LayoutTemplate,
   Pencil,
@@ -31,10 +33,12 @@ import {
 } from "@/lib/mock-data";
 import {
   addTask,
+  copyDay,
   dayHours,
   discardDraft,
   draftChanges,
   formatHours,
+  moveTask,
   publishPlan,
   removeTask,
   replaceDays,
@@ -67,6 +71,9 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
   const [tplName, setTplName] = useState<string | null>(null);
   const [tplError, setTplError] = useState("");
   const [sent, setSent] = useState<PlanWeek | null>(null);
+  const [dragOver, setDragOver] = useState<string | null>(null);
+  const [copyFrom, setCopyFrom] = useState<string | null>(null);
+  const [copyTo, setCopyTo] = useState<string[]>([]);
   const [sendError, setSendError] = useState("");
   const templates = useTemplates();
   const { schedule } = useStudentSetup(studentId);
@@ -205,7 +212,14 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
             <Button size="md" onClick={saveAsTemplate}>
               ذخیره
             </Button>
-            <button type="button" onClick={() => (setTplName(null), setTplError(""))} className="text-xs text-text-500">
+            <button
+              type="button"
+              onClick={() => {
+                setTplName(null);
+                setTplError("");
+              }}
+              className="text-xs text-text-500"
+            >
               انصراف
             </button>
             {tplError && <span className="text-xs text-red-500">{tplError}</span>}
@@ -261,7 +275,23 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
           const isOver = hasSchedule && hours > free;
           const exam = week === "this" ? weekExams[d] : undefined;
           return (
-            <div key={d} className="p-3">
+            <div
+              key={d}
+              className={cn("p-3 transition-colors", dragOver === d && "bg-blue-100/60")}
+              onDragOver={(e) => {
+                if (!e.dataTransfer.types.includes("application/x-plan-task")) return;
+                e.preventDefault();
+                setDragOver(d);
+              }}
+              onDragLeave={() => setDragOver((cur) => (cur === d ? null : cur))}
+              onDrop={(e) => {
+                const raw = e.dataTransfer.getData("application/x-plan-task");
+                setDragOver(null);
+                if (!raw) return;
+                const { day, id } = JSON.parse(raw) as { day: string; id: string };
+                moveTask(studentId, week, day, d, id);
+              }}
+            >
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
                 <span className="w-16 text-sm font-bold text-text-900">{d}</span>
                 <span className={cn("tnum text-xs", isOver ? "font-medium text-orange-500" : "text-text-500")}>
@@ -278,7 +308,55 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
                     <Video size={11} /> جلسه {slotTime(sessionSlot)}
                   </Badge>
                 )}
+                {tasks.length > 0 && copyFrom !== d && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCopyFrom(d);
+                      setCopyTo([]);
+                    }}
+                    className="mr-auto flex items-center gap-1 text-[11px] text-text-500 hover:text-blue-600"
+                  >
+                    <CopyPlus size={12} /> کپی این روز به…
+                  </button>
+                )}
               </div>
+
+              {copyFrom === d && (
+                <div className="mb-2 rounded-x-sm border border-blue-600/30 bg-blue-100/50 p-2.5 text-xs">
+                  <div className="mb-1.5 text-text-700">درس‌های {d} به انتهای این روزها اضافه بشه:</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {WEEK_DAYS.filter((x) => x !== d).map((x) => (
+                      <label
+                        key={x}
+                        className="flex cursor-pointer items-center gap-1 rounded-x-pill border border-border bg-surface px-2.5 py-1"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={copyTo.includes(x)}
+                          onChange={(e) => setCopyTo((c) => (e.target.checked ? [...c, x] : c.filter((y) => y !== x)))}
+                        />
+                        {x}
+                      </label>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <Button
+                      size="md"
+                      disabled={copyTo.length === 0}
+                      onClick={() => {
+                        copyDay(studentId, week, d, copyTo);
+                        setCopyFrom(null);
+                      }}
+                    >
+                      کپی
+                    </Button>
+                    <button type="button" onClick={() => setCopyFrom(null)} className="text-text-500">
+                      انصراف
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 {tasks.map((t) =>
@@ -286,14 +364,26 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
                     <TaskForm
                       key={t.id}
                       initial={t}
+                      day={d}
                       onCancel={() => setEditing(null)}
-                      onSave={(task) => {
+                      onSave={(task, toDay) => {
                         updateTask(studentId, week, d, t.id, task);
+                        if (toDay && toDay !== d) moveTask(studentId, week, d, toDay, t.id);
                         setEditing(null);
                       }}
                     />
                   ) : (
-                    <div key={t.id} className="flex items-start gap-2 rounded-x-sm bg-surface-2 px-2.5 py-2 text-sm">
+                    <div
+                      key={t.id}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("application/x-plan-task", JSON.stringify({ day: d, id: t.id }));
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragEnd={() => setDragOver(null)}
+                      className="flex cursor-grab items-start gap-1.5 rounded-x-sm bg-surface-2 px-2 py-2 text-sm active:cursor-grabbing"
+                    >
+                      <GripVertical size={14} className="mt-0.5 shrink-0 text-text-500/60" aria-hidden />
                       <div className="min-w-0 flex-1">
                         <span className="font-medium text-text-900">{t.subject}</span>{" "}
                         <span className="tnum rounded-x-sm bg-surface px-1.5 py-0.5 text-xs font-medium text-text-700">
@@ -388,13 +478,16 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
 
 function TaskForm({
   initial,
+  day,
   onSave,
   onCancel,
 }: {
   initial?: PlanTask;
-  onSave: (t: Omit<PlanTask, "id">) => void;
+  day?: string; // set when editing: lets the task move to another day (keyboard/mobile alternative to dragging)
+  onSave: (t: Omit<PlanTask, "id">, toDay?: string) => void;
   onCancel: () => void;
 }) {
+  const [toDay, setToDay] = useState(day ?? "");
   const [subject, setSubject] = useState(initial?.subject ?? "");
   const [topic, setTopic] = useState(initial?.topic ?? "");
   const [hours, setHours] = useState(initial?.hours ?? 0);
@@ -408,12 +501,15 @@ function TaskForm({
     if (!subject) return setError("درس رو انتخاب کن.");
     if (!hours) return setError("ساعتش رو انتخاب کن.");
     if (subtopic.trim() && !chapter.trim()) return setError("اول فصل رو بنویس، بعد ریز مبحث.");
-    onSave({
-      subject,
-      topic: topic.trim(),
-      hours,
-      ...(chapter.trim() ? { chapter: chapter.trim(), subtopic: subtopic.trim() || undefined } : {}),
-    });
+    onSave(
+      {
+        subject,
+        topic: topic.trim(),
+        hours,
+        ...(chapter.trim() ? { chapter: chapter.trim(), subtopic: subtopic.trim() || undefined } : {}),
+      },
+      toDay || undefined
+    );
   }
 
   return (
@@ -421,7 +517,10 @@ function TaskForm({
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_2fr_1fr]">
         <select
           value={subject}
-          onChange={(e) => (setSubject(e.target.value), setError(""))}
+          onChange={(e) => {
+            setSubject(e.target.value);
+            setError("");
+          }}
           aria-label="درس"
           className={fieldClass}
         >
@@ -434,7 +533,10 @@ function TaskForm({
         </select>
         <select
           value={hours || ""}
-          onChange={(e) => (setHours(Number(e.target.value)), setError(""))}
+          onChange={(e) => {
+            setHours(Number(e.target.value));
+            setError("");
+          }}
           aria-label="ساعت"
           className={cn(fieldClass, "sm:order-last")}
         >
@@ -457,14 +559,20 @@ function TaskForm({
         <div className="mt-2 grid grid-cols-2 gap-2">
           <input
             value={chapter}
-            onChange={(e) => (setChapter(e.target.value.slice(0, 60)), setError(""))}
+            onChange={(e) => {
+              setChapter(e.target.value.slice(0, 60));
+              setError("");
+            }}
             placeholder="فصل"
             aria-label="فصل"
             className={fieldClass}
           />
           <input
             value={subtopic}
-            onChange={(e) => (setSubtopic(e.target.value.slice(0, 60)), setError(""))}
+            onChange={(e) => {
+              setSubtopic(e.target.value.slice(0, 60));
+              setError("");
+            }}
             placeholder="ریز مبحث"
             aria-label="ریز مبحث"
             className={fieldClass}
@@ -478,6 +586,23 @@ function TaskForm({
         >
           + فصل و ریز مبحث
         </button>
+      )}
+      {day && (
+        <label className="mt-2 flex items-center gap-2 text-xs text-text-700">
+          روز:
+          <select
+            value={toDay}
+            onChange={(e) => setToDay(e.target.value)}
+            aria-label="روز"
+            className={cn(fieldClass, "text-xs")}
+          >
+            {WEEK_DAYS.map((x) => (
+              <option key={x} value={x}>
+                {x}
+              </option>
+            ))}
+          </select>
+        </label>
       )}
       {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
       <div className="mt-2 flex gap-2">

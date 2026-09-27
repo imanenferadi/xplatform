@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Receipt, Check, X, RotateCcw } from "lucide-react";
 import { AdminShell } from "@/components/app/AdminShell";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -56,9 +57,20 @@ function logRefund(
   });
 }
 
-export default function AdminPaymentsPage() {
+// Opened from the global search (Ctrl/⌘+K) with ?q= prefilled.
+export default function AdminPaymentsPageRoute() {
+  return (
+    <AdminShell>
+      <Suspense>
+        <AdminPaymentsPage />
+      </Suspense>
+    </AdminShell>
+  );
+}
+
+function AdminPaymentsPage() {
   const [transactions, setTransactions] = useState(initialTransactions);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(useSearchParams().get("q") ?? "");
   const [type, setType] = useState<TxType | "همه">("همه");
   const [status, setStatus] = useState<TxStatus | "همه">("همه");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -145,7 +157,7 @@ export default function AdminPaymentsPage() {
   }
 
   return (
-    <AdminShell>
+    <>
       <div className="mx-auto max-w-4xl px-6 py-8">
         <div className="mb-1 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -328,6 +340,6 @@ export default function AdminPaymentsPage() {
           )}
         </div>
       </div>
-    </AdminShell>
+    </>
   );
 }

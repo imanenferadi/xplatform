@@ -12,6 +12,7 @@ import {
   Focus,
   Hourglass,
   ClipboardCheck,
+  Repeat,
 } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { buttonVariants } from "@/components/ui/Button";
@@ -20,8 +21,10 @@ import { ProgressBar } from "@/components/ui/Progress";
 import { Badge } from "@/components/ui/Badge";
 import { KONKUR_DATE, REPORT_REACTIONS, daysUntilKonkur, mentors, studentStreakDays } from "@/lib/mock-data";
 import { formatHours, useDoneIds, usePublishedWeek, useTodayTasks, weekHours } from "@/lib/plan-store";
-import { nextSessionLabel, useFixedSession } from "@/lib/session-store";
+import { nextSessionLabel, useFixedSession, useUpcoming } from "@/lib/session-store";
 import { aggregateWeek, formatStudyTime } from "@/lib/checkins";
+import { useUnread } from "@/lib/chat-store";
+import { useDueMistakes } from "@/lib/mistakes-store";
 import { setupSteps, useMySetup } from "@/lib/setup-store";
 import { useMyCheckIns } from "@/lib/checkin-store";
 import { useReportFeedback } from "@/lib/feedback-store";
@@ -37,6 +40,9 @@ export default function DashboardPage() {
   const checkIns = useMyCheckIns();
   const studiedMinutes = aggregateWeek(checkIns, "this").totalMinutes;
   const session = useFixedSession("me");
+  const upcoming = useUpcoming("me");
+  const dueMistakes = useDueMistakes();
+  const unread = useUnread("me", "student");
   const nextTask = tasks.find((t) => !t.done);
   const steps = setupSteps(useMySetup());
   const stepsDone = steps.filter((st) => st.done).length;
@@ -134,6 +140,24 @@ export default function DashboardPage() {
           </Card>
         )}
 
+        {dueMistakes.length > 0 && (
+          <Link
+            href="/dashboard/mistakes?review=1"
+            className="mt-4 flex items-center gap-3 rounded-x-lg border border-border bg-surface p-4 transition-colors hover:bg-surface-2"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
+              <Repeat size={18} className="text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-medium text-text-900">
+                مرور غلط‌ها: <span className="tnum">{toPersianDigits(dueMistakes.length)}</span> تست امروز
+              </div>
+              <div className="text-xs text-text-500">همون تست‌هایی که چند روز پیش غلط زدی — دوباره حلشون کن</div>
+            </div>
+            <ArrowLeft size={16} className="text-text-500" />
+          </Link>
+        )}
+
         {/* Hero — one tap into distraction-free focus mode on the next task */}
         {nextTask && (
           <Card className="mt-5 border-blue-600/20 bg-blue-100">
@@ -163,10 +187,10 @@ export default function DashboardPage() {
               <div className="flex-1">
                 <div className="text-xs text-text-500">جلسه‌ی بعدی با {mentor.name}</div>
                 <div className="text-sm font-medium text-text-900">
-                  {session ? nextSessionLabel(session) : "هنوز وقت ثابت نداری"}
+                  {session ? nextSessionLabel(session, upcoming?.override) : "هنوز وقت ثابت نداری"}
                 </div>
                 <Link href="/dashboard/calendar" className="text-[11px] text-blue-600 hover:underline">
-                  تغییر وقت ثابت
+                  تغییر یا جابه‌جایی جلسه
                 </Link>
               </div>
               <Link href={`/session/${mentor.id}`} className={buttonVariants({ size: "md" })}>
@@ -181,8 +205,10 @@ export default function DashboardPage() {
                   <MessageCircle size={18} className="text-orange-500" />
                 </div>
                 <div>
-                  <div className="text-xs text-text-500">پیام خوانده‌نشده</div>
-                  <div className="text-sm font-medium text-text-900">۱ پیام از {mentor.name}</div>
+                  <div className="text-xs text-text-500">گفتگو با {mentor.name}</div>
+                  <div className="text-sm font-medium text-text-900">
+                    {unread > 0 ? `${toPersianDigits(unread)} پیام خوانده‌نشده` : "پیام جدیدی نداری"}
+                  </div>
                 </div>
               </CardContent>
             </Card>

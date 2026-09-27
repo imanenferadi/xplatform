@@ -8,6 +8,7 @@ import { Logo } from "@/components/brand/Logo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
 import { useUnreadTicketCount } from "@/lib/ticket-store";
+import { useUnread } from "@/lib/chat-store";
 
 type NavSection = { href: string; label: string };
 type NavGroup = { label: string; icon: React.ComponentType<{ size?: number }>; sections: NavSection[] };
@@ -71,6 +72,8 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
   const activeGroup = findGroup(pathname);
   const showSubTabs = activeGroup && activeGroup.sections.length > 1;
   const unreadSupport = useUnreadTicketCount("ایمان");
+  const unreadChat = useUnread("me", "student");
+  const hasDot = (g: NavGroup) => g.label === "مشاور من" && unreadChat > 0;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -94,7 +97,10 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                   active ? "bg-blue-100 text-blue-600" : "text-text-700 hover:bg-surface-2"
                 )}
               >
-                <Icon size={18} />
+                <span className="relative">
+                  <Icon size={18} />
+                  {hasDot(g) && <UnreadDot />}
+                </span>
                 {g.label}
               </Link>
             );
@@ -178,7 +184,10 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                 active ? "text-blue-600" : "text-text-500"
               )}
             >
-              <Icon size={20} />
+              <span className="relative">
+                <Icon size={20} />
+                {hasDot(g) && <UnreadDot />}
+              </span>
               {g.label}
             </Link>
           );

@@ -580,7 +580,6 @@ export type MentorStudent = {
   lastCheckIn: string;
   daysSinceCheckIn: number; // drives the at-risk rule, not the free-text label above
   planCompletion: number;
-  unreadMessages: number;
   /** Biggest percentage drop between this student's last two exams, if any. */
   examDrop?: { subject: Subject; from: number; to: number };
   /** Oldest → newest. Real "روند" detection needs history, not one point. */
@@ -595,7 +594,6 @@ export const mentorStudents: MentorStudent[] = [
     lastCheckIn: "۳ روز پیش",
     daysSinceCheckIn: 3,
     planCompletion: 45,
-    unreadMessages: 2,
     examDrop: { subject: "شیمی", from: 45, to: 36 },
     weeklyHistory: [
       { weekLabel: "۱ شهریور", studyHours: 24, planCompletionPercent: 78 },
@@ -610,7 +608,6 @@ export const mentorStudents: MentorStudent[] = [
     lastCheckIn: "دیروز",
     daysSinceCheckIn: 1,
     planCompletion: 68,
-    unreadMessages: 0,
     // Looks fine as a single point (68% ≥ 60% threshold), but the trend
     // shows a steady decline — exactly the case a point-in-time rule misses.
     weeklyHistory: [
@@ -626,7 +623,6 @@ export const mentorStudents: MentorStudent[] = [
     lastCheckIn: "امروز",
     daysSinceCheckIn: 0,
     planCompletion: 92,
-    unreadMessages: 1,
     weeklyHistory: [
       { weekLabel: "۱ شهریور", studyHours: 25, planCompletionPercent: 75 },
       { weekLabel: "۱۵ شهریور", studyHours: 27, planCompletionPercent: 84 },
@@ -642,7 +638,6 @@ export const mentorStudents: MentorStudent[] = [
     lastCheckIn: "دیشب",
     daysSinceCheckIn: 1,
     planCompletion: 68,
-    unreadMessages: 0,
     weeklyHistory: [
       { weekLabel: "۱۵ شهریور", studyHours: 10, planCompletionPercent: 55 },
       { weekLabel: "۲۲ شهریور", studyHours: 9, planCompletionPercent: 60 },
@@ -909,7 +904,20 @@ export const mentorMessageThreads: Record<string, ChatMessage[]> = {
     { id: 1, from: "student", text: "سلام سارا جان، یه سوال از فصل ۲ شیمی داشتم", time: "۱۴:۰۳" },
     { id: 2, from: "student", text: "الان عکسشو می‌فرستم", time: "۱۴:۰۳" },
     { id: 3, from: "mentor", text: "باشه بفرست ببینم. فردا سر جلسه هم روش کار می‌کنیم.", time: "۱۸:۴۰" },
+    { id: 4, from: "student", text: "ممنون! راستی آزمون جمعه دینامیک هم داره؟", time: "امروز ۰۸:۲۰" },
   ],
+};
+
+/** Newest message id each side had read when the demo starts ("studentId:side"). */
+export const chatReadSeed: Record<string, number> = {
+  "me:student": 1, // سارا's last message (id 4) is still unread for ایمان
+  "me:mentor": 3,
+  "1:mentor": 2,
+  "1:student": 1, // امیرحسین hasn't opened سارا's two messages — part of why he's at risk
+  "2:mentor": 2,
+  "2:student": 2,
+  "3:mentor": 3, // علی's question this morning is unanswered
+  "3:student": 3,
 };
 
 // One fixed weekly session per student, picked from the mentor's free
@@ -1575,6 +1583,17 @@ export type MistakeEntry = {
   fix: string; // «درستش چی بود» — what to do next time
   date: string;
   resolved: boolean; // re-solved it correctly later
+  createdIso?: string; // for spaced review
+  reviewStage?: 0 | 1; // reviews passed so far (2 = resolved)
+  reviewDueIso?: string; // next review; default: 3 days after it was logged
+};
+
+const MISTAKE_DATE_ISO: Record<string, string> = {
+  "۴ مهر": "2026-09-26",
+  "۲ مهر": "2026-09-24",
+  "۱ مهر": "2026-09-23",
+  "۳۱ شهریور": "2026-09-22",
+  "هفته‌ی قبل": "2026-09-22",
 };
 
 function seedMistake(
@@ -1589,7 +1608,7 @@ function seedMistake(
   resolved = false,
   questionNo?: string
 ): MistakeEntry {
-  return { id, studentId, subject, topic, source, reason, fix, date, resolved, questionNo };
+  return { id, studentId, subject, topic, source, reason, fix, date, resolved, questionNo, createdIso: MISTAKE_DATE_ISO[date] };
 }
 
 // The logged-in student's own notebook seed (see mistakes-store).

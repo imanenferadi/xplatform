@@ -18,13 +18,13 @@ export function sendBroadcast(b: Broadcast) {
 }
 
 /** Broadcasts that reached one student, shaped as chat messages. */
-export function useBroadcastMessages(studentId: string | "me"): ChatMessage[] {
+export function useBroadcastMessages(studentId: string): ChatMessage[] {
   const all = store.useValue();
   return useMemo(
     () =>
       all
-        .filter((b) => b.recipients === "all" || (studentId !== "me" && b.recipients.includes(studentId)))
+        .filter((b) => b.recipients === "all" || b.recipients.includes(studentId))
         .map((b) => ({ id: b.id, from: "mentor" as const, text: b.text, time: b.time, broadcast: true })),
-    [all, studentId],
+    [all, studentId]
   );
 }

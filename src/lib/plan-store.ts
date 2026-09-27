@@ -193,3 +193,32 @@ export function saveTemplate(name: string, days: PlanDays) {
 export function deleteTemplate(id: string) {
   templates.set(templates.get().filter((t) => t.id !== id));
 }
+
+/** Drag-and-drop or the «روز» field: move one task to another day (end of its list). */
+export function moveTask(studentId: string, week: PlanWeek, fromDay: string, toDay: string, id: string) {
+  if (fromDay === toDay) return;
+  editDraft(studentId, week, (d) => {
+    const task = d.days[fromDay]?.find((t) => t.id === id);
+    if (!task) return d;
+    return {
+      ...d,
+      days: {
+        ...d.days,
+        [fromDay]: d.days[fromDay].filter((t) => t.id !== id),
+        [toDay]: [...(d.days[toDay] ?? []), task],
+      },
+    };
+  });
+}
+
+/** Appends copies (fresh ids) of one day's tasks to each target day. */
+export function copyDay(studentId: string, week: PlanWeek, fromDay: string, toDays: string[]) {
+  editDraft(studentId, week, (d) => {
+    const days = { ...d.days };
+    for (const day of toDays) {
+      if (day === fromDay) continue;
+      days[day] = [...(days[day] ?? []), ...(d.days[fromDay] ?? []).map((t) => ({ ...t, id: newId(studentId) }))];
+    }
+    return { ...d, days };
+  });
+}

@@ -1,12 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import { MentorShell } from "@/components/app/MentorShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { BroadcastComposer } from "@/components/app/BroadcastComposer";
-import { mentorStudents, mentorMessageThreads } from "@/lib/mock-data";
+import { mentorStudents } from "@/lib/mock-data";
+import { useLastMessages, useMentorUnreadCounts } from "@/lib/chat-store";
 import { toPersianDigits } from "@/lib/utils";
 
 export default function MentorMessagesPage() {
+  const unread = useMentorUnreadCounts();
+  const lastOf = useLastMessages();
   return (
     <MentorShell>
       <div className="mx-auto max-w-2xl px-4 py-6 md:py-8">
@@ -16,8 +21,8 @@ export default function MentorMessagesPage() {
 
         <div className="space-y-2">
           {mentorStudents.map((s) => {
-            const thread = mentorMessageThreads[s.id] ?? [];
-            const last = thread[thread.length - 1];
+            const last = lastOf[s.id];
+            const n = unread[s.id] ?? 0;
             return (
               <Link key={s.id} href={`/mentor/messages/${s.id}`}>
                 <Card interactive>
@@ -29,12 +34,14 @@ export default function MentorMessagesPage() {
                         {last && <span className="shrink-0 text-xs text-text-500">{last.time}</span>}
                       </div>
                       <p className="truncate text-xs text-text-500">
-                        {last ? (last.from === "mentor" ? "شما: " : "") + last.text : "هنوز پیامی رد و بدل نشده"}
+                        {last
+                          ? (last.from === "mentor" ? "شما: " : "") + (last.voice ? "🎤 پیام صوتی" : last.text)
+                          : "هنوز پیامی رد و بدل نشده"}
                       </p>
                     </div>
-                    {s.unreadMessages > 0 && (
+                    {n > 0 && (
                       <span className="tnum flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white">
-                        {toPersianDigits(s.unreadMessages)}
+                        {toPersianDigits(n)}
                       </span>
                     )}
                   </CardContent>

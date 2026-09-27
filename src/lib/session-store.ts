@@ -19,6 +19,19 @@ import { toLatinDigits } from "./utils";
 const availability = createLocalStore<string[]>("x-availability", SARA_AVAILABILITY);
 const sessions = createLocalStore<FixedSession[]>("x-fixed-sessions", fixedSessionSeed);
 
+/** A one-off change to a student's next session; the fixed hour stays. */
+export type SessionOverride = {
+  studentId: string;
+  week: "this" | "next";
+  cancelled: boolean;
+  slot?: string; // moved to (when not cancelled)
+  reason: string;
+  by: "student" | "mentor";
+  seen: boolean; // the other side acknowledged it
+};
+const overrides = createLocalStore<SessionOverride[]>("x-session-overrides", []);
+export const useOverrides = overrides.useValue;
+
 export const useAvailability = availability.useValue;
 export const useFixedSessions = sessions.useValue;
 
@@ -39,28 +52,109 @@ export function dayLabel(day: string) {
   return day;
 }
 
-export type WeekSession = FixedSession & { day: string; time: string; done: boolean };
+export type WeekSession = FixedSession & {
+  day: string;
+  time: string;
+  done: boolean;
+  cancelled?: boolean;
+  movedFrom?: string;
+};
 
-/** Everyone's session this week, in week order. */
+/** Everyone's session this week (one-off moves applied), in week order. */
 export function useWeekSessions(): WeekSession[] {
   const list = sessions.useValue();
+  const ov = overrides.useValue();
   return useMemo(
     () =>
       list
-        .map((s) => ({ ...s, day: slotDay(s.slot), time: slotTime(s.slot), done: heldThisWeek(s.slot) }))
+        .map((s) => {
+          const o = ov.find((x) => x.studentId === s.studentId && x.week === "this");
+          const slot = o && !o.cancelled && o.slot ? o.slot : s.slot;
+          return {
+            ...s,
+            slot,
+            day: slotDay(slot),
+            time: slotTime(slot),
+            done: heldThisWeek(slot) && !o?.cancelled,
+            ...(o?.cancelled ? { cancelled: true } : {}),
+            ...(slot !== s.slot ? { movedFrom: s.slot } : {}),
+          };
+        })
         .sort((a, b) => byWeekOrder(a.slot, b.slot)),
-    [list]
+    [list, ov]
   );
+}
+
+/** The next session that hasn't happened: this week's, or next week's once this one is over. */
+export function upcomingOf(s: FixedSession): { week: "this" | "next"; slot: string } {
+  return heldThisWeek(s.slot) ? { week: "next", slot: s.nextSlot ?? s.slot } : { week: "this", slot: s.slot };
+}
+
+export function useUpcoming(studentId: string) {
+  const s = useFixedSession(studentId);
+  const override = overrides.useValue().find((o) => o.studentId === studentId && s && o.week === upcomingOf(s).week);
+  if (!s) return null;
+  return { ...upcomingOf(s), override };
+}
+
+/** Free hours in the upcoming session's week that no one else (or a parent call) holds. */
+export function useOneOffSlots(studentId: string, confirmedCallSlots: string[]): string[] {
+  const free = availability.useValue();
+  const list = sessions.useValue();
+  const ov = overrides.useValue();
+  return useMemo(() => {
+    const me = list.find((s) => s.studentId === studentId);
+    if (!me) return [];
+    const { week, slot: mine } = upcomingOf(me);
+    const taken = new Set<string>();
+    for (const s of list) {
+      if (s.studentId === studentId) continue;
+      const base = week === "this" ? s.slot : (s.nextSlot ?? s.slot);
+      const o = ov.find((x) => x.studentId === s.studentId && x.week === week);
+      if (o?.cancelled) continue;
+      taken.add(o?.slot ?? base);
+    }
+    if (week === "this") confirmedCallSlots.forEach((c) => taken.add(c));
+    return free.filter((x) => x !== mine && !taken.has(x) && (week === "next" || !heldThisWeek(x))).sort(byWeekOrder);
+  }, [free, list, ov, studentId, confirmedCallSlots]);
+}
+
+export function setOverride(o: Omit<SessionOverride, "seen">) {
+  overrides.set([...overrides.get().filter((x) => x.studentId !== o.studentId), { ...o, seen: false }]);
+  const name = mentorStudents.find((s) => s.id === o.studentId)?.name ?? o.studentId;
+  logEvent({
+    category: "کاربران",
+    actor: o.by === "student" ? name : "سارا محمدی",
+    actorRole: o.by === "student" ? "دانش‌آموز" : "مشاور",
+    action: o.cancelled ? "لغو یک جلسه" : "جابه‌جایی یک جلسه",
+    target: `${name} — سارا محمدی`,
+    severity: "info",
+    details: [
+      { label: "هفته", value: o.week === "this" ? "این هفته" : "هفته‌ی بعد" },
+      ...(o.slot ? [{ label: "وقت جدید", value: o.slot }] : []),
+      ...(o.reason ? [{ label: "دلیل", value: o.reason }] : []),
+    ],
+  });
+}
+
+export function clearOverride(studentId: string) {
+  overrides.set(overrides.get().filter((x) => x.studentId !== studentId));
+}
+
+export function acknowledgeOverride(studentId: string) {
+  overrides.set(overrides.get().map((x) => (x.studentId === studentId ? { ...x, seen: true } : x)));
 }
 
 export function useFixedSession(studentId: string): FixedSession | undefined {
   return sessions.useValue().find((s) => s.studentId === studentId);
 }
 
-/** «شنبه، ساعت ۱۸:۰۰» or «شنبه‌ی هفته‌ی بعد، …» once this week's is over. */
-export function nextSessionLabel(s: FixedSession): string {
-  if (!heldThisWeek(s.slot)) return `${dayLabel(slotDay(s.slot))}، ساعت ${slotTime(s.slot)}`;
-  const slot = s.nextSlot ?? s.slot;
+/** «شنبه، ساعت ۱۸:۰۰» or «شنبه‌ی هفته‌ی بعد، …» once this week's is over (one-off moves applied). */
+export function nextSessionLabel(s: FixedSession, override?: SessionOverride): string {
+  const { week, slot: base } = upcomingOf(s);
+  if (override?.cancelled) return week === "this" ? "جلسه‌ی این هفته لغو شد" : "جلسه‌ی هفته‌ی بعد لغو شد";
+  const slot = override?.slot ?? base;
+  if (week === "this") return `${dayLabel(slotDay(slot))}، ساعت ${slotTime(slot)}`;
   return `${slotDay(slot)}‌ی هفته‌ی بعد، ساعت ${slotTime(slot)}`;
 }
 

@@ -1,14 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { NotebookPen, Plus, Trash2, RotateCcw, CheckCircle2, X } from "lucide-react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { NotebookPen, Plus, Trash2, RotateCcw, CheckCircle2, X, Repeat, Eye, ThumbsUp } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { MistakePattern } from "@/components/app/MistakePattern";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { CHECKIN_SUBJECTS, MISTAKE_REASONS, type MistakeReason } from "@/lib/mock-data";
-import { addMistake, deleteMistake, toggleResolved, useMyMistakes } from "@/lib/mistakes-store";
+import {
+  CHECKIN_SUBJECTS,
+  DEMO_TODAY_ISO,
+  MISTAKE_REASONS,
+  type MistakeEntry,
+  type MistakeReason,
+} from "@/lib/mock-data";
+import {
+  addMistake,
+  daysUntilReview,
+  deleteMistake,
+  reviewMistake,
+  toggleResolved,
+  useDueMistakes,
+  useMyMistakes,
+} from "@/lib/mistakes-store";
 import { cn, toPersianDigits } from "@/lib/utils";
 
 const REASONS = Object.keys(MISTAKE_REASONS) as MistakeReason[];
@@ -17,8 +32,20 @@ const EMPTY_FORM = { subject: "", topic: "", source: "", questionNo: "", reason:
 const fieldClass =
   "h-10 w-full rounded-x-sm border border-border bg-surface px-3 text-sm text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600";
 
-export default function MistakesPage() {
+export default function MistakesPageRoute() {
+  return (
+    <StudentShell>
+      <Suspense>
+        <MistakesPage />
+      </Suspense>
+    </StudentShell>
+  );
+}
+
+function MistakesPage() {
   const mistakes = useMyMistakes();
+  const due = useDueMistakes();
+  const [reviewing, setReviewing] = useState(useSearchParams().get("review") === "1");
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<"subject" | "source" | "reason", string>>>({});
@@ -32,7 +59,7 @@ export default function MistakesPage() {
     (m) =>
       (subjectFilter === "همه" || m.subject === subjectFilter) &&
       (reasonFilter === "همه" || m.reason === reasonFilter) &&
-      !(hideResolved && m.resolved),
+      !(hideResolved && m.resolved)
   );
 
   function update<K extends keyof typeof EMPTY_FORM>(key: K, value: (typeof EMPTY_FORM)[K]) {
@@ -60,13 +87,14 @@ export default function MistakesPage() {
       fix: form.fix.trim(),
       date: "امروز",
       resolved: false,
+      createdIso: DEMO_TODAY_ISO,
     });
     // Keep subject + source: students usually log several from one exam in a row.
     setForm({ ...EMPTY_FORM, subject: form.subject, source: form.source });
   }
 
   return (
-    <StudentShell>
+    <>
       <div className="mx-auto max-w-2xl px-4 py-6 md:py-10">
         <div className="mb-1 flex items-center gap-2">
           <NotebookPen size={18} className="text-blue-600" />
@@ -76,6 +104,28 @@ export default function MistakesPage() {
           هر تستی که غلط زدی رو با <span className="font-medium text-text-700">دلیلش</span> ثبت کن. مهم‌تر از تعداد غلط،
           اینه که بدونی چرا غلط می‌زنی — مشاورت هم همین الگو رو می‌بینه.
         </p>
+
+        {reviewing ? (
+          <ReviewSession due={due} onClose={() => setReviewing(false)} />
+        ) : (
+          due.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setReviewing(true)}
+              className="mb-4 flex w-full items-center gap-3 rounded-x-lg border border-blue-600/30 bg-blue-100 p-4 text-right transition-colors hover:bg-blue-100/70"
+            >
+              <Repeat size={18} className="shrink-0 text-blue-600" />
+              <span className="flex-1">
+                <span className="block text-sm font-medium text-text-900">
+                  مرور امروز: <span className="tnum">{toPersianDigits(due.length)}</span> تست رو دوباره حل کن
+                </span>
+                <span className="text-xs text-text-500">
+                  حل دوباره بعد از چند روز، بهترین راه برای تکرار نشدن غلطه.
+                </span>
+              </span>
+            </button>
+          )
+        )}
 
         <Card>
           <CardContent>
@@ -162,7 +212,7 @@ export default function MistakesPage() {
                           "rounded-x-md border-2 px-2.5 py-2 text-right transition-colors",
                           form.reason === r
                             ? "border-blue-600 bg-blue-100"
-                            : "border-border bg-surface hover:border-blue-300",
+                            : "border-border bg-surface hover:border-blue-300"
                         )}
                       >
                         <div className="text-xs font-medium text-text-900">{MISTAKE_REASONS[r].label}</div>
@@ -237,7 +287,7 @@ export default function MistakesPage() {
                       <Badge tone={m.reason === "careless" || m.reason === "calculation" ? "warning" : "neutral"}>
                         {MISTAKE_REASONS[m.reason].label}
                       </Badge>
-                      {m.resolved && <Badge tone="success">دوباره حلش کردم</Badge>}
+                      {m.resolved ? <Badge tone="success">دوباره حلش کردم</Badge> : <ReviewBadge m={m} />}
                     </div>
                     <div className="mt-1 text-xs text-text-500">
                       {m.source}
@@ -279,6 +329,103 @@ export default function MistakesPage() {
           )}
         </div>
       </div>
-    </StudentShell>
+    </>
+  );
+}
+
+function ReviewBadge({ m }: { m: MistakeEntry }) {
+  const days = daysUntilReview(m);
+  const stage = m.reviewStage ?? 0;
+  return (
+    <Badge tone={days <= 0 ? "info" : "neutral"}>
+      <Repeat size={10} /> مرور {toPersianDigits(stage + 1)} از ۲:{" "}
+      {days <= 0 ? "امروز" : `${toPersianDigits(days)} روز دیگه`}
+    </Badge>
+  );
+}
+
+// One due mistake at a time: re-solve the original question, then say how it went.
+function ReviewSession({ due, onClose }: { due: MistakeEntry[]; onClose: () => void }) {
+  const [total] = useState(due.length);
+  const [results, setResults] = useState({ right: 0, wrong: 0 });
+  const [showFix, setShowFix] = useState(false);
+  const current = due[0];
+  const doneCount = results.right + results.wrong;
+
+  function answer(correct: boolean) {
+    reviewMistake(current.id, correct);
+    setResults((r) => (correct ? { ...r, right: r.right + 1 } : { ...r, wrong: r.wrong + 1 }));
+    setShowFix(false);
+  }
+
+  return (
+    <Card className="mb-4 border-blue-600/30">
+      <CardContent>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="flex items-center gap-1.5 text-sm font-bold text-text-900">
+            <Repeat size={15} className="text-blue-600" /> مرور امروز
+          </h2>
+          <button type="button" onClick={onClose} aria-label="بستن مرور" className="text-text-500 hover:text-text-900">
+            <X size={16} />
+          </button>
+        </div>
+
+        {!current ? (
+          <div className="py-4 text-center">
+            <CheckCircle2 size={28} className="mx-auto text-mint-500" />
+            <p className="mt-2 text-sm font-medium text-text-900">مرور امروز تموم شد</p>
+            {doneCount > 0 && (
+              <p className="mt-1 text-xs text-text-500">
+                {toPersianDigits(results.right)} درست · {toPersianDigits(results.wrong)} دوباره غلط (سه روز دیگه
+                برمی‌گردن)
+              </p>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="tnum mb-2 text-xs text-text-500">
+              {toPersianDigits(doneCount + 1)} از {toPersianDigits(total)}
+            </div>
+            <div className="rounded-x-md bg-surface-2 p-4">
+              <div className="text-sm font-medium text-text-900">
+                {current.subject}
+                {current.topic && ` — ${current.topic}`}
+              </div>
+              <div className="mt-1 text-xs text-text-500">
+                {current.source}
+                {current.questionNo && (
+                  <>
+                    {" "}
+                    · سؤال <span className="tnum">{toPersianDigits(current.questionNo)}</span>
+                  </>
+                )}{" "}
+                · دفعه‌ی قبل: {MISTAKE_REASONS[current.reason].label}
+              </div>
+              <p className="mt-3 text-sm text-text-700">همین سؤال رو بدون نگاه به جواب دوباره حل کن.</p>
+              {current.fix &&
+                (showFix ? (
+                  <p className="mt-2 text-xs leading-[1.8] text-text-700">💡 {current.fix}</p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowFix(true)}
+                    className="mt-2 flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                  >
+                    <Eye size={12} /> یادداشت «درستش چی بود»
+                  </button>
+                ))}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Button size="md" onClick={() => answer(true)}>
+                <ThumbsUp size={14} /> این بار درست زدم
+              </Button>
+              <Button size="md" variant="secondary" onClick={() => answer(false)}>
+                <RotateCcw size={14} /> باز غلط زدم
+              </Button>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }

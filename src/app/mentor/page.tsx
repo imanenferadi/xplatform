@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { MentorShell } from "@/components/app/MentorShell";
 import { ReportFeed } from "@/components/app/MentorFeed";
@@ -7,8 +9,10 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { mentorStudents, getRiskInfo } from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
+import { useMentorUnreadCounts } from "@/lib/chat-store";
 
 export default function MentorDashboardPage() {
+  const unread = useMentorUnreadCounts();
   return (
     <MentorShell>
       <div className="mx-auto max-w-4xl px-4 py-6 md:py-8">
@@ -47,9 +51,9 @@ export default function MentorDashboardPage() {
                         <div className="tnum text-sm font-bold text-text-900">{toPersianDigits(s.planCompletion)}٪</div>
                         <div className="text-[11px] text-text-500">برنامه</div>
                       </div>
-                      {s.unreadMessages > 0 && (
+                      {(unread[s.id] ?? 0) > 0 && (
                         <span className="tnum flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white">
-                          {toPersianDigits(s.unreadMessages)}
+                          {toPersianDigits(unread[s.id])}
                         </span>
                       )}
                     </CardContent>

@@ -48,11 +48,13 @@ export default function MentorCalendarPage() {
       return d === day && hourOf(t) === hour;
     });
 
-  const remaining = upcomingSessions.filter((s) => !s.done).length;
+  const remaining = upcomingSessions.filter((s) => !s.done && !s.cancelled).length;
   const openSlots = availability.filter((a) => {
     const [d, t] = a.split(" ");
     return (
-      WEEK_DAYS.indexOf(d) >= todayIndex && sessionsAt(d, hourOf(t)).length === 0 && callsAt(d, hourOf(t)).length === 0
+      WEEK_DAYS.indexOf(d) >= todayIndex &&
+      sessionsAt(d, hourOf(t)).every((x) => x.cancelled) &&
+      callsAt(d, hourOf(t)).length === 0
     );
   }).length;
 
@@ -157,7 +159,11 @@ export default function MentorCalendarPage() {
                                       <Check size={11} /> برگزار شد
                                     </span>
                                   )}
+                                  {s.cancelled && <span className="text-red-500">لغو شد</span>}
                                 </div>
+                                {s.movedFrom && (
+                                  <div className="mt-0.5 text-[11px]">فقط این هفته (به‌جای {s.movedFrom})</div>
+                                )}
                               </Link>
                             );
                           })}

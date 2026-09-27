@@ -7,6 +7,7 @@ import {
   CalendarX,
   Check,
   CheckCircle2,
+  FileText,
   ChevronLeft,
   GraduationCap,
   ListChecks,
@@ -33,8 +34,10 @@ import { useMyCheckIns } from "@/lib/checkin-store";
 import { useReportFeedback } from "@/lib/feedback-store";
 import { byRecency } from "@/lib/reports";
 import { draftChanges, usePlans } from "@/lib/plan-store";
-import { slotDay, useAvailability, useWeekSessions } from "@/lib/session-store";
+import { acknowledgeOverride, slotDay, useAvailability, useOverrides, useWeekSessions } from "@/lib/session-store";
 import { createLocalStore } from "@/lib/local-store";
+import { useMentorUnreadCounts } from "@/lib/chat-store";
+import { useAllKarnamehs } from "@/lib/karnameh-store";
 import { cn, toPersianDigits } from "@/lib/utils";
 
 type Tone = "urgent" | "today" | "soon";
@@ -69,6 +72,9 @@ export function MentorToday() {
   const feedback = useReportFeedback();
   const mineLatest = byRecency(useMyCheckIns())[0];
   const meeting = useMeetingSetup();
+  const unread = useMentorUnreadCounts();
+  const overrides = useOverrides();
+  const karnamehs = useAllKarnamehs();
   const nameOf = (id: string) => mentorStudents.find((s) => s.id === id)?.name ?? "";
 
   const tasks: Task[] = [];
@@ -83,7 +89,27 @@ export function MentorToday() {
       inline: <PendingCall call={c} />,
     });
 
-  for (const s of sessions.filter((x) => x.day === CURRENT_DAY_NAME))
+  for (const o of overrides.filter((x) => x.by === "student" && !x.seen))
+    tasks.push({
+      key: `ov-${o.studentId}`,
+      tone: "urgent",
+      icon: CalendarX,
+      title: `${nameOf(o.studentId)} جلسه‌ی ${o.week === "this" ? "این هفته" : "هفته‌ی بعد"} رو ${
+        o.cancelled ? "لغو کرد" : `جابه‌جا کرد به ${o.slot}`
+      }`,
+      detail: o.reason || undefined,
+      inline: (
+        <button
+          type="button"
+          onClick={() => acknowledgeOverride(o.studentId)}
+          className="flex items-center gap-1 rounded-x-pill border border-border px-3 py-1 text-xs text-text-700 hover:border-blue-300"
+        >
+          <Check size={12} /> دیدم
+        </button>
+      ),
+    });
+
+  for (const s of sessions.filter((x) => x.day === CURRENT_DAY_NAME && !x.cancelled))
     tasks.push({
       key: `session-${s.studentId}`,
       tone: "today",
@@ -159,12 +185,23 @@ export function MentorToday() {
     });
   }
 
-  for (const s of mentorStudents.filter((x) => x.unreadMessages > 0))
+  for (const k of karnamehs.filter((x) => !x.seenByMentor))
+    tasks.push({
+      key: `k-${k.id}`,
+      tone: "today",
+      icon: FileText,
+      title: `${nameOf(k.studentId)} کارنامه‌ی جدید فرستاد`,
+      detail: `${k.examProvider} — ${k.fileName}`,
+      href: `/mentor/students/${k.studentId}#karnameh`,
+      action: "مشاهده",
+    });
+
+  for (const s of mentorStudents.filter((x) => (unread[x.id] ?? 0) > 0))
     tasks.push({
       key: `msg-${s.id}`,
       tone: "today",
       icon: MessageCircle,
-      title: `${toPersianDigits(s.unreadMessages)} پیام بی‌پاسخ از ${s.name}`,
+      title: `${toPersianDigits(unread[s.id])} پیام بی‌پاسخ از ${s.name}`,
       href: `/mentor/messages/${s.id}`,
       action: "جواب",
     });

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn, toPersianDigits } from "@/lib/utils";
 import { useInboxCounts } from "@/lib/admin-inbox";
+import { AdminSearch } from "@/components/admin/AdminSearch";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
 
@@ -65,6 +66,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <span className="text-sm font-bold text-white">X · ادمین</span>
           <ThemeToggle />
         </div>
+
+        <AdminSearch />
 
         <nav className="flex-1 overflow-y-auto px-2">
           {groups.map((g) => (

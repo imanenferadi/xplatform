@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Users, Ban, RotateCcw, ArrowLeftRight, LifeBuoy } from "lucide-react";
 import { AdminShell } from "@/components/app/AdminShell";
@@ -38,10 +39,21 @@ function currentMentor(name: string) {
   return a ? (mentors.find((m) => m.id === a.mentorId)?.name ?? "—") : null;
 }
 
-export default function AdminUsersPage() {
+// Opened from the global search (Ctrl/⌘+K) with ?q= prefilled.
+export default function AdminUsersPageRoute() {
+  return (
+    <AdminShell>
+      <Suspense>
+        <AdminUsersPage />
+      </Suspense>
+    </AdminShell>
+  );
+}
+
+function AdminUsersPage() {
   const [users, setUsers] = useState(initialUsers);
   const tickets = useTickets();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(useSearchParams().get("q") ?? "");
   const [role, setRole] = useState<Role | "همه">("همه");
   const [status, setStatus] = useState<Status | "همه">("همه");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -104,7 +116,7 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <AdminShell>
+    <>
       <div className="mx-auto max-w-4xl px-6 py-8">
         <div className="mb-1 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -257,6 +269,6 @@ export default function AdminUsersPage() {
           )}
         </div>
       </div>
-    </AdminShell>
+    </>
   );
 }

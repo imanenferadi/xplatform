@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { MentorShell } from "@/components/app/MentorShell";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/Progress";
 import {
@@ -13,7 +12,7 @@ import {
   mentorPrivateNotes,
   getRiskInfo,
 } from "@/lib/mock-data";
-import { Sparkles, FileText, Upload, EyeOff, LineChart, GitCompare } from "lucide-react";
+import { Sparkles, EyeOff, LineChart, GitCompare } from "lucide-react";
 import { TrendChart } from "@/components/ui/TrendChart";
 import { PeriodComparison } from "@/components/app/PeriodComparison";
 import { PrivateNotes } from "@/components/app/PrivateNotes";
@@ -22,6 +21,7 @@ import { AboutStudent } from "@/components/app/AboutStudent";
 import { PlanEditor } from "@/components/app/PlanEditor";
 import { FixedSessionCard } from "@/components/app/FixedSession";
 import { CopyWeeklyReport } from "@/components/app/CopyWeeklyReport";
+import { KarnamehFiles } from "@/components/app/KarnamehFiles";
 import { toPersianDigits } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -55,28 +55,13 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
           <AboutStudent studentId={student.id} />
         </Section>
 
-        {/* Latest Kanoon/Gaj report card — arrives from the exam provider itself,
-            the platform only holds a reference + lets the mentor attach the file. */}
-        <Section title="آخرین کارنامه‌ی دریافتی">
-          <div className="flex items-center gap-3 rounded-x-md border border-border bg-surface-2 p-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
-              <FileText size={18} className="text-blue-600" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium text-text-900">
-                {examResults[0].examProvider} — {examResults[0].examName}
-              </div>
-              <div className="tnum text-xs text-text-500">
-                {examResults[0].date} · درصد کل: {toPersianDigits(examResults[0].overallPercentage)}٪
-              </div>
-            </div>
-            <Button size="md" variant="secondary">
-              <FileText size={14} /> مشاهده فایل
-            </Button>
-          </div>
-          <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-x-md border border-dashed border-border py-2.5 text-sm text-text-500 hover:border-blue-600 hover:text-blue-600">
-            <Upload size={15} /> آپلود کارنامه‌ی جدید
-          </button>
+        {/* Karnameh files the student (or mentor) attached — shown as-is, never re-analysed. */}
+        <Section title="کارنامه‌ها" id="karnameh">
+          <p className="tnum mb-3 text-xs text-text-500">
+            آخرین نتیجه‌ی ثبت‌شده: {examResults[0].examProvider} — {examResults[0].examName} ({examResults[0].date}) ·
+            درصد کل {toPersianDigits(examResults[0].overallPercentage)}٪
+          </p>
+          <KarnamehFiles studentId={student.id} studentName={student.name} />
         </Section>
 
         {/* Growth trend — the "is this a one-off or a pattern?" signal that

@@ -6,44 +6,52 @@ import { StudentShell } from "@/components/app/StudentShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { karnamehUploads as initialUploads, type KarnamehUpload } from "@/lib/mock-data";
+import { addKarnameh, readKarnamehFile, useKarnamehs } from "@/lib/karnameh-store";
 
 export default function KarnamehUploadPage() {
-  const [uploads, setUploads] = useState<KarnamehUpload[]>(initialUploads);
-  const [fileName, setFileName] = useState<string | null>(null);
+  const uploads = useKarnamehs("me");
+  const [file, setFile] = useState<File | null>(null);
+  const fileName = file?.name ?? null;
+  const [busy, setBusy] = useState(false);
+  const [nameOnly, setNameOnly] = useState(false);
   const [provider, setProvider] = useState("قلمچی");
   const [note, setNote] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const nextId = useRef(100);
 
   function pickFile() {
     fileInputRef.current?.click();
   }
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) setFileName(file.name);
+    const f = e.target.files?.[0];
+    if (f) setFile(f);
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!fileName) return;
-    setUploads((u) => [
+    if (!file) return;
+    setBusy(true);
+    const { dataUrl, mime } = await readKarnamehFile(file).catch(() => ({ dataUrl: undefined, mime: file.type }));
+    const stored = addKarnameh(
       {
-        id: `ku-${nextId.current++}`,
-        examProvider: provider || "نامشخص",
-        date: "همین الان",
-        fileName,
-        note,
-        seenByMentor: false,
+        studentId: "me",
+        uploadedBy: "student",
+        examProvider: provider.trim() || "نامشخص",
+        fileName: file.name,
+        note: note.trim(),
+        dataUrl,
+        mime,
       },
-      ...u,
-    ]);
-    setFileName(null);
+      "ایمان"
+    );
+    setBusy(false);
+    setNameOnly(!stored);
+    setFile(null);
     setNote("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
     setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+    setTimeout(() => setSubmitted(false), 4000);
   }
 
   return (
@@ -54,8 +62,8 @@ export default function KarnamehUploadPage() {
           <h1 className="text-xl font-bold text-text-900">آپلود کارنامه‌ی آزمون</h1>
         </div>
         <p className="mb-6 text-sm text-text-500">
-          همین که نتیجه‌ی آزمونت از قلمچی/گاج اومد، عکس یا فایلش رو اینجا بذار — مستقیم می‌ره برای
-          سارا محمدی، دیگه نیازی به تلگرام نیست.
+          همین که نتیجه‌ی آزمونت از قلمچی/گاج اومد، عکس یا فایلش رو اینجا بذار — مستقیم می‌ره برای سارا محمدی، دیگه
+          نیازی به تلگرام نیست.
         </p>
 
         <Card>
@@ -104,14 +112,16 @@ export default function KarnamehUploadPage() {
                 />
               </div>
 
-              <Button type="submit" size="lg" className="w-full" disabled={!fileName}>
-                ارسال برای مشاور
+              <Button type="submit" size="lg" className="w-full" disabled={!fileName || busy}>
+                {busy ? "در حال آماده‌سازی فایل..." : "ارسال برای مشاور"}
               </Button>
 
               {submitted && (
                 <div className="flex items-center gap-2 rounded-x-md bg-mint-500/15 p-3 text-sm text-mint-500">
                   <Check size={16} />
-                  ارسال شد — سارا محمدی به‌زودی می‌بینتش.
+                  {nameOnly
+                    ? "ارسال شد — ولی فایل بیشتر از ۱.۵ مگابایت بود و در نسخه‌ی نمایشی فقط اسمش ذخیره شد."
+                    : "ارسال شد — سارا محمدی به‌زودی می‌بینتش."}
                 </div>
               )}
             </form>
@@ -134,9 +144,7 @@ export default function KarnamehUploadPage() {
                   {u.note && <p className="mt-1 text-xs text-text-700">{u.note}</p>}
                 </div>
                 <div
-                  className={`flex items-center gap-1 text-xs ${
-                    u.seenByMentor ? "text-mint-500" : "text-text-500"
-                  }`}
+                  className={`flex items-center gap-1 text-xs ${u.seenByMentor ? "text-mint-500" : "text-text-500"}`}
                 >
                   <Eye size={12} />
                   {u.seenByMentor ? "دیده شد" : "در انتظار"}

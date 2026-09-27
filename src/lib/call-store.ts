@@ -22,7 +22,7 @@ export function useOpenSlots(): string[] {
     const today = WEEK_DAYS.indexOf(CURRENT_DAY_NAME);
     return availability.filter((slot) => {
       if (WEEK_DAYS.indexOf(slot.split(" ")[0]) < today) return false;
-      const session = sessions.some((s) => s.slot === slot);
+      const session = sessions.some((s) => s.slot === slot && !s.cancelled);
       const call = calls.some((c) => c.status === "confirmed" && c.slot === slot);
       return !session && !call;
     });

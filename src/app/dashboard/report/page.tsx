@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import {
   CHECKIN_SUBJECTS,
   CURRENT_DAY_NAME,
+  DEMO_TODAY_ISO,
   MISTAKE_REASONS,
   mentors,
   moodLabels,
@@ -192,6 +193,7 @@ export default function NightRoutinePage() {
         fix: "",
         date: "امروز",
         resolved: false,
+        createdIso: DEMO_TODAY_ISO,
       })
     );
     setResult({
