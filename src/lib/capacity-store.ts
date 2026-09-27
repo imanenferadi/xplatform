@@ -62,6 +62,11 @@ export function useCapacityOverrides() {
   );
 }
 
+/** Whether the mentor has set their capacity themselves (onboarding step). */
+export function useCapacitySet(mentorId: string): boolean {
+  return store.useValue().settings[mentorId] !== undefined;
+}
+
 export function setCapacity(mentorId: string, setting: CapacitySetting) {
   const s = store.get();
   store.set({ ...s, settings: { ...s.settings, [mentorId]: setting } });

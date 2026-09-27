@@ -1,0 +1,139 @@
+"use client";
+
+import { useMemo } from "react";
+import { TICKET_PRIORITY, mentorApplications, mentorPayouts, mentorQuality, mentors, transactions } from "./mock-data";
+import { slaState, useTickets } from "./ticket-store";
+import { useStoredApplications } from "./mentor-applications-store";
+import { useSubscription } from "./subscription-store";
+import { useChurn } from "./churn-store";
+import { useLogs } from "./admin-log-store";
+import { computeQuality } from "./quality";
+import { CURRENT_ADMIN } from "./followup-store";
+import { toPersianDigits } from "./utils";
+
+export type InboxPriority = "urgent" | "high" | "normal";
+export type InboxItem = {
+  key: string;
+  priority: InboxPriority;
+  kind: string; // short label: «تیکت», «بازپرداخت», …
+  title: string;
+  detail: string;
+  href: string;
+};
+
+// Everything waiting on an admin, in one queue, from the same data each
+// admin page reads. An item leaves the queue when its page resolves it.
+export function useAdminInbox(): InboxItem[] {
+  const tickets = useTickets();
+  const stored = useStoredApplications();
+  const sub = useSubscription();
+  const { responses } = useChurn();
+  const logs = useLogs();
+
+  return useMemo(() => {
+    const items: InboxItem[] = [];
+
+    for (const t of tickets) {
+      if (t.status === "closed" || t.status === "answered") continue;
+      const sla = slaState(t);
+      if (sla.overdue || t.status === "new")
+        items.push({
+          key: `t-${t.id}`,
+          priority: sla.overdue || t.priority === "urgent" ? "urgent" : "high",
+          kind: "تیکت",
+          title: `${t.id} — ${t.subject}`,
+          detail: `${t.requester.name} (${t.requester.role}) · اولویت ${TICKET_PRIORITY[t.priority].label}${
+            sla.overdue ? " · از SLA گذشته" : ""
+          }`,
+          href: "/admin/tickets",
+        });
+    }
+
+    for (const tx of transactions.filter((x) => x.type === "refund_request" && x.status === "pending"))
+      items.push({
+        key: `r-${tx.id}`,
+        priority: "high",
+        kind: "بازپرداخت",
+        title: `درخواست بازپرداخت ${tx.studentName}`,
+        detail: `${tx.planName} · ${toPersianDigits(tx.amount.toLocaleString("en-US"))} تومان · ${tx.date}`,
+        href: "/admin/payments",
+      });
+    if (sub?.refund?.status === "pending")
+      items.push({
+        key: "r-guarantee",
+        priority: "urgent",
+        kind: "بازپرداخت",
+        title: "ضمانت ۷ روزه — ایمان",
+        detail: `${sub.planName} · ${toPersianDigits(sub.refund.amount.toLocaleString("en-US"))} تومان`,
+        href: "/admin/payments",
+      });
+
+    const apps = [
+      ...mentorApplications
+        .filter((a) => a.status === "pending")
+        .map((a) => ({ id: a.id, name: a.name, at: a.appliedAt })),
+      ...stored.filter((a) => a.status === "pending").map((a) => ({ id: a.id, name: a.mentor.name, at: a.appliedAt })),
+    ];
+    for (const a of apps)
+      items.push({
+        key: `a-${a.id}`,
+        priority: "normal",
+        kind: "مشاور جدید",
+        title: `درخواست همکاری ${a.name}`,
+        detail: `ثبت: ${a.at}`,
+        href: "/admin/mentors",
+      });
+
+    const pendingPayouts = mentorPayouts.filter((p) => p.status === "pending");
+    if (pendingPayouts.length)
+      items.push({
+        key: "payouts",
+        priority: "normal",
+        kind: "تسویه",
+        title: `${toPersianDigits(pendingPayouts.length)} تسویه‌ی ${pendingPayouts[0].period} در انتظار واریز`,
+        detail: pendingPayouts.map((p) => p.mentorName).join("، "),
+        href: "/admin/finance",
+      });
+
+    for (const q of mentorQuality) {
+      const m = mentors.find((x) => x.id === q.mentorId);
+      if (!m) continue;
+      const row = computeQuality(m, q, responses);
+      if (row.flags.length)
+        items.push({
+          key: `q-${m.id}`,
+          priority: "normal",
+          kind: "کیفیت",
+          title: `${m.name} زیر آستانه‌ی کیفیت`,
+          detail: `${row.flags.join("، ")} · امتیاز ${toPersianDigits(row.score)}`,
+          href: "/admin/quality",
+        });
+    }
+
+    for (const l of logs.filter((x) => x.followUp.status === "in_progress" && x.followUp.assignee === CURRENT_ADMIN))
+      items.push({
+        key: `f-${l.id}`,
+        priority: "normal",
+        kind: "پیگیری",
+        title: `${l.action} — ${l.target}`,
+        detail: l.followUp.note || "پیگیری باز به اسم تو",
+        href: `/admin/logs?q=${encodeURIComponent(l.target)}`,
+      });
+
+    const rank: Record<InboxPriority, number> = { urgent: 0, high: 1, normal: 2 };
+    return items.sort((a, b) => rank[a.priority] - rank[b.priority]);
+  }, [tickets, stored, sub, responses, logs]);
+}
+
+/** Waiting items per admin page, for the sidebar counters. */
+export function useInboxCounts(): Record<string, number> {
+  const items = useAdminInbox();
+  return useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const i of items) {
+      const page = i.href.split("?")[0];
+      c[page] = (c[page] ?? 0) + 1;
+    }
+    return c;
+  }, [items]);
+}

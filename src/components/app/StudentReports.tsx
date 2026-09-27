@@ -5,27 +5,13 @@ import { Moon, Check, BedDouble } from "lucide-react";
 import { WeeklySummary } from "@/components/app/WeeklySummary";
 import { MistakePattern } from "@/components/app/MistakePattern";
 import { Button } from "@/components/ui/Button";
-import {
-  REPORT_REACTIONS,
-  checkInHistory,
-  moodLabels,
-  nightlyCheckIns,
-  studentMistakes,
-  type NightlyCheckIn,
-  type ReportReaction,
-} from "@/lib/mock-data";
-import { useMyCheckIns } from "@/lib/checkin-store";
+import { REPORT_REACTIONS, moodLabels, studentMistakes, type ReportReaction } from "@/lib/mock-data";
+import { useStudentReports } from "@/lib/checkin-store";
 import { useMyMistakes } from "@/lib/mistakes-store";
 import { giveFeedback, useReportFeedback } from "@/lib/feedback-store";
 import { formatStudyTime, sleepMinutes } from "@/lib/checkins";
 import { byRecency } from "@/lib/reports";
 import { cn, toPersianDigits } from "@/lib/utils";
-
-// Reports of one student: live ones for ایمان ("me"), seeds for the rest.
-function useStudentReports(studentId: string): NightlyCheckIn[] {
-  const mine = useMyCheckIns();
-  return studentId === "me" ? mine : [...nightlyCheckIns, ...checkInHistory].filter((c) => c.studentId === studentId);
-}
 
 export function StudentWeekly({ studentId }: { studentId: string }) {
   return <WeeklySummary checkIns={useStudentReports(studentId)} audience="mentor" />;

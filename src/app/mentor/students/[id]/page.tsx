@@ -9,8 +9,6 @@ import {
   mentorStudents,
   levelProfile,
   examResults,
-  targetMajor,
-  examDrivenPriorities,
   rootCauseAnalysis,
   mentorPrivateNotes,
   getRiskInfo,
@@ -20,7 +18,10 @@ import { TrendChart } from "@/components/ui/TrendChart";
 import { PeriodComparison } from "@/components/app/PeriodComparison";
 import { PrivateNotes } from "@/components/app/PrivateNotes";
 import { StudentMistakes, StudentNightlyReports, StudentWeekly } from "@/components/app/StudentReports";
-import { AboutStudent, BooksHint } from "@/components/app/AboutStudent";
+import { AboutStudent } from "@/components/app/AboutStudent";
+import { PlanEditor } from "@/components/app/PlanEditor";
+import { FixedSessionCard } from "@/components/app/FixedSession";
+import { CopyWeeklyReport } from "@/components/app/CopyWeeklyReport";
 import { toPersianDigits } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -135,8 +136,8 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
         >
           <p className="text-sm leading-[1.9] text-text-700">
             بیشترین اثر منفی روی رتبه از <span className="font-medium text-text-900">{rootCause.subject}</span> می‌آید
-            (درصد {toPersianDigits(rootCause.percentage)}٪ × ضریب {toPersianDigits(rootCause.coefficient)}). با توجه به نیمرخ سطح، ریشه‌ش احتمالاً این
-            مباحث‌اند:
+            (درصد {toPersianDigits(rootCause.percentage)}٪ × ضریب {toPersianDigits(rootCause.coefficient)}). با توجه به
+            نیمرخ سطح، ریشه‌ش احتمالاً این مباحث‌اند:
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {rootCause.likelyTopics.map((t) => (
@@ -147,39 +148,21 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
           </div>
         </Section>
 
-        {/* Current plan — mentor edit view (M-03), reasoning tied to the
-            report card above × the student's target-major coefficients */}
-        <Section title="برنامه‌ی این هفته">
-          <p className="mb-3 text-xs text-text-500">
-            بر اساس کارنامه‌ی {examResults[0].examProvider} ({examResults[0].date}) و ضرایب رشته‌ی {targetMajor.name}:
-          </p>
-          <div className="space-y-2">
-            {examDrivenPriorities()
-              .slice(0, 3)
-              .map((p) => (
-                <PlanRow
-                  key={p.subject}
-                  hint={<BooksHint studentId={student.id} subject={p.subject} />}
-                  subject={p.subject}
-                  topic={`درصد ${toPersianDigits(p.percentage)}٪ × ضریب ${toPersianDigits(p.coefficient)}`}
-                  hours={p.hours}
-                  detail={p.detail}
-                  aiGenerated
-                />
-              ))}
-            <PlanRow subject="—" topic="جلسه‌ی رفع اشکال با من" hours={1} aiGenerated={false} />
-          </div>
-          <div className="mt-3 flex gap-2">
-            <Button size="md">تأیید برنامه</Button>
-            <Button size="md" variant="secondary">
-              تغییر بده
-            </Button>
-          </div>
+        {/* The week's plan — written entirely by the mentor, no system suggestions */}
+        <Section title="برنامه‌ی هفته" id="plan">
+          <PlanEditor studentId={student.id} studentName={student.name} />
+        </Section>
+
+        <Section title="جلسه‌ی ثابت هفتگی">
+          <FixedSessionCard studentId={student.id} by="mentor" className="border-0 p-0" />
         </Section>
 
         {/* Weekly roll-up of every nightly report, subject by subject */}
         <Section title="جمع هفته از گزارش کارها">
           <StudentWeekly studentId={student.id} />
+          <div className="mt-4 border-t border-border pt-3">
+            <CopyWeeklyReport studentId={student.id} name={student.name} includeSleep={false} />
+          </div>
         </Section>
 
         {/* Why this student gets tests wrong, from their own mistake notebook */}
@@ -188,7 +171,7 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
         </Section>
 
         {/* Nightly reports + the mentor's quick feedback on each */}
-        <Section title="گزارش کارهای اخیر">
+        <Section title="گزارش کارهای اخیر" id="reports">
           <StudentNightlyReports studentId={student.id} />
         </Section>
 
@@ -212,9 +195,19 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
   );
 }
 
-function Section({ title, badge, children }: { title: string; badge?: React.ReactNode; children: React.ReactNode }) {
+function Section({
+  title,
+  badge,
+  id,
+  children,
+}: {
+  title: string;
+  badge?: React.ReactNode;
+  id?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <Card className="mt-4">
+    <Card className="mt-4 scroll-mt-20" id={id}>
       <CardContent>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-bold text-text-900">{title}</h2>
@@ -223,57 +216,5 @@ function Section({ title, badge, children }: { title: string; badge?: React.Reac
         {children}
       </CardContent>
     </Card>
-  );
-}
-
-function PlanRow({
-  hint,
-  subject,
-  topic,
-  hours,
-  detail,
-  aiGenerated,
-}: {
-  subject: string;
-  topic: string;
-  hours?: number;
-  detail?: { chapter: string; subtopic: string };
-  aiGenerated: boolean;
-  hint?: React.ReactNode;
-}) {
-  return (
-    <div className={`rounded-x-sm p-2.5 text-sm ${aiGenerated ? "bg-blue-100" : "border border-border bg-surface"}`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            {subject !== "—" && <span className="font-medium text-text-900">{subject}</span>}
-            {hours != null && (
-              <span className="tnum rounded-x-sm bg-surface px-1.5 py-0.5 text-xs font-medium text-text-700">
-                {toPersianDigits(hours)} ساعت
-              </span>
-            )}
-          </div>
-          <span className="text-text-500">{topic}</span>
-          {hint}
-        </div>
-        {aiGenerated && (
-          <Badge tone="info">
-            <Sparkles size={11} /> پیشنهاد سیستم
-          </Badge>
-        )}
-      </div>
-
-      {/* Optional "جزئیات بیشتر" layer — فصل/ریز مبحث دقیق، برای مشاورهایی
-          که می‌خوان دقیق‌تر بنویسن. یک <details> ساده، بدون نیاز به state. */}
-      {detail && (
-        <details className="mt-2 border-t border-border/60 pt-2">
-          <summary className="cursor-pointer text-xs text-blue-600 marker:content-none">جزئیات بیشتر</summary>
-          <div className="mt-1.5 space-y-0.5 text-xs text-text-700">
-            <div>فصل: {detail.chapter}</div>
-            <div>ریز مبحث: {detail.subtopic}</div>
-          </div>
-        </details>
-      )}
-    </div>
   );
 }

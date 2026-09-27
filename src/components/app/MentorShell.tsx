@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, MessageCircle, CalendarDays, Wallet, User, Library, LifeBuoy } from "lucide-react";
+import {
+  LayoutDashboard,
+  MessageCircle,
+  CalendarDays,
+  Wallet,
+  User,
+  Library,
+  LifeBuoy,
+  BookOpenCheck,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
@@ -49,6 +58,16 @@ export function MentorShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+
+        <Link
+          href="/mentor/guide"
+          className={cn(
+            "mx-2 mb-2 flex items-center gap-2 rounded-x-sm px-3 py-1.5 text-xs transition-colors",
+            pathname === "/mentor/guide" ? "bg-white/10 text-white" : "text-white/50 hover:text-white"
+          )}
+        >
+          <BookOpenCheck size={14} /> راهنمای مشاور
+        </Link>
 
         <div className="border-t border-white/10 p-3">
           <div className="flex items-center gap-2.5 px-1">

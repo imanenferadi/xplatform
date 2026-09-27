@@ -1,22 +1,25 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Video, Phone, CalendarDays, FileText, AlarmClock, Check, PhoneCall } from "lucide-react";
+import { Video, Phone, CalendarDays, FileText, AlarmClock, Check, PhoneCall, Pencil, Plus } from "lucide-react";
 import { MentorShell } from "@/components/app/MentorShell";
 import { Card } from "@/components/ui/Card";
-import {
-  CURRENT_DAY_NAME,
-  DEFAULT_AVAILABILITY,
-  WEEK_DAYS,
-  mentorStudents,
-  mentorWeekNotes,
-  mentors,
-  upcomingSessions,
-} from "@/lib/mock-data";
+import { Button } from "@/components/ui/Button";
+import { CURRENT_DAY_NAME, SESSION_HOURS, WEEK_DAYS, mentorStudents, mentorWeekNotes } from "@/lib/mock-data";
 import { cn, toLatinDigits, toPersianDigits } from "@/lib/utils";
 import { useCallRequests } from "@/lib/call-store";
+import {
+  slotDay,
+  slotHour,
+  toggleAvailability,
+  useAvailability,
+  useFixedSessions,
+  useWeekSessions,
+} from "@/lib/session-store";
 
-const HOURS = [16, 17, 18, 19, 20];
+const HOURS = SESSION_HOURS;
+const slotOf = (day: string, hour: number) => `${day} ${toPersianDigits(`${hour}:00`)}`;
 
 function hourOf(time: string) {
   return Number(toLatinDigits(time).split(":")[0]);
@@ -25,17 +28,18 @@ function hourOf(time: string) {
 // Same idea as the student's week table: days are columns. For a mentor the
 // rows are hours, since the question is "when am I busy / free?".
 export default function MentorCalendarPage() {
-  const me = mentors[0]; // سارا محمدی — the logged-in mentor of this demo
-  const availability = me.availability?.length ? me.availability : DEFAULT_AVAILABILITY;
+  const availability = useAvailability();
+  const upcomingSessions = useWeekSessions();
+  const fixed = useFixedSessions();
   const todayIndex = WEEK_DAYS.indexOf(CURRENT_DAY_NAME);
+  const [editing, setEditing] = useState(false);
+  const [editError, setEditError] = useState("");
 
-  const freeSlot = (day: string, hour: number) =>
-    availability.some((a) => {
-      const [d, t] = a.split(" ");
-      return d === day && hourOf(t) === hour;
-    });
+  const freeSlot = (day: string, hour: number) => availability.some((a) => slotDay(a) === day && slotHour(a) === hour);
   const sessionsAt = (day: string, hour: number) =>
-    upcomingSessions.filter((s) => s.dayName === day && hourOf(s.time) === hour);
+    upcomingSessions.filter((s) => s.day === day && hourOf(s.time) === hour);
+  const movingIn = (day: string, hour: number) =>
+    fixed.filter((s) => s.nextSlot && slotDay(s.nextSlot) === day && slotHour(s.nextSlot) === hour);
   // Confirmed parent calls take their slot too.
   const confirmedCalls = useCallRequests().filter((c) => c.status === "confirmed");
   const callsAt = (day: string, hour: number) =>
@@ -59,10 +63,37 @@ export default function MentorCalendarPage() {
           <CalendarDays size={18} className="text-blue-600" />
           <h1 className="text-lg font-bold text-text-900">تقویم هفته</h1>
         </div>
-        <p className="mb-5 text-sm text-text-500">
-          <span className="tnum">{toPersianDigits(remaining)}</span> جلسه‌ی پیش‌رو ·{" "}
-          <span className="tnum">{toPersianDigits(openSlots)}</span> وقت آزاد رزرونشده تا آخر هفته
-        </p>
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-text-500">
+            <span className="tnum">{toPersianDigits(remaining)}</span> جلسه‌ی پیش‌رو ·{" "}
+            <span className="tnum">{toPersianDigits(openSlots)}</span> وقت آزاد رزرونشده تا آخر هفته
+          </p>
+          <Button
+            size="md"
+            variant={editing ? "primary" : "secondary"}
+            onClick={() => {
+              setEditing((v) => !v);
+              setEditError("");
+            }}
+          >
+            {editing ? (
+              <>
+                <Check size={14} /> تمام
+              </>
+            ) : (
+              <>
+                <Pencil size={14} /> ویرایش وقت‌های آزاد
+              </>
+            )}
+          </Button>
+        </div>
+        {editing && (
+          <p className="mb-3 rounded-x-md bg-blue-100 p-3 text-xs leading-[1.8] text-text-700">
+            روی هر خونه بزن تا وقت آزاد هفتگی‌ات بشه یا نباشه. دانش‌آموزها جلسه‌ی ثابتشون و والدین تماسشون رو فقط از
+            همین وقت‌ها انتخاب می‌کنن.
+            {editError && <span className="mt-1 block font-medium text-red-500">{editError}</span>}
+          </p>
+        )}
 
         <Card className="overflow-hidden p-0">
           <div className="overflow-x-auto">
@@ -113,7 +144,7 @@ export default function MentorCalendarPage() {
                             if (!student) return null;
                             return (
                               <Link
-                                key={s.id}
+                                key={s.studentId}
                                 href={`/mentor/students/${student.id}`}
                                 className="block rounded-x-md bg-blue-100 px-2.5 py-2 text-blue-600 transition-colors hover:bg-blue-600/20"
                               >
@@ -142,10 +173,41 @@ export default function MentorCalendarPage() {
                               </div>
                             </div>
                           ))}
-                          {sessions.length === 0 && callsAt(d, h).length === 0 && freeSlot(d, h) && !past && (
-                            <div className="rounded-x-md border border-dashed border-mint-500/50 px-2.5 py-2 text-xs text-mint-500">
-                              وقت آزاد
+                          {movingIn(d, h).map((s) => (
+                            <div key={s.studentId} className="mt-1 text-[11px] text-blue-600">
+                              از هفته‌ی بعد: {mentorStudents.find((st) => st.id === s.studentId)?.name}
                             </div>
+                          ))}
+                          {editing && sessions.length === 0 && callsAt(d, h).length === 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => setEditError(toggleAvailability(slotOf(d, h)) ?? "")}
+                              className={cn(
+                                "flex w-full items-center justify-center gap-1 rounded-x-md border border-dashed px-2.5 py-2 text-xs transition-colors",
+                                freeSlot(d, h)
+                                  ? "border-mint-500 bg-mint-500/10 text-mint-500"
+                                  : "border-border text-text-500 hover:border-mint-500 hover:text-mint-500"
+                              )}
+                            >
+                              {freeSlot(d, h) ? (
+                                <>
+                                  <Check size={12} /> آزاد
+                                </>
+                              ) : (
+                                <>
+                                  <Plus size={12} /> آزاد کن
+                                </>
+                              )}
+                            </button>
+                          ) : (
+                            sessions.length === 0 &&
+                            callsAt(d, h).length === 0 &&
+                            freeSlot(d, h) &&
+                            !past && (
+                              <div className="rounded-x-md border border-dashed border-mint-500/50 px-2.5 py-2 text-xs text-mint-500">
+                                وقت آزاد
+                              </div>
+                            )
                           )}
                         </td>
                       );
@@ -200,7 +262,7 @@ export default function MentorCalendarPage() {
             <span className="h-3 w-3 rounded-sm bg-blue-100" /> جلسه (کلیک ← پرونده‌ی دانش‌آموز)
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-sm border border-dashed border-mint-500" /> وقت آزاد از پروفایلت
+            <span className="h-3 w-3 rounded-sm border border-dashed border-mint-500" /> وقت آزاد هفتگی
           </span>
           <span className="flex items-center gap-1.5">
             <span className="h-3 w-3 rounded-sm bg-mint-500/30" /> تماس با والد

@@ -15,15 +15,21 @@ import {
 } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Card } from "@/components/ui/Card";
-import { CURRENT_DAY_NAME, WEEK_DAYS, mentors, studentWeekCalendar, type CalendarDay } from "@/lib/mock-data";
+import { CURRENT_DAY_NAME, WEEK_DAYS, mentors, weekExams, type PlanTask, type SessionMode } from "@/lib/mock-data";
 import { cn, toPersianDigits } from "@/lib/utils";
 import { useMySetup } from "@/lib/setup-store";
 import { freeHours } from "@/lib/schedule";
+import { formatHours, usePublishedWeek } from "@/lib/plan-store";
+import { useWeekSessions } from "@/lib/session-store";
+import { FixedSessionCard } from "@/components/app/FixedSession";
 import type { Commitment } from "@/lib/mock-data";
 
-function formatHours(h: number): string {
-  return toPersianDigits(Number.isInteger(h) ? h : h.toFixed(1));
-}
+type CalendarDay = {
+  dayName: string;
+  tasks: PlanTask[];
+  session?: { time: string; mode: SessionMode };
+  exam?: { provider: string; name: string };
+};
 
 const dayTotal = (d: CalendarDay) => d.tasks.reduce((s, t) => s + t.hours, 0);
 const todayIndex = WEEK_DAYS.indexOf(CURRENT_DAY_NAME);
@@ -68,10 +74,10 @@ function buildRows(schedule: Commitment[]): { label: string; render: (d: Calenda
       label: "جلسه با مشاور",
       render: (d) => {
         if (!d.session) return null;
-        const mentor = mentors.find((m) => m.name === d.session!.mentorName);
+        const mentor = mentors[0];
         const chip = (
           <>
-            <div className="truncate text-sm font-medium text-text-900">{d.session.mentorName}</div>
+            <div className="truncate text-sm font-medium text-text-900">{mentor.name}</div>
             <div className="mt-0.5 flex items-center gap-1 text-xs">
               {d.session.mode === "video" ? <Video size={12} /> : <Phone size={12} />}
               <span className="tnum">{d.session.time}</span>
@@ -113,7 +119,7 @@ function buildRows(schedule: Commitment[]): { label: string; render: (d: Calenda
         d.tasks.length > 0 && (
           <div className="space-y-1.5">
             {d.tasks.map((t) => (
-              <div key={t.subject} className="rounded-x-md bg-surface-2 px-2.5 py-1.5">
+              <div key={t.id} className="rounded-x-md bg-surface-2 px-2.5 py-1.5">
                 <div className="text-sm font-medium text-text-900">{t.subject}</div>
                 <div className="text-xs text-text-500">
                   <span className="tnum">{formatHours(t.hours)}</span> ساعت
@@ -170,6 +176,14 @@ function buildRows(schedule: Commitment[]): { label: string; render: (d: Calenda
 export default function CalendarPage() {
   const { schedule } = useMySetup();
   const ROWS = buildRows(schedule);
+  const plan = usePublishedWeek("me", "this");
+  const mySession = useWeekSessions().find((x) => x.studentId === "me");
+  const studentWeekCalendar: CalendarDay[] = WEEK_DAYS.map((dayName) => ({
+    dayName,
+    tasks: plan?.days[dayName] ?? [],
+    session: mySession?.day === dayName ? { time: mySession.time, mode: mySession.mode } : undefined,
+    exam: weekExams[dayName],
+  }));
   const overloaded = studentWeekCalendar.filter(
     (d) => schedule.length > 0 && !isPast(d) && dayTotal(d) > freeHours(schedule, d.dayName)
   );
@@ -197,6 +211,8 @@ export default function CalendarPage() {
             </>
           )}
         </p>
+        <FixedSessionCard studentId="me" by="student" className="mb-4" />
+
         {overloaded.length > 0 && (
           <div className="mb-4 flex items-start gap-2 rounded-x-md border border-orange-500/30 bg-orange-500/10 p-3 text-xs leading-[1.8] text-text-700">
             <AlertTriangle size={14} className="mt-0.5 shrink-0 text-orange-500" />

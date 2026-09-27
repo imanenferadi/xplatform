@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { createLocalStore } from "./local-store";
-import { myCheckInSeed, type NightlyCheckIn } from "./mock-data";
+import { checkInHistory, myCheckInSeed, nightlyCheckIns, type NightlyCheckIn } from "./mock-data";
 
 // Check-ins the student submits in this browser (demo bridge until there's
 // a backend). One per night: submitting again for the same day replaces it.
@@ -18,8 +18,15 @@ export function useMyCheckIns(): NightlyCheckIn[] {
 }
 
 export function saveCheckIn(checkIn: NightlyCheckIn) {
-  store.set([
-    ...store.get().filter((c) => !(c.week === checkIn.week && c.dayName === checkIn.dayName)),
-    checkIn,
-  ]);
+  store.set([...store.get().filter((c) => !(c.week === checkIn.week && c.dayName === checkIn.dayName)), checkIn]);
+}
+
+/** Reports of one student: live ones for ایمان ("me"), seeds for the rest. */
+export function useStudentReports(studentId: string): NightlyCheckIn[] {
+  const mine = useMyCheckIns();
+  return useMemo(
+    () =>
+      studentId === "me" ? mine : [...nightlyCheckIns, ...checkInHistory].filter((c) => c.studentId === studentId),
+    [mine, studentId]
+  );
 }

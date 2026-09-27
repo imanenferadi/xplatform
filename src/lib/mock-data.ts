@@ -288,48 +288,14 @@ export const studentProfile = {
   },
 };
 
-export const studentPlan = {
-  todayTasks: [
-    { id: 1, subject: "ریاضی" as Subject, topic: "مرور فصل ۳", duration: 45, status: "todo" as const },
-    { id: 2, subject: "شیمی" as Subject, topic: "تست‌زنی و حل نکات", duration: 60, status: "todo" as const },
-    { id: 3, subject: "زیست" as Subject, topic: "مطالعه درس فیزیولوژی", duration: 40, status: "done" as const },
-  ],
-  weekHours: 28,
-  weekCompletedHours: 11,
-  streakDays: 4,
-};
+// Consecutive nights with a report. The plan itself lives in plan-store.
+export const studentStreakDays = 4;
 
-// Combined weekly view for /dashboard/calendar — mentor sessions, the
-// bi-weekly mock exam, and a daily task summary side by side. Deliberately
-// a summary per day (Time Block, not a minute-by-minute calendar); the
-// full per-task breakdown still lives on /dashboard/plan.
-export type CalendarDay = {
-  dayName: string;
-  tasks: { subject: string; hours: number }[]; // same numbers as /dashboard/plan
-  session?: { time: string; mentorName: string; mode: "video" | "audio" };
-  exam?: { provider: string; name: string };
+// The bi-weekly mock exam on this week's calendar (the plan and sessions
+// come from plan-store and session-store).
+export const weekExams: Record<string, { provider: string; name: string }> = {
+  جمعه: { provider: "قلمچی", name: "آزمون جامع شماره ۶" },
 };
-
-export const studentWeekCalendar: CalendarDay[] = [
-  {
-    dayName: "شنبه",
-    tasks: [{ subject: "زیست", hours: 3 }],
-    session: { time: "۱۸:۰۰", mentorName: "سارا محمدی", mode: "video" },
-  },
-  { dayName: "یکشنبه", tasks: [{ subject: "فیزیک", hours: 2 }, { subject: "شیمی", hours: 1.5 }] },
-  {
-    dayName: "دوشنبه",
-    tasks: [
-      { subject: "ریاضی", hours: 3 },
-      { subject: "فیزیک", hours: 2 },
-      { subject: "شیمی", hours: 1.5 },
-    ],
-  },
-  { dayName: "سه‌شنبه", tasks: [{ subject: "ریاضی", hours: 2 }, { subject: "شیمی", hours: 1 }] },
-  { dayName: "چهارشنبه", tasks: [{ subject: "فیزیک", hours: 2.5 }] },
-  { dayName: "پنجشنبه", tasks: [{ subject: "ریاضی", hours: 2 }] },
-  { dayName: "جمعه", tasks: [{ subject: "زیست", hours: 1.5 }], exam: { provider: "قلمچی", name: "آزمون جامع شماره ۶" } },
-];
 
 // ---------------------------------------------------------------------
 // Exam-driven weekly cycle (§ real konkur-mentoring workflow)
@@ -435,28 +401,7 @@ export const targetMajor = {
   ],
 };
 
-// A weekly study-hour budget allocated by priority rank — the highest-impact
-// subject gets the biggest block. This is what turns "شیمی ضعیفه" into an
-// actual number the student can put on their calendar, matching how a
-// mentor really writes a plan out ("ریاضی ۳، فیزیک ۲، شیمی ۱.۵").
-const HOURS_BY_PRIORITY_RANK = [3, 2, 1.5, 1];
-
-// Optional chapter/sub-topic detail per subject — the "جزئیات بیشتر" layer
-// a mentor can choose to fill in for precision (real mentor tools go down
-// to فصل + ریز مبحث, not just a subject name). Left undefined for a subject
-// and the UI simply won't show the expand affordance for it.
-const SUBJECT_DETAILS: Partial<Record<Subject, { chapter: string; subtopic: string }>> = {
-  شیمی: { chapter: "فصل ۲ — تعادل شیمیایی", subtopic: "ثابت تعادل و اصل لوشاتلیه" },
-  زیست: { chapter: "فصل ۶ — تنظیم عصبی", subtopic: "سیناپس و انتقال‌دهنده‌های عصبی" },
-  فیزیک: { chapter: "فصل ۱ — حرکت‌شناسی", subtopic: "حرکت با شتاب ثابت" },
-};
-
-/** Optional فصل/ریز مبحث detail for a subject block, if the mentor filled it in. */
-export function getSubjectDetail(subject: Subject) {
-  return SUBJECT_DETAILS[subject];
-}
-
-/** Weak-subject × coefficient reasoning the mentor's plan should surface. */
+/** Weak-subject × coefficient ranking — analysis for the mentor, not a plan. */
 export function examDrivenPriorities() {
   const latest = examResults[0];
   return latest.subjects
@@ -464,8 +409,7 @@ export function examDrivenPriorities() {
       const coeff = targetMajor.coefficients.find((c) => c.subject === s.subject)?.coefficient ?? 1;
       return { ...s, coefficient: coeff, impact: (100 - s.percentage) * coeff };
     })
-    .sort((a, b) => b.impact - a.impact)
-    .map((s, i) => ({ ...s, hours: HOURS_BY_PRIORITY_RANK[i] ?? 1, detail: SUBJECT_DETAILS[s.subject] }));
+    .sort((a, b) => b.impact - a.impact);
 }
 
 export type CheckInEntry = { subject: string; topic: string; minutes: number; tests: number };
@@ -608,8 +552,8 @@ export const myCheckInSeed: NightlyCheckIn[] = withSleep([
   seedCheckIn("me-5", "me", "last", "چهارشنبه", [["فیزیک", "دینامیک", 50, 20], ["عربی", "قواعد", 30, 20]], "ok"),
   seedCheckIn("me-6", "me", "last", "پنجشنبه", [["زیست", "تنفس", 60, 30], ["ریاضی", "مشتق", 40, 15]], "great"),
   seedCheckIn("me-7", "me", "last", "جمعه", [["زیست", "آزمون جامع قلمچی", 90, 45]], "ok"),
-  seedCheckIn("me-8", "me", "this", "شنبه", [["ریاضی", "مرور فصل ۲", 60, 25], ["شیمی", "تست‌زنی", 45, 30]], "ok"),
-  seedCheckIn("me-9", "me", "this", "یکشنبه", [["فیزیک", "حرکت‌شناسی", 90, 20], ["زیست", "فیزیولوژی", 40, 20]], "great"),
+  seedCheckIn("me-8", "me", "this", "شنبه", [["زیست", "تنظیم عصبی", 160, 40]], "ok"),
+  seedCheckIn("me-9", "me", "this", "یکشنبه", [["فیزیک", "حرکت‌شناسی", 110, 20], ["شیمی", "تست‌زنی فصل ۲", 30, 25]], "great"),
 ], {
   "me-1": ["23:30", "07:00"], "me-2": ["23:00", "06:30"], "me-3": ["00:30", "06:30"], "me-4": ["01:00", "06:30"],
   "me-5": ["23:30", "06:45"], "me-6": ["23:00", "06:30"], "me-7": ["23:30", "06:00"],
@@ -641,7 +585,6 @@ export type MentorStudent = {
   examDrop?: { subject: Subject; from: number; to: number };
   /** Oldest → newest. Real "روند" detection needs history, not one point. */
   weeklyHistory: WeeklyHistoryPoint[];
-  nextWeekPlanReady: boolean; // drives the mentor-side "هنوز برنامه نساختی" nudge
 };
 
 export const mentorStudents: MentorStudent[] = [
@@ -659,7 +602,6 @@ export const mentorStudents: MentorStudent[] = [
       { weekLabel: "۱۵ شهریور", studyHours: 19, planCompletionPercent: 60 },
       { weekLabel: "۲۹ شهریور", studyHours: 14, planCompletionPercent: 45 },
     ],
-    nextWeekPlanReady: false,
   },
   {
     id: "2",
@@ -676,7 +618,6 @@ export const mentorStudents: MentorStudent[] = [
       { weekLabel: "۱۵ شهریور", studyHours: 20, planCompletionPercent: 75 },
       { weekLabel: "۲۹ شهریور", studyHours: 18, planCompletionPercent: 68 },
     ],
-    nextWeekPlanReady: false,
   },
   {
     id: "3",
@@ -691,7 +632,6 @@ export const mentorStudents: MentorStudent[] = [
       { weekLabel: "۱۵ شهریور", studyHours: 27, planCompletionPercent: 84 },
       { weekLabel: "۲۹ شهریور", studyHours: 29, planCompletionPercent: 92 },
     ],
-    nextWeekPlanReady: true,
   },
   // The demo's logged-in student — so what ایمان logs on his side (reports,
   // start-up info, books, school hours) shows up in سارا's panel.
@@ -708,7 +648,6 @@ export const mentorStudents: MentorStudent[] = [
       { weekLabel: "۲۲ شهریور", studyHours: 9, planCompletionPercent: 60 },
       { weekLabel: "۲۹ شهریور", studyHours: 11, planCompletionPercent: 68 },
     ],
-    nextWeekPlanReady: false,
   },
 ];
 
@@ -818,7 +757,7 @@ export function rootCauseAnalysis() {
 // ---------------------------------------------------------------------
 
 // Growth history for the logged-in demo student (ایمان) — drives the
-// trend chart on /parent and /dashboard/reports. Oldest → newest.
+// trend chart on /parent and /dashboard/weekly. Oldest → newest.
 export const studentWeeklyHistory: WeeklyHistoryPoint[] = [
   { weekLabel: "۱ شهریور", studyHours: 8, planCompletionPercent: 40 },
   { weekLabel: "۸ شهریور", studyHours: 9, planCompletionPercent: 48 },
@@ -830,8 +769,9 @@ export const studentWeeklyHistory: WeeklyHistoryPoint[] = [
 export const parentWeeklyReport = {
   studentName: "ایمان",
   weekLabel: "هفته‌ی ۲۹ شهریور تا ۵ مهر",
-  studyHours: studentPlan.weekCompletedHours,
-  studyHoursTarget: studentPlan.weekHours,
+  // Last full week (same point as the trend's «۲۹ شهریور»).
+  studyHours: 11,
+  studyHoursTarget: 16,
   planCompletionPercent: 68,
   trend: "improving" as "improving" | "steady" | "declining",
   mentorNote:
@@ -917,7 +857,7 @@ export const pricingPlans = [
     name: "پایه",
     price: 890000,
     period: "در ماه",
-    features: ["برنامه‌ریز تطبیقی", "معلم هوشمند AI", "بانک تست و گزارش"],
+    features: ["برنامه‌ی هفتگی و تقویم", "معلم هوشمند AI", "بانک تست و گزارش"],
   },
   {
     id: "companion",
@@ -972,22 +912,31 @@ export const mentorMessageThreads: Record<string, ChatMessage[]> = {
   ],
 };
 
-export type UpcomingSession = {
-  id: string;
-  studentId: string;
-  dayName: string; // شنبه … جمعه of the current week
-  dayLabel: string; // "امروز", "فردا", or a day name
-  time: string;
-  mode: "video" | "audio";
-  done?: boolean; // already held earlier this week
-};
+// One fixed weekly session per student, picked from the mentor's free
+// hours. `nextSlot` is a change that starts next week because this week's
+// session already happened.
+export type SessionMode = "video" | "audio";
+export type FixedSession = { studentId: string; slot: string; mode: SessionMode; nextSlot?: string };
 
-export const upcomingSessions: UpcomingSession[] = [
-  { id: "s0", studentId: "1", dayName: "شنبه", dayLabel: "شنبه", time: "۱۷:۰۰", mode: "audio", done: true },
-  { id: "s-me", studentId: "me", dayName: "شنبه", dayLabel: "شنبه", time: "۱۸:۰۰", mode: "video", done: true },
-  { id: "s1", studentId: "3", dayName: "دوشنبه", dayLabel: "امروز", time: "۱۸:۰۰", mode: "video" },
-  { id: "s2", studentId: "2", dayName: "سه‌شنبه", dayLabel: "فردا", time: "۱۹:۳۰", mode: "video" },
-  { id: "s3", studentId: "1", dayName: "پنجشنبه", dayLabel: "پنجشنبه", time: "۱۷:۰۰", mode: "audio" },
+// سارا's weekly hours for sessions and parent calls (editable in her calendar).
+export const SARA_AVAILABILITY = [
+  "شنبه ۱۷:۰۰",
+  "شنبه ۱۸:۰۰",
+  "یکشنبه ۱۹:۰۰",
+  "دوشنبه ۱۸:۰۰",
+  "دوشنبه ۱۹:۰۰",
+  "سه‌شنبه ۱۹:۰۰",
+  "سه‌شنبه ۲۰:۰۰",
+  "چهارشنبه ۱۸:۰۰",
+  "پنجشنبه ۱۷:۰۰",
+];
+export const SESSION_HOURS = [16, 17, 18, 19, 20];
+
+export const fixedSessionSeed: FixedSession[] = [
+  { studentId: "me", slot: "شنبه ۱۸:۰۰", mode: "video" },
+  { studentId: "3", slot: "دوشنبه ۱۸:۰۰", mode: "video" },
+  { studentId: "2", slot: "سه‌شنبه ۱۹:۰۰", mode: "video" },
+  { studentId: "1", slot: "پنجشنبه ۱۷:۰۰", mode: "audio" },
 ];
 
 // Other fixed commitments on the mentor's week (read-only, for the calendar).
@@ -2270,7 +2219,7 @@ export const REPORT_REACTIONS: Record<ReportReaction, { emoji: string; label: st
 export type ReportFeedback = { reaction: ReportReaction; comment: string; at: string };
 
 export const reportFeedbackSeed: Record<string, ReportFeedback> = {
-  "me-8": { reaction: "great", comment: "۳۰ تست شیمی توی ۴۵ دقیقه عالیه؛ همین ریتم رو نگه دار.", at: "یکشنبه، ۰۸:۱۰" },
+  "me-8": { reaction: "great", comment: "۴۰ تست تنظیم عصبی توی یک روز عالیه؛ همین ریتم رو نگه دار.", at: "یکشنبه، ۰۸:۱۰" },
   "h3-9": { reaction: "keep_going", comment: "تعادل رو خوب پیش بردی، فردا مثلثات رو جدی‌تر بگیر.", at: "دوشنبه، ۰۷:۴۰" },
 };
 
@@ -2355,3 +2304,168 @@ export const schoolSeed = {
     { id: "ss-9", name: "ریحانه موسوی", grade: "یازدهم تجربی", mentorName: "نگار احمدی", reportRate: null, studyHours: null, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۸" },
   ] as SchoolStudent[],
 };
+
+// ---------------------------------------------------------------------
+// Weekly plan — written entirely by the mentor (no AI suggestions for
+// now). Each week has what the student sees (`published`) and the
+// mentor's unsent edits (`draft`). Time blocks per subject, the way a
+// mentor writes it: «ریاضی ۳، فیزیک ۲، شیمی ۱.۵».
+// ---------------------------------------------------------------------
+export type PlanTask = { id: string; subject: string; topic: string; hours: number; chapter?: string; subtopic?: string };
+export type PlanDays = Record<string, PlanTask[]>;
+export type PlanWeek = "this" | "next";
+export type WeekPlan = { days: PlanDays; note: string; sentAt: string };
+export type PlanDraft = { days: PlanDays; note: string };
+export type StudentPlans = Record<PlanWeek, { published: WeekPlan | null; draft: PlanDraft | null }>;
+export type PlanTemplate = { id: string; name: string; days: PlanDays };
+
+export const PLAN_WEEK_LABELS: Record<PlanWeek, string> = {
+  this: "این هفته (۵ تا ۱۱ مهر)",
+  next: "هفته‌ی بعد (۱۲ تا ۱۸ مهر)",
+};
+export const PLAN_HOUR_OPTIONS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6];
+/** Next week's plan is due by Friday night (research: a reliable mentor has it ready Saturday). */
+export const PLAN_DEADLINE_DAY = "جمعه";
+
+type Row = [day: string, subject: string, topic: string, hours: number, chapter?: string, subtopic?: string];
+
+function planDays(prefix: string, rows: Row[]): PlanDays {
+  const days: PlanDays = Object.fromEntries(WEEK_DAYS.map((d) => [d, [] as PlanTask[]]));
+  rows.forEach(([day, subject, topic, hours, chapter, subtopic], i) => {
+    days[day].push({ id: `${prefix}-${i + 1}`, subject, topic, hours, ...(chapter ? { chapter, subtopic } : {}) });
+  });
+  return days;
+}
+
+export const planSeed: Record<string, StudentPlans> = {
+  me: {
+    this: {
+      published: {
+        days: planDays("pme", [
+          ["شنبه", "زیست", "تنظیم عصبی — درسنامه و تست", 3, "فصل ۶ — تنظیم عصبی", "سیناپس و انتقال‌دهنده‌های عصبی"],
+          ["یکشنبه", "فیزیک", "حرکت‌شناسی", 2, "فصل ۱ — حرکت‌شناسی", "حرکت با شتاب ثابت"],
+          ["یکشنبه", "شیمی", "تست‌زنی فصل ۲", 1.5],
+          ["دوشنبه", "ریاضی", "مشتق و کاربردها", 3],
+          ["دوشنبه", "فیزیک", "حرکت‌شناسی — تست", 2],
+          ["دوشنبه", "شیمی", "تعادل شیمیایی", 1.5, "فصل ۲ — تعادل شیمیایی", "ثابت تعادل و اصل لوشاتلیه"],
+          ["سه‌شنبه", "ریاضی", "مرور نکات کنکوری", 2],
+          ["سه‌شنبه", "شیمی", "شیمی آلی", 1],
+          ["چهارشنبه", "فیزیک", "تست جامع فصل ۱ و ۲", 2.5],
+          ["پنجشنبه", "ریاضی", "فصل ۴ — انتگرال", 2],
+          ["جمعه", "زیست", "مرور هفته", 1.5],
+        ]),
+        note: "این هفته تمرکز روی تعادل شیمیایی و مشتقه. جمعه آزمون داری؛ پنجشنبه شب زود بخواب.",
+        sentAt: "شنبه ۵ مهر، ۱۹:۱۰",
+      },
+      draft: null,
+    },
+    next: { published: null, draft: null },
+  },
+  "1": {
+    this: {
+      published: {
+        days: planDays("s1", [
+          ["شنبه", "شیمی", "استوکیومتری — درسنامه", 2],
+          ["یکشنبه", "زیست", "گردش خون", 2],
+          ["دوشنبه", "شیمی", "استوکیومتری — تست", 1.5],
+          ["سه‌شنبه", "فیزیک", "دینامیک", 1.5],
+          ["چهارشنبه", "زیست", "گردش خون — تست", 2],
+          ["پنجشنبه", "ریاضی", "تابع", 1.5],
+        ]),
+        note: "هفته‌ی سبک‌تر گذاشتم که دوباره راه بیفتی. هر شب گزارش یادت نره.",
+        sentAt: "شنبه ۵ مهر، ۱۰:۲۰",
+      },
+      draft: null,
+    },
+    next: { published: null, draft: null },
+  },
+  "2": {
+    this: {
+      published: {
+        days: planDays("s2", [
+          ["شنبه", "ریاضی", "حد و پیوستگی", 3],
+          ["یکشنبه", "فیزیک", "الکتریسیته ساکن", 2],
+          ["دوشنبه", "ریاضی", "حد — تست", 2],
+          ["دوشنبه", "شیمی", "ساختار اتم", 1],
+          ["سه‌شنبه", "فیزیک", "الکتریسیته — تست", 2],
+          ["چهارشنبه", "ریاضی", "هندسه — دایره", 2],
+          ["پنجشنبه", "شیمی", "ساختار اتم — تست", 1.5],
+        ]),
+        note: "",
+        sentAt: "شنبه ۵ مهر، ۰۹:۴۰",
+      },
+      draft: null,
+    },
+    next: { published: null, draft: null },
+  },
+  "3": {
+    this: {
+      published: {
+        days: planDays("s3", [
+          ["شنبه", "زیست", "تنظیم عصبی", 3],
+          ["شنبه", "شیمی", "تعادل", 2],
+          ["یکشنبه", "فیزیک", "نوسان", 3],
+          ["دوشنبه", "زیست", "حواس", 3],
+          ["دوشنبه", "ریاضی", "مشتق", 2],
+          ["سه‌شنبه", "شیمی", "اسید و باز", 3],
+          ["چهارشنبه", "زیست", "تست ترکیبی", 3],
+          ["پنجشنبه", "فیزیک", "موج", 2],
+        ]),
+        note: "روند عالیه، همین رو ادامه بده.",
+        sentAt: "جمعه ۴ مهر، ۲۱:۰۰",
+      },
+      draft: null,
+    },
+    next: {
+      published: {
+        days: planDays("s3n", [
+          ["شنبه", "زیست", "دستگاه حرکتی", 3],
+          ["یکشنبه", "شیمی", "الکتروشیمی", 3],
+          ["دوشنبه", "فیزیک", "موج — تست", 2.5],
+          ["سه‌شنبه", "زیست", "هورمون‌ها", 3],
+          ["چهارشنبه", "ریاضی", "انتگرال", 2],
+          ["پنجشنبه", "شیمی", "الکتروشیمی — تست", 2],
+        ]),
+        note: "",
+        sentAt: "دوشنبه ۷ مهر، ۰۸:۳۰",
+      },
+      draft: null,
+    },
+  },
+};
+
+// Ticked tasks (by the student, the focus timer or tonight's report).
+export const planDoneSeed = ["pme-1", "pme-2", "s1-1", "s2-1", "s2-2", "s3-1", "s3-2", "s3-3"];
+
+export const planTemplateSeed: PlanTemplate[] = [
+  {
+    id: "tpl-1",
+    name: "هفته‌ی عادی تجربی (۲۲ ساعت)",
+    days: planDays("tpl1", [
+      ["شنبه", "زیست", "درسنامه + تست", 3],
+      ["یکشنبه", "فیزیک", "درسنامه + تست", 2],
+      ["یکشنبه", "شیمی", "تست", 1.5],
+      ["دوشنبه", "ریاضی", "درسنامه + تست", 2],
+      ["دوشنبه", "زیست", "تست", 1.5],
+      ["سه‌شنبه", "شیمی", "درسنامه + تست", 2],
+      ["سه‌شنبه", "فیزیک", "تست", 1.5],
+      ["چهارشنبه", "زیست", "تست ترکیبی", 2],
+      ["چهارشنبه", "ریاضی", "تست", 1.5],
+      ["پنجشنبه", "فیزیک", "مرور", 1.5],
+      ["جمعه", "زیست", "مرور هفته", 2],
+    ]),
+  },
+  {
+    id: "tpl-2",
+    name: "هفته‌ی آزمون — سبک (۱۴ ساعت)",
+    days: planDays("tpl2", [
+      ["شنبه", "زیست", "مرور مباحث آزمون", 2.5],
+      ["یکشنبه", "شیمی", "مرور مباحث آزمون", 2],
+      ["دوشنبه", "فیزیک", "مرور مباحث آزمون", 2],
+      ["سه‌شنبه", "ریاضی", "مرور مباحث آزمون", 2],
+      ["چهارشنبه", "زیست", "تست زمان‌دار", 2],
+      ["پنجشنبه", "شیمی", "مرور سبک", 1.5],
+      ["جمعه", "زیست", "تحلیل آزمون", 2],
+    ]),
+  },
+];

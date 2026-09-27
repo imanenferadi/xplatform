@@ -5,28 +5,34 @@ import Link from "next/link";
 import { X, Play, Pause, Check, SkipForward, PartyPopper } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { ProgressCircle } from "@/components/ui/Progress";
-import { studentPlan } from "@/lib/mock-data";
-import { logFocus, useCompletedTaskIds } from "@/lib/focus-log-store";
+import type { PlanTask } from "@/lib/mock-data";
+import { logFocus, useFocusMinutesByTask } from "@/lib/focus-log-store";
+import { formatHours, useDoneIds, useTodayTasks } from "@/lib/plan-store";
 import { formatClock, useCountdown } from "@/lib/use-countdown";
 import { toPersianDigits } from "@/lib/utils";
 
-type Task = (typeof studentPlan.todayTasks)[number];
+type Task = PlanTask;
+// A 3-hour block is several focus rounds, not one 180-minute countdown.
+const ROUND_MINUTES = 50;
 
 // Distraction-free: no sidebar, no nav, no other cards — just the next
 // undone task from today's plan and its timer.
 export default function FocusModePage() {
-  const completed = useCompletedTaskIds();
-  const [skipped, setSkipped] = useState<number[]>([]);
-  const [finished, setFinished] = useState<Task | null>(null);
+  const todayTasks = useTodayTasks();
+  const completed = useDoneIds();
+  const logged = useFocusMinutesByTask();
+  const [skipped, setSkipped] = useState<string[]>([]);
+  const [finished, setFinished] = useState<{ task: Task; minutes: number; blockDone: boolean } | null>(null);
 
-  const remaining = studentPlan.todayTasks.filter((t) => t.status !== "done" && !completed.has(t.id));
+  const remaining = todayTasks.filter((t) => !completed.has(t.id));
   const queue = remaining.filter((t) => !skipped.includes(t.id));
   // Once everything left has been skipped, cycle back to the skipped ones.
   const current = queue[0] ?? remaining[0];
 
-  function complete(task: Task, minutes: number) {
-    logFocus(task.id, minutes);
-    setFinished(task);
+  function complete(task: Task, minutes: number, early: boolean) {
+    const block = task.hours * 60;
+    logFocus(task.id, minutes, block, early);
+    setFinished({ task, minutes, blockDone: early || (logged.get(task.id) ?? 0) + minutes >= block });
   }
 
   return (
@@ -44,20 +50,30 @@ export default function FocusModePage() {
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-mint-500/15">
               <Check size={26} className="text-mint-500" />
             </div>
-            <h1 className="text-lg font-bold text-text-900">«{finished.topic}» تموم شد</h1>
-            <p className="mt-1 text-sm text-text-500">توی برنامه‌ی امروز ثبت شد. یه نفس بکش.</p>
+            <h1 className="text-lg font-bold text-text-900">
+              {finished.blockDone
+                ? `${finished.task.subject} امروز تموم شد`
+                : `${toPersianDigits(finished.minutes)} دقیقه ${finished.task.subject} ثبت شد`}
+            </h1>
+            <p className="mt-1 text-sm text-text-500">
+              {finished.blockDone
+                ? "توی برنامه‌ی امروز تیک خورد. یه نفس بکش."
+                : `از ${formatHours(finished.task.hours)} ساعتش. ۱۰ دقیقه استراحت کن، بعد دور بعدی.`}
+            </p>
             <Button size="lg" className="mt-6" onClick={() => setFinished(null)}>
-              {current ? "برو سراغ کار بعدی" : "تمام"}
+              {finished.blockDone ? (current ? "برو سراغ کار بعدی" : "تمام") : "دور بعدی"}
             </Button>
           </>
         ) : current ? (
           <FocusSession
-            key={current.id}
+            key={`${current.id}-${logged.get(current.id) ?? 0}`}
             task={current}
-            position={studentPlan.todayTasks.length - remaining.length + 1}
-            total={studentPlan.todayTasks.length}
+            roundMinutes={Math.min(ROUND_MINUTES, Math.max(1, current.hours * 60 - (logged.get(current.id) ?? 0)))}
+            loggedMinutes={logged.get(current.id) ?? 0}
+            position={todayTasks.length - remaining.length + 1}
+            total={todayTasks.length}
             canSkip={remaining.length > 1}
-            onComplete={(minutes) => complete(current, minutes)}
+            onComplete={(minutes, early) => complete(current, minutes, early)}
             onSkip={() => setSkipped((s) => [...s.filter((id) => id !== current.id), current.id])}
           />
         ) : (
@@ -77,6 +93,8 @@ export default function FocusModePage() {
 
 function FocusSession({
   task,
+  roundMinutes,
+  loggedMinutes,
   position,
   total,
   canSkip,
@@ -84,14 +102,16 @@ function FocusSession({
   onSkip,
 }: {
   task: Task;
+  roundMinutes: number;
+  loggedMinutes: number;
   position: number;
   total: number;
   canSkip: boolean;
-  onComplete: (minutes: number) => void;
+  onComplete: (minutes: number, early: boolean) => void;
   onSkip: () => void;
 }) {
-  const totalSeconds = task.duration * 60;
-  const { remaining, running, setRunning } = useCountdown(totalSeconds, () => onComplete(task.duration));
+  const totalSeconds = roundMinutes * 60;
+  const { remaining, running, setRunning } = useCountdown(totalSeconds, () => onComplete(roundMinutes, false));
   const elapsed = totalSeconds - remaining;
 
   return (
@@ -99,8 +119,16 @@ function FocusSession({
       <div className="tnum mb-2 text-xs text-text-500">
         کار {toPersianDigits(position)} از {toPersianDigits(total)}
       </div>
-      <h1 className="text-2xl font-bold text-text-900">{task.topic}</h1>
-      <p className="mt-1 text-sm text-text-500">{task.subject}</p>
+      <h1 className="text-2xl font-bold text-text-900">{task.topic || task.subject}</h1>
+      <p className="mt-1 text-sm text-text-500">
+        {task.subject} · {formatHours(task.hours)} ساعت
+        {loggedMinutes > 0 && (
+          <>
+            {" "}
+            · <span className="tnum">{toPersianDigits(loggedMinutes)}</span> دقیقه‌اش رو خوندی
+          </>
+        )}
+      </p>
 
       <div className="my-8">
         <ProgressCircle
@@ -128,8 +156,8 @@ function FocusSession({
 
       <div className="mt-4 flex items-center gap-4 text-sm">
         <button
-          onClick={() => onComplete(Math.ceil(elapsed / 60))}
-          disabled={elapsed === 0}
+          onClick={() => onComplete(Math.ceil(elapsed / 60), true)}
+          disabled={elapsed === 0 && loggedMinutes === 0}
           className="flex items-center gap-1 text-text-500 hover:text-mint-500 disabled:opacity-40 disabled:hover:text-text-500"
         >
           <Check size={15} /> زودتر تموم شد

@@ -32,9 +32,8 @@ const navGroups: NavGroup[] = [
     icon: BarChart3,
     sections: [
       { href: "/dashboard/report", label: "گزارش کار" },
-      { href: "/dashboard/weekly", label: "جمع هفته" },
+      { href: "/dashboard/weekly", label: "جمع هفته و روند" },
       { href: "/dashboard/karnameh", label: "کارنامه" },
-      { href: "/dashboard/reports", label: "روند پیشرفت" },
     ],
   },
   { label: "مشاور من", icon: MessageCircle, sections: [{ href: "/chat", label: "پیام‌ها" }] },

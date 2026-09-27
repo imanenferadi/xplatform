@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Moon, PhoneCall, Check, X } from "lucide-react";
+import { Moon, Check, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
@@ -10,9 +10,8 @@ import { Button } from "@/components/ui/Button";
 import { mentorStudents, moodLabels, nightlyCheckIns, type CallRequest } from "@/lib/mock-data";
 import { useMyCheckIns } from "@/lib/checkin-store";
 import { useReportFeedback } from "@/lib/feedback-store";
-import { answerCall, useCallRequests, useOpenSlots } from "@/lib/call-store";
+import { answerCall, useOpenSlots } from "@/lib/call-store";
 import { byRecency } from "@/lib/reports";
-import { cn } from "@/lib/utils";
 
 /** Latest nightly reports; «جدید» until the mentor gives feedback. */
 export function ReportFeed() {
@@ -62,38 +61,8 @@ export function ReportFeed() {
   );
 }
 
-/** Parents asking for a short call; confirmed ones land in the calendar. */
-export function CallRequestsCard() {
-  const calls = useCallRequests();
-  const pending = calls.filter((c) => c.status === "pending");
-  const confirmed = calls.filter((c) => c.status === "confirmed");
-  if (pending.length === 0 && confirmed.length === 0) return null;
-
-  return (
-    <Card className="mt-4 border-blue-600/30">
-      <CardContent>
-        <h2 className="mb-3 flex items-center gap-1.5 text-sm font-bold text-text-900">
-          <PhoneCall size={15} className="text-blue-600" /> درخواست تماس والدین
-        </h2>
-        <div className="space-y-3">
-          {pending.map((c) => (
-            <PendingCall key={c.id} call={c} />
-          ))}
-        </div>
-        {confirmed.length > 0 && (
-          <p className={cn("text-xs text-text-500", pending.length > 0 && "mt-3 border-t border-border pt-3")}>
-            تماس‌های تأییدشده: {confirmed.map((c) => `${c.slot} با ${c.parentName}`).join("، ")} —{" "}
-            <Link href="/mentor/calendar" className="text-blue-600 hover:underline">
-              در تقویم
-            </Link>
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function PendingCall({ call: c }: { call: CallRequest }) {
+/** One parent call request with confirm / other time / decline, inline. */
+export function PendingCall({ call: c }: { call: CallRequest }) {
   const openSlots = useOpenSlots();
   const [mode, setMode] = useState<"idle" | "other" | "decline">("idle");
   const [slot, setSlot] = useState("");
@@ -102,15 +71,11 @@ function PendingCall({ call: c }: { call: CallRequest }) {
   const alternatives = openSlots.filter((s) => s !== c.slot);
 
   return (
+    // Name, topic and slot are already in the «کارهای امروز» row above this.
     <div className="rounded-x-md bg-surface-2 p-3 text-sm">
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="font-medium text-text-900">{c.parentName}</span>
-        <Badge tone="neutral">{c.topic}</Badge>
-        <span className="text-xs text-text-500">· {c.createdAt}</span>
-      </div>
-      {c.note && <p className="mt-1 text-xs leading-[1.8] text-text-700">«{c.note}»</p>}
+      {c.note && <p className="text-xs leading-[1.8] text-text-700">«{c.note}»</p>}
       <div className="mt-1 text-xs text-text-500">
-        وقت پیشنهادی: <span className="font-medium text-text-900">{c.slot}</span> · تلفن:{" "}
+        {c.createdAt} · تلفن:{" "}
         <span dir="ltr" className="tnum">
           {c.phone}
         </span>

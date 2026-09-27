@@ -8,8 +8,8 @@ import { StudentShell } from "@/components/app/StudentShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { ProgressCircle } from "@/components/ui/Progress";
-import { studentPlan } from "@/lib/mock-data";
 import { logFocus } from "@/lib/focus-log-store";
+import { useTodayTasks } from "@/lib/plan-store";
 import { formatClock, useCountdown } from "@/lib/use-countdown";
 import { cn, toLatinDigits, toPersianDigits } from "@/lib/utils";
 
@@ -38,23 +38,28 @@ const MAX_CUSTOM = 180;
 function FocusTimer() {
   // Opened from a plan task ("شروع" on the dashboard) → preload its duration
   // and log the minutes against that task when the focus session ends.
-  const taskParam = Number(useSearchParams().get("task"));
-  const task = studentPlan.todayTasks.find((t) => t.id === taskParam);
+  const taskParam = useSearchParams().get("task");
+  const task = useTodayTasks().find((t) => t.id === taskParam);
 
   const [mode, setMode] = useState<Mode>("focus");
-  const [minutes, setMinutes] = useState(task?.duration ?? PRESETS.focus[0].minutes);
+  const [minutes, setMinutes] = useState(PRESETS.focus[task ? 1 : 0].minutes);
   const [justFinished, setJustFinished] = useState(false);
   const [focusSessionsToday, setFocusSessionsToday] = useState(0);
   const [focusMinutesToday, setFocusMinutesToday] = useState(0);
   const [customInput, setCustomInput] = useState("");
   const [customError, setCustomError] = useState("");
 
-  const { remaining, running, setRunning, reset: resetCountdown } = useCountdown(minutes * 60, () => {
+  const {
+    remaining,
+    running,
+    setRunning,
+    reset: resetCountdown,
+  } = useCountdown(minutes * 60, () => {
     setJustFinished(true);
     if (mode === "focus") {
       setFocusSessionsToday((n) => n + 1);
       setFocusMinutesToday((n) => n + minutes);
-      if (task) logFocus(task.id, minutes);
+      if (task) logFocus(task.id, minutes, task.hours * 60);
     }
   });
 
@@ -100,7 +105,8 @@ function FocusTimer() {
           <div className="min-w-0 flex-1 text-sm">
             <span className="text-text-500">در حال کار روی: </span>
             <span className="font-medium text-text-900">
-              {task.topic} — {task.subject}
+              {task.subject}
+              {task.topic && ` — ${task.topic}`}
             </span>
           </div>
           <Link href="/dashboard/focustimer" className="text-text-500 hover:text-text-900" aria-label="جدا کردن از تسک">
@@ -180,7 +186,13 @@ function FocusTimer() {
       {/* Ring */}
       <Card>
         <CardContent className="flex flex-col items-center py-8">
-          <ProgressCircle value={elapsedPercent} size={220} strokeWidth={12} ringClassName={meta.ring} transitionMs={950}>
+          <ProgressCircle
+            value={elapsedPercent}
+            size={220}
+            strokeWidth={12}
+            ringClassName={meta.ring}
+            transitionMs={950}
+          >
             <div className="flex flex-col items-center">
               <Icon size={20} className="mb-1 text-text-500" />
               <span className="tnum text-4xl font-extrabold text-text-900">{formatClock(remaining)}</span>
@@ -190,11 +202,13 @@ function FocusTimer() {
 
           {justFinished ? (
             <div className="mt-6 flex flex-col items-center gap-3">
-              <div className={cn("flex items-center gap-1.5 rounded-x-pill px-3 py-1.5 text-sm font-medium", meta.tint)}>
+              <div
+                className={cn("flex items-center gap-1.5 rounded-x-pill px-3 py-1.5 text-sm font-medium", meta.tint)}
+              >
                 <Check size={14} />
                 {mode === "focus"
                   ? task
-                    ? `«${task.topic}» انجام شد و ثبت شد`
+                    ? `${toPersianDigits(minutes)} دقیقه ${task.subject} ثبت شد`
                     : "یک جلسه‌ی فوکوس تموم شد!"
                   : "استراحت تموم شد"}
               </div>
@@ -222,12 +236,7 @@ function FocusTimer() {
                   </>
                 )}
               </Button>
-              <Button
-                size="lg"
-                variant="secondary"
-                onClick={() => selectDuration(minutes)}
-                aria-label="ریست"
-              >
+              <Button size="lg" variant="secondary" onClick={() => selectDuration(minutes)} aria-label="ریست">
                 <RotateCcw size={16} />
               </Button>
             </div>

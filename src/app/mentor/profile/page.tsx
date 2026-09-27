@@ -82,9 +82,13 @@ export default function MentorProfilePage() {
           </CardContent>
         </Card>
 
-        <MeetingSettings />
+        <div id="meeting" className="scroll-mt-20">
+          <MeetingSettings />
+        </div>
 
-        <CapacitySettings mentor={me} />
+        <div id="capacity" className="scroll-mt-20">
+          <CapacitySettings mentor={me} />
+        </div>
       </div>
     </MentorShell>
   );

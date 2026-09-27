@@ -2,18 +2,10 @@
 
 import { useMemo } from "react";
 import { createLocalStore } from "./local-store";
-import {
-  DEFAULT_AVAILABILITY,
-  WEEK_DAYS,
-  CURRENT_DAY_NAME,
-  callRequestSeed,
-  mentors,
-  upcomingSessions,
-  type CallRequest,
-} from "./mock-data";
+import { WEEK_DAYS, CURRENT_DAY_NAME, callRequestSeed, type CallRequest } from "./mock-data";
 import { logEvent } from "./admin-log-store";
 import { nowClock } from "./followup-store";
-import { toLatinDigits } from "./utils";
+import { useAvailability, useWeekSessions } from "./session-store";
 
 // Parent → mentor call requests. The parent picks one of the mentor's free
 // slots; the mentor confirms, proposes another, or declines with a note.
@@ -21,23 +13,20 @@ const store = createLocalStore<CallRequest[]>("x-calls", callRequestSeed);
 
 export const useCallRequests = store.useValue;
 
-const hour = (t: string) => Number(toLatinDigits(t).split(":")[0]);
-
-/** سارا's free slots from today on that no session already took. */
+/** سارا's free slots from today on that no session or confirmed call took. */
 export function useOpenSlots(): string[] {
   const calls = store.useValue();
+  const availability = useAvailability();
+  const sessions = useWeekSessions();
   return useMemo(() => {
-    const me = mentors[0];
-    const availability = me.availability?.length ? me.availability : DEFAULT_AVAILABILITY;
     const today = WEEK_DAYS.indexOf(CURRENT_DAY_NAME);
     return availability.filter((slot) => {
-      const [day, time] = slot.split(" ");
-      if (WEEK_DAYS.indexOf(day) < today) return false;
-      const session = upcomingSessions.some((s) => s.dayName === day && hour(s.time) === hour(time));
+      if (WEEK_DAYS.indexOf(slot.split(" ")[0]) < today) return false;
+      const session = sessions.some((s) => s.slot === slot);
       const call = calls.some((c) => c.status === "confirmed" && c.slot === slot);
       return !session && !call;
     });
-  }, [calls]);
+  }, [calls, availability, sessions]);
 }
 
 export function requestCall(r: Omit<CallRequest, "id" | "status" | "mentorNote" | "createdAt">) {

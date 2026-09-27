@@ -25,7 +25,7 @@ export function HumanAiDistinction() {
             <GraduationCap size={22} className="text-yellow-400" />
             <h3 className="mt-3 font-bold">مشاور رتبه‌برتر</h3>
             <p className="mt-2 text-sm leading-[1.75] text-white/70">
-              برنامه‌ی پیشنهادی AI را تأیید یا اصلاح می‌کند، جلسه‌ی هفتگی برگزار می‌کند، و
+              برنامه‌ی هفتگی را خودش روی وقت آزاد واقعی‌ات می‌نویسد، جلسه‌ی هفتگی برگزار می‌کند، و
               پاسخگوی نتیجه است — چیزی که هیچ چت‌باتی نمی‌تواند باشد.
             </p>
           </div>

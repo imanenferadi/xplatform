@@ -18,8 +18,10 @@ import { buttonVariants } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/Progress";
 import { Badge } from "@/components/ui/Badge";
-import { KONKUR_DATE, REPORT_REACTIONS, daysUntilKonkur, mentors, studentPlan } from "@/lib/mock-data";
-import { useCompletedTaskIds } from "@/lib/focus-log-store";
+import { KONKUR_DATE, REPORT_REACTIONS, daysUntilKonkur, mentors, studentStreakDays } from "@/lib/mock-data";
+import { formatHours, useDoneIds, usePublishedWeek, useTodayTasks, weekHours } from "@/lib/plan-store";
+import { nextSessionLabel, useFixedSession } from "@/lib/session-store";
+import { aggregateWeek, formatStudyTime } from "@/lib/checkins";
 import { setupSteps, useMySetup } from "@/lib/setup-store";
 import { useMyCheckIns } from "@/lib/checkin-store";
 import { useReportFeedback } from "@/lib/feedback-store";
@@ -28,17 +30,19 @@ import { toPersianDigits, cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const mentor = mentors[0];
-  const completed = useCompletedTaskIds();
-  const tasks = studentPlan.todayTasks.map((t) => ({
-    ...t,
-    done: t.status === "done" || completed.has(t.id),
-  }));
+  const completed = useDoneIds();
+  const tasks = useTodayTasks().map((t) => ({ ...t, done: completed.has(t.id) }));
+  const week = usePublishedWeek("me", "this");
+  const plannedHours = week ? weekHours(week.days) : 0;
+  const checkIns = useMyCheckIns();
+  const studiedMinutes = aggregateWeek(checkIns, "this").totalMinutes;
+  const session = useFixedSession("me");
   const nextTask = tasks.find((t) => !t.done);
   const steps = setupSteps(useMySetup());
   const stepsDone = steps.filter((st) => st.done).length;
   // The most recent report the mentor reacted to.
   const feedbackMap = useReportFeedback();
-  const lastWithFeedback = byRecency(useMyCheckIns()).find((c) => feedbackMap[c.id]);
+  const lastWithFeedback = byRecency(checkIns).find((c) => feedbackMap[c.id]);
   const feedback = lastWithFeedback ? feedbackMap[lastWithFeedback.id] : null;
   const todoCount = tasks.filter((t) => !t.done).length;
 
@@ -136,9 +140,9 @@ export default function DashboardPage() {
             <CardContent className="flex items-center justify-between gap-4">
               <div>
                 <div className="text-sm text-text-500">کار بعدی</div>
-                <div className="font-bold text-text-900">{nextTask.topic}</div>
+                <div className="font-bold text-text-900">{nextTask.topic || nextTask.subject}</div>
                 <div className="tnum mt-1 text-xs text-text-500">
-                  {toPersianDigits(nextTask.duration)} دقیقه · {nextTask.subject}
+                  {formatHours(nextTask.hours)} ساعت · {nextTask.subject}
                 </div>
               </div>
               <Link href="/dashboard/focus" className={buttonVariants({ size: "md" })}>
@@ -158,7 +162,12 @@ export default function DashboardPage() {
               </div>
               <div className="flex-1">
                 <div className="text-xs text-text-500">جلسه‌ی بعدی با {mentor.name}</div>
-                <div className="text-sm font-medium text-text-900">شنبه، ساعت ۱۸:۰۰</div>
+                <div className="text-sm font-medium text-text-900">
+                  {session ? nextSessionLabel(session) : "هنوز وقت ثابت نداری"}
+                </div>
+                <Link href="/dashboard/calendar" className="text-[11px] text-blue-600 hover:underline">
+                  تغییر وقت ثابت
+                </Link>
               </div>
               <Link href={`/session/${mentor.id}`} className={buttonVariants({ size: "md" })}>
                 ورود به جلسه
@@ -187,21 +196,31 @@ export default function DashboardPage() {
               <h3 className="text-sm font-bold text-text-900">پیشرفت این هفته</h3>
               <span className="flex items-center gap-1 text-xs text-orange-500">
                 <Flame size={14} />
-                <span className="tnum">{toPersianDigits(studentPlan.streakDays)}</span> روز پشت‌سرهم
+                <span className="tnum">{toPersianDigits(studentStreakDays)}</span> شب پشت‌سرهم گزارش
               </span>
             </div>
             <div className="mb-1.5 flex items-center justify-between text-sm">
-              <span className="text-text-700">ساعت مطالعه</span>
+              <span className="text-text-700">ساعت مطالعه (از گزارش کارها)</span>
               <span className="tnum text-text-500">
-                {toPersianDigits(studentPlan.weekCompletedHours)} از {toPersianDigits(studentPlan.weekHours)} ساعت
+                {formatStudyTime(studiedMinutes)} از {formatHours(plannedHours)} ساعت برنامه
               </span>
             </div>
-            <ProgressBar value={(studentPlan.weekCompletedHours / studentPlan.weekHours) * 100} />
+            <ProgressBar value={plannedHours ? Math.min(100, (studiedMinutes / 60 / plannedHours) * 100) : 0} />
           </CardContent>
         </Card>
 
         {/* Today's tasks */}
-        <h2 className="mb-3 mt-6 text-sm font-bold text-text-900">برنامه‌ی امروز</h2>
+        <h2 className="mb-3 mt-6 flex items-center justify-between text-sm font-bold text-text-900">
+          برنامه‌ی امروز
+          <Link href="/dashboard/plan" className="text-xs font-normal text-blue-600 hover:underline">
+            کل هفته
+          </Link>
+        </h2>
+        {tasks.length === 0 && (
+          <p className="rounded-x-md bg-surface-2 p-4 text-center text-sm text-text-500">
+            {mentor.name} برای امروز برنامه‌ای ننوشته — استراحت.
+          </p>
+        )}
         <div className="space-y-3">
           {tasks.map((t) => (
             <Card key={t.id}>
@@ -209,11 +228,10 @@ export default function DashboardPage() {
                 <div className={cn("h-2.5 w-2.5 shrink-0 rounded-full", t.done ? "bg-mint-500" : "bg-border")} />
                 <div className="flex-1">
                   <div className={cn("text-sm font-medium", t.done ? "text-text-500 line-through" : "text-text-900")}>
-                    {t.topic}
+                    {t.subject}
+                    {t.topic && <span className="font-normal text-text-500"> — {t.topic}</span>}
                   </div>
-                  <div className="tnum text-xs text-text-500">
-                    {t.subject} · {toPersianDigits(t.duration)} دقیقه
-                  </div>
+                  <div className="tnum text-xs text-text-500">{formatHours(t.hours)} ساعت</div>
                 </div>
                 {t.done ? (
                   <Badge tone="success">انجام شد</Badge>
@@ -240,8 +258,8 @@ export default function DashboardPage() {
             <Moon size={18} className="text-navy-900" />
           </div>
           <div className="flex-1">
-            <div className="text-sm font-medium text-text-900">گزارش کار امشب رو بفرست</div>
-            <div className="text-xs text-text-500">۳۰ ثانیه — می‌ره مستقیم برای {mentor.name}</div>
+            <div className="text-sm font-medium text-text-900">روتین شب: گزارش کار امشب رو بفرست</div>
+            <div className="text-xs text-text-500">یک دقیقه — درس‌ها، غلط‌ها و خواب، یکجا برای {mentor.name}</div>
           </div>
           <ArrowLeft size={16} className="text-text-500" />
         </Link>
