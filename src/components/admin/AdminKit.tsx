@@ -85,7 +85,7 @@ export function FollowUpBadges({ entityKey }: { entityKey: string }) {
     <span className="flex flex-wrap items-center gap-1">
       <Badge tone={st.tone}>{st.label}</Badge>
       {value.tags.map((t) => (
-        <span key={t} className="rounded-x-pill bg-surface-2 px-2 py-0.5 text-[10px] text-text-700">
+        <span key={t} className="rounded-x-pill bg-surface-2 px-2 py-0.5 text-xs text-text-700">
           #{t}
         </span>
       ))}
@@ -186,7 +186,7 @@ export function FollowUpEditor({
           {draft.tags.map((t) => (
             <span
               key={t}
-              className="flex items-center gap-1 rounded-x-pill bg-surface-2 px-2 py-0.5 text-[11px] text-text-700"
+              className="flex items-center gap-1 rounded-x-pill bg-surface-2 px-2 py-0.5 text-xs text-text-700"
             >
               #{t}
               <button
@@ -243,10 +243,10 @@ export function FollowUpEditor({
 
         {saved.history.length > 0 && (
           <div>
-            <div className="mb-1 flex items-center gap-1 text-[11px] font-medium text-text-700">
+            <div className="mb-1 flex items-center gap-1 text-xs font-medium text-text-700">
               <History size={11} /> تاریخچه‌ی ویرایش
             </div>
-            <ol className="space-y-1 text-[11px] text-text-500">
+            <ol className="space-y-1 text-xs text-text-500">
               {[...saved.history].reverse().map((h, i) => (
                 <li key={i}>
                   <span className="text-text-700">{h.by}</span> · {h.at} · {h.change}
@@ -278,7 +278,7 @@ export function EntityActivity({ match, limit = 5 }: { match: string; limit?: nu
         {logs.length > 0 && can(me.role, "logs.view") && (
           <Link
             href={`/admin/logs?q=${encodeURIComponent(match)}`}
-            className="flex items-center gap-1 text-[11px] text-blue-600 hover:underline"
+            className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
           >
             همه در لاگ ({toPersianDigits(logs.length)}) <ArrowLeft size={11} />
           </Link>

@@ -1,5 +1,6 @@
 "use client";
 
+import { FormActions, SaveStatus } from "@/components/ui/Form";
 import { useState } from "react";
 import { User, Save } from "lucide-react";
 import { MentorShell } from "@/components/app/MentorShell";
@@ -72,12 +73,11 @@ export default function MentorProfilePage() {
                 />
               </div>
 
-              <div className="flex items-center gap-3">
+              <FormActions status={<SaveStatus show={saved} />}>
                 <Button type="submit" size="md">
                   <Save size={15} /> ذخیره‌ی تغییرات
                 </Button>
-                {saved && <span className="text-sm text-mint-500">ذخیره شد ✓</span>}
-              </div>
+              </FormActions>
             </form>
           </CardContent>
         </Card>

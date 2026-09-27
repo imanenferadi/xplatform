@@ -23,7 +23,7 @@ export function CapacitySettings({ mentor }: { mentor: Mentor }) {
     const n = Number(toLatinDigits(draft.trim()));
     if (!Number.isInteger(n) || n < cap.active || n > MAX_CAPACITY) {
       setError(
-        `یه عدد بین ${toPersianDigits(cap.active)} (دانش‌آموزهای فعلی‌ات) و ${toPersianDigits(MAX_CAPACITY)} وارد کن.`,
+        `یه عدد بین ${toPersianDigits(cap.active)} (دانش‌آموزهای فعلی‌ات) و ${toPersianDigits(MAX_CAPACITY)} وارد کن.`
       );
       return;
     }
@@ -135,7 +135,7 @@ function Stat({ label, value, highlight }: { label: string; value: number; highl
       <div className={cn("tnum text-lg font-bold", highlight ? "text-orange-500" : "text-text-900")}>
         {toPersianDigits(value)}
       </div>
-      <div className="text-[11px] text-text-500">{label}</div>
+      <div className="text-xs text-text-500">{label}</div>
     </div>
   );
 }

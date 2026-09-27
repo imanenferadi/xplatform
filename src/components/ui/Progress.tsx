@@ -79,8 +79,10 @@ export function ProgressCircle({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        {children ?? <span className="tnum text-xl font-extrabold text-text-900">{toPersianDigits(Math.round(value))}٪</span>}
-        {label && <span className="text-[11px] text-text-500">{label}</span>}
+        {children ?? (
+          <span className="tnum text-xl font-extrabold text-text-900">{toPersianDigits(Math.round(value))}٪</span>
+        )}
+        {label && <span className="text-xs text-text-500">{label}</span>}
       </div>
     </div>
   );

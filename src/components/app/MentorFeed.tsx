@@ -41,7 +41,7 @@ export function ReportFeed() {
                       <span className="truncate text-sm font-medium text-text-900">{student.name}</span>
                       <span className="text-xs text-text-500">{ci.date}</span>
                       {isNew && <Badge tone="info">جدید</Badge>}
-                      {answered && <span className="text-[11px] text-mint-500">✓ بازخورد دادی</span>}
+                      {answered && <span className="text-xs text-mint-500">✓ بازخورد دادی</span>}
                     </div>
                     <div className="truncate text-xs text-text-500">
                       {ci.note ||

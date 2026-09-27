@@ -102,10 +102,9 @@ export function endViewAs(id: string, by: "support" | "user" | "timeout") {
 const PAGE_LABELS: Record<string, string> = {
   "/dashboard": "امروز",
   "/dashboard/plan": "برنامه",
-  "/dashboard/calendar": "تقویم",
   "/dashboard/report": "گزارش کار",
   "/dashboard/weekly": "جمع هفته",
-  "/dashboard/mistakes": "دفترچه‌ی غلط‌ها",
+  "/dashboard/mistakes": "دفترچه",
   "/dashboard/karnameh": "کارنامه",
   "/dashboard/setup": "اطلاعات شروع",
   "/chat": "گفتگو (نمایش داده نشد)",

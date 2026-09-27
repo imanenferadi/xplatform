@@ -70,15 +70,10 @@ export function WeeklySummary({
                   done ? "bg-mint-500" : future ? "bg-surface-2" : "bg-red-500/40"
                 )}
               />
-              <div className={cn("mt-1 text-[10px]", future ? "text-text-500/60" : "text-text-500")}>
-                {d.slice(0, 2)}
-              </div>
+              <div className="mt-1 text-xs text-text-500">{d.slice(0, 2)}</div>
               {showSleep && slept != null && (
                 <div
-                  className={cn(
-                    "text-[10px]",
-                    slept < SHORT_SLEEP_MINUTES ? "font-bold text-orange-500" : "text-text-500"
-                  )}
+                  className={cn("text-xs", slept < SHORT_SLEEP_MINUTES ? "font-bold text-orange-500" : "text-text-500")}
                   title={`خواب: ${formatStudyTime(slept)}`}
                 >
                   <span className="tnum">{toPersianDigits(Math.round((slept / 60) * 10) / 10)}</span>س
@@ -99,9 +94,7 @@ export function WeeklySummary({
             بیداری حدود <span className="tnum">{formatClockTime(summary.sleep.avgWake)}</span>
           </span>
           {summary.sleep.shortNights > 0 && (
-            <span className="text-orange-500">
-              {toPersianDigits(summary.sleep.shortNights)} شب زیر ۶ ساعت
-            </span>
+            <span className="text-orange-500">{toPersianDigits(summary.sleep.shortNights)} شب زیر ۶ ساعت</span>
           )}
         </div>
       )}
@@ -165,7 +158,7 @@ function Stat({
 }) {
   return (
     <div className="rounded-x-md bg-surface-2 p-3">
-      <div className="flex items-center gap-1 text-[11px] text-text-500">
+      <div className="flex items-center gap-1 text-xs text-text-500">
         <Icon size={12} /> {label}
       </div>
       <div className="mt-1 text-sm font-bold text-text-900">{value}</div>

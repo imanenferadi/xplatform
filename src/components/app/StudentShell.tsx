@@ -23,8 +23,7 @@ const navGroups: NavGroup[] = [
     label: "برنامه",
     icon: CalendarDays,
     sections: [
-      { href: "/dashboard/plan", label: "برنامه‌ی هفته" },
-      { href: "/dashboard/calendar", label: "تقویم" },
+      { href: "/dashboard/plan", label: "برنامه" },
       { href: "/dashboard/focustimer", label: "تایمر فوکوس" },
       { href: "/dashboard/exam-sim", label: "شبیه‌ساز آزمون" },
     ],
@@ -45,9 +44,7 @@ const navGroups: NavGroup[] = [
     sections: [
       { href: "/dashboard/ai", label: "معلم AI" },
       { href: "/dashboard/library", label: "کتابخونه" },
-      { href: "/dashboard/calculator", label: "ماشین‌حساب درصد" },
-      { href: "/dashboard/mistakes", label: "دفترچه‌ی غلط‌ها" },
-      { href: "/dashboard/notes", label: "یادداشت‌ها" },
+      { href: "/dashboard/mistakes", label: "دفترچه" },
     ],
   },
 ];
@@ -78,6 +75,9 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SupportViewFrame userId="me">
+      <a href="#main" className="skip-link">
+        رفتن به محتوای اصلی
+      </a>
       <div className="flex min-h-screen bg-background">
         {/* Desktop sidebar */}
         <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-l border-border bg-surface md:flex">
@@ -143,7 +143,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <main className="min-w-0 flex-1 pb-24 pt-16 md:pb-0 md:pt-0">
+        <main id="main" tabIndex={-1} className="min-w-0 flex-1 pb-24 pt-16 md:pb-0 md:pt-0">
           {showSubTabs && (
             // Fixed height (h-14) on purpose: full-height pages like the AI chat
             // subtract it in their calc() so the composer stays on screen.
@@ -161,7 +161,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                 >
                   {s.label}
                   {s.href === "/support" && unreadSupport > 0 && (
-                    <span className="tnum mr-1 rounded-full bg-red-500 px-1.5 text-[10px] text-white">
+                    <span className="tnum mr-1 rounded-full bg-red-500 px-1.5 text-xs text-white">
                       {toPersianDigits(unreadSupport)}
                     </span>
                   )}
@@ -182,7 +182,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                 key={g.label}
                 href={g.sections[0].href}
                 className={cn(
-                  "flex min-w-[56px] flex-col items-center gap-1 rounded-x-md px-2 py-1.5 text-[11px]",
+                  "flex min-w-[56px] flex-col items-center gap-1 rounded-x-md px-2 py-1.5 text-xs",
                   active ? "text-blue-600" : "text-text-500"
                 )}
               >

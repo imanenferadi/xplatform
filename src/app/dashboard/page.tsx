@@ -25,6 +25,7 @@ import { nextSessionLabel, useFixedSession, useUpcoming } from "@/lib/session-st
 import { aggregateWeek, formatStudyTime } from "@/lib/checkins";
 import { useUnread } from "@/lib/chat-store";
 import { useDueMistakes } from "@/lib/mistakes-store";
+import { useProfile } from "@/lib/profile-store";
 import { setupSteps, useMySetup } from "@/lib/setup-store";
 import { useMyCheckIns } from "@/lib/checkin-store";
 import { useReportFeedback } from "@/lib/feedback-store";
@@ -42,6 +43,7 @@ export default function DashboardPage() {
   const session = useFixedSession("me");
   const upcoming = useUpcoming("me");
   const dueMistakes = useDueMistakes();
+  const profile = useProfile();
   const unread = useUnread("me", "student");
   const nextTask = tasks.find((t) => !t.done);
   const steps = setupSteps(useMySetup());
@@ -57,7 +59,7 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-text-900">سلام ایمان 👋</h1>
+            <h1 className="text-xl font-bold text-text-900">سلام {profile.name} 👋</h1>
             <p className="mt-1 text-sm text-text-500">
               {todoCount > 0 ? `امروز ${toPersianDigits(todoCount)} کار داری` : "همه‌ی کارهای امروز انجام شد"}
             </p>
@@ -75,7 +77,7 @@ export default function DashboardPage() {
               <div className="text-sm font-bold text-text-900">
                 <span className="tnum">{toPersianDigits(daysUntilKonkur())}</span> روز تا کنکور
               </div>
-              <div className="text-[10px] text-text-500">
+              <div className="text-xs text-text-500">
                 {KONKUR_DATE.label}
                 {KONKUR_DATE.estimated && " · تخمینی"}
               </div>
@@ -189,7 +191,7 @@ export default function DashboardPage() {
                 <div className="text-sm font-medium text-text-900">
                   {session ? nextSessionLabel(session, upcoming?.override) : "هنوز وقت ثابت نداری"}
                 </div>
-                <Link href="/dashboard/calendar" className="text-[11px] text-blue-600 hover:underline">
+                <Link href="/dashboard/plan?view=week" className="text-xs text-blue-600 hover:underline">
                   تغییر یا جابه‌جایی جلسه
                 </Link>
               </div>
@@ -284,7 +286,7 @@ export default function DashboardPage() {
             <Moon size={18} className="text-navy-900" />
           </div>
           <div className="flex-1">
-            <div className="text-sm font-medium text-text-900">روتین شب: گزارش کار امشب رو بفرست</div>
+            <div className="text-sm font-medium text-text-900">گزارش کار امشب رو بفرست</div>
             <div className="text-xs text-text-500">یک دقیقه — درس‌ها، غلط‌ها و خواب، یکجا برای {mentor.name}</div>
           </div>
           <ArrowLeft size={16} className="text-text-500" />

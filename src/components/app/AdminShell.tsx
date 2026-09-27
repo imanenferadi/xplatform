@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Inbox,
   Wallet,
@@ -20,7 +20,7 @@ import {
 import { cn, toPersianDigits } from "@/lib/utils";
 import { useInboxCounts } from "@/lib/admin-inbox";
 import { AdminSearch } from "@/components/admin/AdminSearch";
-import { PAGE_PERM, ROLE_META, can } from "@/lib/permissions";
+import { PAGE_PERM, ROLE_HOME, ROLE_META, can } from "@/lib/permissions";
 import { signInAs, useMe, useStaff } from "@/lib/staff-store";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
@@ -61,6 +61,7 @@ const groups: { label: string | null; links: NavLink[] }[] = [
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const counts = useInboxCounts();
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   const me = useMe();
@@ -74,9 +75,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
+      <a href="#main" className="skip-link">
+        رفتن به محتوای اصلی
+      </a>
       <aside className="sticky top-0 flex h-screen w-56 shrink-0 flex-col border-l border-border bg-navy-900">
         <div className="flex items-center justify-between p-4">
-          <span className="text-sm font-bold text-white">X · ادمین</span>
+          <Link href={ROLE_HOME[me.role]} className="text-sm font-bold text-white">
+            X · ادمین
+          </Link>
           <ThemeToggle />
         </div>
 
@@ -85,7 +91,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 overflow-y-auto px-2">
           {visibleGroups.map((g) => (
             <div key={g.label ?? "today"} className="mb-3">
-              {g.label && <div className="px-3 pb-1 pt-1 text-[11px] font-medium text-white/40">{g.label}</div>}
+              {g.label && <div className="px-3 pb-1 pt-1 text-xs font-medium text-white/60">{g.label}</div>}
               <div className="space-y-0.5">
                 {g.links.map((l) => {
                   const active = pathname === l.href;
@@ -105,7 +111,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                       {n > 0 && (
                         <span
                           className={cn(
-                            "tnum rounded-full px-1.5 text-[10px] font-bold",
+                            "tnum rounded-full px-1.5 text-xs font-bold",
                             l.href === "/admin" ? "bg-red-500 text-white" : "bg-white/15 text-white"
                           )}
                         >
@@ -125,15 +131,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <Avatar name={me.name} size="sm" />
             <div className="min-w-0">
               <div className="truncate text-xs font-medium text-white">{me.name}</div>
-              <div className="truncate text-[11px] text-white/50">{ROLE_META[me.role].label}</div>
+              <div className="truncate text-xs text-white/60">{ROLE_META[me.role].label}</div>
             </div>
           </div>
           {/* Demo stand-in for staff login: see the panel as each role. */}
-          <label className="mt-2 block text-[10px] text-white/40">
+          <label className="mt-2 block text-xs text-white/60">
             ورود به‌عنوان (دمو)
             <select
               value={me.id}
-              onChange={(e) => signInAs(e.target.value)}
+              onChange={(e) => {
+                const next = staff.find((m) => m.id === e.target.value);
+                signInAs(e.target.value);
+                if (next) router.push(ROLE_HOME[next.role]);
+              }}
               aria-label="ورود به‌عنوان"
               className="mt-1 h-8 w-full rounded-x-sm border border-white/15 bg-navy-900 px-2 text-xs text-white"
             >
@@ -149,7 +159,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1">
+      <main id="main" tabIndex={-1} className="min-w-0 flex-1">
         {me.role === "auditor" && allowed && (
           <div className="bg-orange-500/10 px-6 py-2 text-xs text-orange-500">
             حسابرس: همه‌چیز فقط‌خواندنیه و دکمه‌های عملیاتی غیرفعال‌اند.

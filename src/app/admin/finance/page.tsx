@@ -236,7 +236,7 @@ export default function AdminFinancePage() {
                         ],
                         [
                           "شبا",
-                          <span key="sh" dir="ltr" className="font-mono text-[11px]">
+                          <span key="sh" dir="ltr" className="font-mono text-xs">
                             {p.sheba}
                           </span>,
                         ],

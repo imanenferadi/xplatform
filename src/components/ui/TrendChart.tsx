@@ -50,7 +50,7 @@ export function TrendChart({
             <circle key={i} cx={c.x} cy={c.y} r={2.5} fill={color} />
           ))}
         </svg>
-        <div className="mt-1 flex justify-between text-[10px] text-text-500">
+        <div className="mt-1 flex justify-between text-xs text-text-500">
           {points.map((p) => (
             <span key={p.label}>{p.label}</span>
           ))}

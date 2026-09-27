@@ -150,6 +150,17 @@ export function seesLogCategory(role: StaffRole, c: LogCategory): boolean {
   return s === "all" || s.includes(c);
 }
 
+/** Where each role lands after signing in — straight to its own work. */
+export const ROLE_HOME: Record<StaffRole, string> = {
+  super: "/admin",
+  ops: "/admin",
+  finance: "/admin",
+  edu_support: "/admin/tickets",
+  tech_support: "/admin/tickets",
+  auditor: "/admin/logs",
+  supervisor: "/supervisor",
+};
+
 /** Which permission each admin page needs to be opened at all. */
 export const PAGE_PERM: Record<string, Perm> = {
   "/admin": "inbox.view",

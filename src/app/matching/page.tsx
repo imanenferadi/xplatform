@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BadgeCheck, Star, X } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonVariants } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
@@ -12,12 +12,10 @@ import { mentors, type Mentor } from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
 
 const reasons: Record<string, string> = {
-  "sara-mohammadi":
-    "شیمی نقطه‌ضعف توئه و شیمیِ سارا در کنکور ۹۲٪ بوده. او هم سال دهم از صفر شروع کرد.",
+  "sara-mohammadi": "شیمی نقطه‌ضعف توئه و شیمیِ سارا در کنکور ۹۲٪ بوده. او هم سال دهم از صفر شروع کرد.",
   "amirhossein-rezaei":
     "الگوی تست‌زنی تو «سریع ولی نامطمئن» است. امیرحسین دقیقاً همین مشکل را با تحلیل زمان‌بندی حل کرد.",
-  "negar-ahmadi":
-    "هدف تو دندان‌پزشکی است؛ نگار همین رشته را با یک جهش رتبه در دوازدهم گرفت.",
+  "negar-ahmadi": "هدف تو دندان‌پزشکی است؛ نگار همین رشته را با یک جهش رتبه در دوازدهم گرفت.",
 };
 
 export default function MatchingPage() {
@@ -28,9 +26,7 @@ export default function MatchingPage() {
     <div className="min-h-screen bg-background px-4 py-10 md:py-16">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-text-900 md:text-[32px]">
-            بر اساس نیمرخ تو، ۳ نفر رو پیدا کردیم
-          </h1>
+          <h1 className="text-2xl font-bold text-text-900 md:text-[32px]">بر اساس نیمرخ تو، ۳ نفر رو پیدا کردیم</h1>
           <p className="mt-2 text-text-500">
             نه یک لیست ۵۰ نفره — سه مشاور تأییدشده که مسیرشان به مسیر تو نزدیک‌تر است.
           </p>
@@ -45,9 +41,7 @@ export default function MatchingPage() {
                   <div>
                     <div className="flex items-center gap-1 font-bold text-text-900">
                       {m.name}
-                      {m.verified && (
-                        <BadgeCheck size={15} className="text-blue-600" aria-label="مشاور تأییدشده" />
-                      )}
+                      {m.verified && <BadgeCheck size={15} className="text-blue-600" aria-label="مشاور تأییدشده" />}
                     </div>
                     <div className="text-xs text-text-500">
                       {m.major}، {m.school}
@@ -66,9 +60,7 @@ export default function MatchingPage() {
                   className="mt-4 flex-1 rounded-x-md bg-surface-2 p-3 text-right text-sm leading-[1.75] text-text-700 transition-colors hover:bg-blue-100"
                 >
                   {reasons[m.id]}
-                  <span className="mt-1 block text-xs font-medium text-blue-600">
-                    چرا این نفر؟
-                  </span>
+                  <span className="mt-1 block text-xs font-medium text-blue-600">چرا این نفر؟</span>
                 </button>
 
                 <div className="mt-4 flex items-center justify-between text-xs text-text-500">
@@ -136,9 +128,9 @@ function WhyDrawer({ mentor, onClose }: { mentor: Mentor; onClose: () => void })
           </WhyRow>
         </div>
 
-        <Button size="lg" className="mt-6 w-full">
+        <Link href={`/mentors/${mentor.id}`} className={buttonVariants({ size: "lg", className: "mt-6 w-full" })}>
           مشاهده پروفایل کامل
-        </Button>
+        </Link>
       </div>
     </div>
   );

@@ -204,7 +204,7 @@ function Tickets() {
                       <span className="text-sm font-medium text-text-900">{t.subject}</span>
                       <Badge tone={PRIORITY_TONE[t.priority]}>{TICKET_PRIORITY[t.priority].label}</Badge>
                       {sla.overdue && (
-                        <span className="flex items-center gap-0.5 text-[11px] text-red-500">
+                        <span className="flex items-center gap-0.5 text-xs text-red-500">
                           <AlertTriangle size={11} /> دیرکرده
                         </span>
                       )}
@@ -288,7 +288,7 @@ function TicketDetail({ ticket: t }: { ticket: Ticket }) {
               >
                 <div
                   className={cn(
-                    "mb-0.5 flex items-center gap-1 text-[11px] font-medium",
+                    "mb-0.5 flex items-center gap-1 text-xs font-medium",
                     m.from === "support" ? "text-white/70" : "text-text-500"
                   )}
                 >
@@ -298,11 +298,11 @@ function TicketDetail({ ticket: t }: { ticket: Ticket }) {
                 </div>
                 {m.text}
                 {m.attachment && (
-                  <div className="mt-1 flex items-center gap-1 text-[11px] opacity-70">
+                  <div className="mt-1 flex items-center gap-1 text-xs opacity-70">
                     <Paperclip size={11} /> {m.attachment}
                   </div>
                 )}
-                <div className={cn("tnum mt-1 text-[10px]", m.from === "support" ? "text-white/60" : "text-text-500")}>
+                <div className={cn("tnum mt-1 text-xs", m.from === "support" ? "text-white/60" : "text-text-500")}>
                   {m.time}
                 </div>
               </div>
@@ -341,7 +341,7 @@ function TicketDetail({ ticket: t }: { ticket: Ticket }) {
                     key={c.title}
                     type="button"
                     onClick={() => setText(c.text)}
-                    className="rounded-x-pill bg-surface-2 px-2.5 py-1 text-[11px] text-text-700 hover:text-blue-600"
+                    className="rounded-x-pill bg-surface-2 px-2.5 py-1 text-xs text-text-700 hover:text-blue-600"
                   >
                     + {c.title}
                   </button>
@@ -481,7 +481,7 @@ function TicketDetail({ ticket: t }: { ticket: Ticket }) {
             <div className="mb-1 flex items-center gap-1 text-xs font-bold text-text-900">
               <History size={12} className="text-text-500" /> تاریخچه‌ی تیکت
             </div>
-            <ol className="space-y-1 text-[11px] text-text-500">
+            <ol className="space-y-1 text-xs text-text-500">
               {[...t.history].reverse().map((h, i) => (
                 <li key={i}>
                   <span className="text-text-700">{h.by}</span> · {h.at} · {h.change}

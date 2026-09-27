@@ -125,11 +125,11 @@ function Metric({
   return (
     <Card>
       <CardContent className="p-3.5">
-        <div className="text-[11px] text-text-500">{label}</div>
+        <div className="text-xs text-text-500">{label}</div>
         <div className="tnum mt-1 text-lg font-bold text-text-900">{value}</div>
-        <div className="mt-0.5 text-[11px] text-text-500">{sub}</div>
+        <div className="mt-0.5 text-xs text-text-500">{sub}</div>
         {delta !== undefined && delta !== 0 && (
-          <div className={cn("mt-0.5 text-[11px]", delta > 0 ? "text-mint-500" : "text-orange-500")}>
+          <div className={cn("mt-0.5 text-xs", delta > 0 ? "text-mint-500" : "text-orange-500")}>
             <span dir="ltr" className="tnum">
               {delta > 0 ? "+" : "−"}
               {toPersianDigits(Math.abs(delta))}

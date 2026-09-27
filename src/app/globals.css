@@ -7,18 +7,21 @@
 /* ---------------------------------------------------------------------- */
 
 :root {
-  /* Brand core (from visual kit) */
+  /* Brand core (from visual kit). Accent hues are the kit's, darkened just
+     enough for WCAG AA (4.5:1) as small text on every light surface — the
+     kit values (#3b82f6, #37b58a, #f29a4a, #e85d68, #25a8b8) measured
+     2.2–3.7:1. Dark mode keeps its own, already-passing values. */
   --x-navy-900: #0f2d58;
-  --x-blue-600: #3b82f6;
+  --x-blue-600: #1d5fd6;
   --x-blue-300: #a7cfff;
   --x-blue-100: #ebf1ff;
   --x-yellow-400: #fdd365;
 
   /* Semantic accents (filled from spec — kit didn't define these) */
-  --x-cyan-500: #25a8b8;
-  --x-mint-500: #37b58a;
-  --x-red-500: #e85d68;
-  --x-orange-500: #f29a4a;
+  --x-cyan-500: #0f6873;
+  --x-mint-500: #15694d;
+  --x-red-500: #b32434;
+  --x-orange-500: #944607;
 
   /* Surfaces & text — light mode */
   --x-surface: #ffffff;
@@ -27,7 +30,7 @@
   --x-border: #e4e9f0;
   --x-text-900: #0f2d58;
   --x-text-700: #344054;
-  --x-text-500: #667085;
+  --x-text-500: #5b6478;
   --x-text-on-primary: #ffffff;
 
   /* Radius */
@@ -142,6 +145,60 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Keyboard users always see where they are (mouse clicks don't show it). */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--x-blue-600);
+    outline-offset: 2px;
+  }
+}
+
+/* Touch screens: every control is at least 44px tall (WCAG 2.5.5 target). */
+@media (pointer: coarse) {
+  button,
+  select,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  [role="button"] {
+    min-height: 44px;
+  }
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+
+/* Solid accent fills carry white text. Dark mode lightens the accent tokens
+   so they read as *text* on dark surfaces — which would leave white-on-light
+   fills at ~3:1. Solid fills therefore keep the AA-safe light-theme shades. */
+:root[data-theme="dark"] :is(.bg-blue-600, .hover\:bg-blue-600:hover) { background-color: #1d5fd6; }
+:root[data-theme="dark"] .bg-red-500 { background-color: #b32434; }
+:root[data-theme="dark"] .bg-mint-500 { background-color: #15694d; }
+:root[data-theme="dark"] .bg-orange-500 { background-color: #944607; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) :is(.bg-blue-600, .hover\:bg-blue-600:hover) { background-color: #1d5fd6; }
+  :root:not([data-theme="light"]) .bg-red-500 { background-color: #b32434; }
+  :root:not([data-theme="light"]) .bg-mint-500 { background-color: #15694d; }
+  :root:not([data-theme="light"]) .bg-orange-500 { background-color: #944607; }
+}
+
+/* «رفتن به محتوای اصلی» — hidden until focused with Tab. */
+.skip-link {
+  position: absolute;
+  inset-inline-start: 8px;
+  top: -48px;
+  z-index: 100;
+  border-radius: var(--x-radius-sm);
+  background: var(--x-navy-900);
+  color: #fff;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+.skip-link:focus {
+  top: 8px;
+}
+
 body {
   background: var(--x-background);
   color: var(--x-text-700);
@@ -190,6 +247,6 @@ h1, h2, h3, h4, .no-break {
     --x-border: #e4e9f0;
     --x-text-900: #0f2d58;
     --x-text-700: #344054;
-    --x-text-500: #667085;
+    --x-text-500: #5b6478;
   }
 }

@@ -3,6 +3,7 @@ import { Vazirmatn } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ViewAsBoot } from "@/components/app/SupportView";
+import { Toaster } from "@/components/ui/Toaster";
 
 const vazirmatn = Vazirmatn({
   variable: "--font-vazirmatn",
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <ViewAsBoot />
         {children}
+        <Toaster />
       </body>
     </html>
   );

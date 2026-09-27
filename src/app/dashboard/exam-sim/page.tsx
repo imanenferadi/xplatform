@@ -398,7 +398,7 @@ function Results({ sections, spent, onRestart }: { sections: Section[]; spent: n
       </Card>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
-        <Link href="/dashboard/calculator" className={buttonVariants({ size: "lg", variant: "secondary" })}>
+        <Link href="/dashboard/karnameh#calculator" className={buttonVariants({ size: "lg", variant: "secondary" })}>
           <Calculator size={16} /> درصدت رو حساب کن
         </Link>
         <Link href="/dashboard/mistakes" className={buttonVariants({ size: "lg", variant: "secondary" })}>

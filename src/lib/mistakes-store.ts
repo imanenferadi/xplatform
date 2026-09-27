@@ -14,12 +14,17 @@ export function addMistake(entry: MistakeEntry) {
   store.set([entry, ...store.get()]);
 }
 
-export function toggleResolved(id: string) {
-  store.set(store.get().map((m) => (m.id === id ? { ...m, resolved: !m.resolved } : m)));
+/** Each of these returns a function that undoes it (for the «برگردون» toast). */
+export function toggleResolved(id: string): () => void {
+  const before = store.get();
+  store.set(before.map((m) => (m.id === id ? { ...m, resolved: !m.resolved } : m)));
+  return () => store.set(before);
 }
 
-export function deleteMistake(id: string) {
-  store.set(store.get().filter((m) => m.id !== id));
+export function deleteMistake(id: string): () => void {
+  const before = store.get();
+  store.set(before.filter((m) => m.id !== id));
+  return () => store.set(before);
 }
 
 // Spaced review: re-solve each unresolved mistake 3 days after logging it,

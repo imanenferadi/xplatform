@@ -49,10 +49,10 @@ export default function MentorDashboardPage() {
                       </div>
                       <div className="text-left">
                         <div className="tnum text-sm font-bold text-text-900">{toPersianDigits(s.planCompletion)}٪</div>
-                        <div className="text-[11px] text-text-500">برنامه</div>
+                        <div className="text-xs text-text-500">برنامه</div>
                       </div>
                       {(unread[s.id] ?? 0) > 0 && (
-                        <span className="tnum flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white">
+                        <span className="tnum flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
                           {toPersianDigits(unread[s.id])}
                         </span>
                       )}

@@ -20,12 +20,8 @@ export default function PlacementResultPage() {
           <Badge tone="info" className="mb-4">
             <Sparkles size={14} /> نیمرخ سطح تو آماده شد
           </Badge>
-          <h1 className="text-2xl font-bold text-text-900 md:text-[32px]">
-            این نتیجه‌ی واقعیِ توئه
-          </h1>
-          <p className="mt-2 text-text-500">
-            بر همین اساس، مشاورهایی رو پیدا کردیم که مسیرشون به مسیر تو نزدیک‌تره.
-          </p>
+          <h1 className="text-2xl font-bold text-text-900 md:text-[32px]">این نتیجه‌ی واقعیِ توئه</h1>
+          <p className="mt-2 text-text-500">بر همین اساس، مشاورهایی رو پیدا کردیم که مسیرشون به مسیر تو نزدیک‌تره.</p>
         </div>
 
         {/* Score hero */}
@@ -40,9 +36,7 @@ export default function PlacementResultPage() {
             </div>
             <div className="rounded-x-md bg-surface-2 px-4 py-3 text-center sm:text-right">
               <div className="text-xs text-text-500">بازه‌ی رتبه‌ی احتمالی</div>
-              <div className="tnum text-lg font-bold text-text-900">
-                {levelProfile.rankRange}
-              </div>
+              <div className="tnum text-lg font-bold text-text-900">{levelProfile.rankRange}</div>
             </div>
           </div>
 
@@ -54,10 +48,7 @@ export default function PlacementResultPage() {
                   <span className="font-medium text-text-700">{s.name}</span>
                   <span className="tnum text-text-500">{toPersianDigits(s.value)}٪</span>
                 </div>
-                <ProgressBar
-                  value={s.value}
-                  tone={s.value >= 75 ? "success" : s.value >= 55 ? "brand" : "warning"}
-                />
+                <ProgressBar value={s.value} tone={s.value >= 75 ? "success" : s.value >= 55 ? "brand" : "warning"} />
               </div>
             ))}
           </div>
@@ -138,6 +129,46 @@ function TopicGroup({
   );
 }
 
+/** Draws the same card onto a canvas and saves it as a PNG. */
+function downloadCard() {
+  const W = 800;
+  const H = 1000;
+  const c = document.createElement("canvas");
+  c.width = W;
+  c.height = H;
+  const g = c.getContext("2d");
+  if (!g) return;
+  const font = getComputedStyle(document.body).fontFamily;
+  g.fillStyle = "#0f2d58";
+  g.beginPath();
+  g.roundRect(0, 0, W, H, 48);
+  g.fill();
+  g.direction = "rtl";
+  g.fillStyle = "#ffffff";
+  g.textAlign = "right";
+  g.font = `bold 40px ${font}`;
+  g.fillText("X", W - 60, 90);
+  g.textAlign = "center";
+  g.font = `800 180px ${font}`;
+  g.fillText(toPersianDigits(levelProfile.score), W / 2, 380);
+  g.font = `36px ${font}`;
+  g.fillStyle = "rgba(255,255,255,0.7)";
+  g.fillText(levelProfile.label, W / 2, 450);
+  g.font = `34px ${font}`;
+  levelProfile.subjects.forEach((sub, i) => {
+    const y = 580 + i * 80;
+    g.fillStyle = "#ffffff";
+    g.textAlign = "right";
+    g.fillText(sub.name, W - 80, y);
+    g.textAlign = "left";
+    g.fillText(`${toPersianDigits(sub.value)}٪`, 80, y);
+  });
+  const a = document.createElement("a");
+  a.href = c.toDataURL("image/png");
+  a.download = "x-placement-result.png";
+  a.click();
+}
+
 function ShareModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -152,7 +183,7 @@ function ShareModal({ onClose }: { onClose: () => void }) {
         <div className="aspect-[4/5] rounded-x-lg bg-navy-900 p-5 text-white">
           <span className="text-sm font-bold">X</span>
           <div className="mt-6 text-center">
-            <div className="tnum text-5xl font-extrabold">{levelProfile.score}</div>
+            <div className="tnum text-5xl font-extrabold">{toPersianDigits(levelProfile.score)}</div>
             <div className="mt-1 text-sm text-white/70">{levelProfile.label}</div>
           </div>
           <div className="mt-6 space-y-2">
@@ -165,7 +196,7 @@ function ShareModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        <Button size="lg" className="mt-4 w-full">
+        <Button size="lg" className="mt-4 w-full" onClick={downloadCard}>
           دانلود تصویر
         </Button>
       </div>

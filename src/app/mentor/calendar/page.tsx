@@ -162,7 +162,7 @@ export default function MentorCalendarPage() {
                                   {s.cancelled && <span className="text-red-500">لغو شد</span>}
                                 </div>
                                 {s.movedFrom && (
-                                  <div className="mt-0.5 text-[11px]">فقط این هفته (به‌جای {s.movedFrom})</div>
+                                  <div className="mt-0.5 text-xs">فقط این هفته (به‌جای {s.movedFrom})</div>
                                 )}
                               </Link>
                             );
@@ -180,7 +180,7 @@ export default function MentorCalendarPage() {
                             </div>
                           ))}
                           {movingIn(d, h).map((s) => (
-                            <div key={s.studentId} className="mt-1 text-[11px] text-blue-600">
+                            <div key={s.studentId} className="mt-1 text-xs text-blue-600">
                               از هفته‌ی بعد: {mentorStudents.find((st) => st.id === s.studentId)?.name}
                             </div>
                           ))}

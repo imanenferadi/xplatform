@@ -283,7 +283,7 @@ function AdminPaymentsPage() {
                       rows={[
                         [
                           "کد تراکنش",
-                          <span key="c" dir="ltr" className="font-mono text-[11px]">
+                          <span key="c" dir="ltr" className="font-mono text-xs">
                             {t.code}
                           </span>,
                         ],
@@ -305,7 +305,7 @@ function AdminPaymentsPage() {
                         ["پرداخت‌کننده", t.payer],
                         [
                           "مرجع درگاه",
-                          <span key="g" dir="ltr" className="font-mono text-[11px]">
+                          <span key="g" dir="ltr" className="font-mono text-xs">
                             {t.gatewayRef}
                           </span>,
                         ],

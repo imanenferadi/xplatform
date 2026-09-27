@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { toast } from "@/components/ui/Toaster";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   Check,
   Copy,
   CopyPlus,
   GripVertical,
+  Smartphone,
+  X,
   FileText,
   LayoutTemplate,
   Pencil,
@@ -20,8 +23,10 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { BooksHint } from "@/components/app/AboutStudent";
+import { PlanDayView } from "@/components/app/PlanDayView";
 import {
   CHECKIN_SUBJECTS,
+  CURRENT_DAY_NAME,
   PLAN_DEADLINE_DAY,
   PLAN_HOUR_OPTIONS,
   PLAN_WEEK_LABELS,
@@ -74,6 +79,7 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [copyFrom, setCopyFrom] = useState<string | null>(null);
   const [copyTo, setCopyTo] = useState<string[]>([]);
+  const [previewing, setPreviewing] = useState(false);
   const [sendError, setSendError] = useState("");
   const templates = useTemplates();
   const { schedule } = useStudentSetup(studentId);
@@ -113,6 +119,15 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
 
   return (
     <div>
+      {previewing && (
+        <PlanPreview
+          studentName={studentName}
+          draft={copy}
+          week={week}
+          unsent={changes > 0}
+          onClose={() => setPreviewing(false)}
+        />
+      )}
       {/* Week tabs, each with where it stands */}
       <div className="mb-3 flex flex-wrap gap-1.5">
         {(["this", "next"] as PlanWeek[]).map((w) => {
@@ -134,7 +149,7 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
               ) : wp.published ? (
                 <Check size={12} className="text-mint-500" />
               ) : (
-                <span className="text-[10px] font-normal text-orange-500">نوشته نشده</span>
+                <span className="text-xs font-normal text-orange-500">نوشته نشده</span>
               )}
             </button>
           );
@@ -159,6 +174,9 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
 
       {/* Tools */}
       <div className="mb-3 flex flex-wrap items-center gap-2">
+        <Button size="md" variant="secondary" onClick={() => setPreviewing(true)}>
+          <Smartphone size={14} /> دانش‌آموز چی می‌بینه؟
+        </Button>
         {week === "next" && plans.this.published && (
           <Button
             size="md"
@@ -315,7 +333,7 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
                       setCopyFrom(d);
                       setCopyTo([]);
                     }}
-                    className="mr-auto flex items-center gap-1 text-[11px] text-text-500 hover:text-blue-600"
+                    className="mr-auto flex items-center gap-1 text-xs text-text-500 hover:text-blue-600"
                   >
                     <CopyPlus size={12} /> کپی این روز به…
                   </button>
@@ -391,7 +409,7 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
                         </span>
                         {t.topic && <span className="text-text-500"> — {t.topic}</span>}
                         {t.chapter && (
-                          <div className="mt-0.5 text-[11px] text-text-500">
+                          <div className="mt-0.5 text-xs text-text-500">
                             {t.chapter}
                             {t.subtopic && ` · ${t.subtopic}`}
                           </div>
@@ -408,7 +426,7 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
                       </button>
                       <button
                         type="button"
-                        onClick={() => removeTask(studentId, week, d, t.id)}
+                        onClick={() => toast(`${t.subject} ${d} حذف شد`, removeTask(studentId, week, d, t.id))}
                         aria-label={`حذف ${t.subject} ${d}`}
                         className="p-1 text-text-500 hover:text-red-500"
                       >
@@ -468,7 +486,7 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
         )}
       </div>
       {week === "this" && changes > 0 && (
-        <p className="mt-2 text-[11px] text-text-500">
+        <p className="mt-2 text-xs text-text-500">
           تغییر برنامه‌ی وسط هفته: تیک‌هایی که {studentName} زده برای درس‌هایی که عوض نکردی می‌مونن.
         </p>
       )}
@@ -579,11 +597,7 @@ function TaskForm({
           />
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={() => setMore(true)}
-          className="mt-1.5 text-[11px] text-blue-600 hover:underline"
-        >
+        <button type="button" onClick={() => setMore(true)} className="mt-1.5 text-xs text-blue-600 hover:underline">
           + فصل و ریز مبحث
         </button>
       )}
@@ -614,5 +628,61 @@ function TaskForm({
         </button>
       </div>
     </form>
+  );
+}
+
+/** The draft exactly as the student's «برنامه» will show it (same component). */
+function PlanPreview({
+  studentName,
+  draft,
+  week,
+  unsent,
+  onClose,
+}: {
+  studentName: string;
+  draft: { days: PlanDays; note: string };
+  week: PlanWeek;
+  unsent: boolean;
+  onClose: () => void;
+}) {
+  const [selected, setSelected] = useState(week === "this" ? CURRENT_DAY_NAME : WEEK_DAYS[0]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`پیش‌نمایش برنامه برای ${studentName}`}
+        className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-x-xl bg-background shadow-x-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-2 border-b border-border bg-surface px-4 py-3">
+          <Smartphone size={16} className="text-blue-600" />
+          <span className="flex-1 text-sm font-bold text-text-900">صفحه‌ی «برنامه»ی {studentName}</span>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="بستن پیش‌نمایش"
+            className="rounded-x-sm p-1.5 hover:bg-surface-2"
+          >
+            <X size={16} />
+          </button>
+        </div>
+        {unsent && (
+          <p className="bg-orange-500/10 px-4 py-2 text-xs text-orange-500">
+            این پیش‌نویسه — تا «ارسال» رو نزنی، {studentName} نسخه‌ی قبلی رو می‌بینه.
+          </p>
+        )}
+        <div className="overflow-y-auto p-4">
+          <PlanDayView plan={draft} week={week} selected={selected} onSelect={setSelected} preview />
+        </div>
+      </div>
+    </div>
   );
 }

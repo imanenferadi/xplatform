@@ -167,7 +167,7 @@ export function AdminSearch() {
       >
         <Search size={14} />
         <span className="flex-1 text-right">جستجو</span>
-        <kbd dir="ltr" className="rounded bg-white/10 px-1.5 font-sans text-[10px]">
+        <kbd dir="ltr" className="rounded bg-white/10 px-1.5 font-sans text-xs">
           Ctrl K
         </kbd>
       </button>
@@ -210,7 +210,7 @@ export function AdminSearch() {
                 results.map((h, i) => (
                   <div key={`${h.group}-${h.href}-${h.title}`}>
                     {(i === 0 || results[i - 1].group !== h.group) && (
-                      <div className="px-3 pb-1 pt-2 text-[11px] font-medium text-text-500">{h.group}</div>
+                      <div className="px-3 pb-1 pt-2 text-xs font-medium text-text-500">{h.group}</div>
                     )}
                     <button
                       type="button"

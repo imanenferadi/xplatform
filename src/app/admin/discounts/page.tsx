@@ -175,7 +175,7 @@ export default function AdminDiscountsPage() {
                             style={{ width: `${Math.min(100, usedPct)}%` }}
                           />
                         </div>
-                        <span className="text-[11px] text-text-500">
+                        <span className="text-xs text-text-500">
                           <span className="tnum">{toPersianDigits(c.used)}</span> از{" "}
                           <span className="tnum">{toPersianDigits(c.maxUses)}</span>
                         </span>

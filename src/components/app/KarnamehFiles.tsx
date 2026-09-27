@@ -73,7 +73,7 @@ export function KarnamehFiles({
                     {k.examProvider} — {k.fileName}
                   </span>
                   {!k.seenByMentor && (
-                    <span className="rounded-x-pill bg-blue-600 px-2 py-0.5 text-[10px] text-white">جدید</span>
+                    <span className="rounded-x-pill bg-blue-600 px-2 py-0.5 text-xs text-white">جدید</span>
                   )}
                 </div>
                 <div className="text-xs text-text-500">

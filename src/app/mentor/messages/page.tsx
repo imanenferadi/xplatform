@@ -40,7 +40,7 @@ export default function MentorMessagesPage() {
                       </p>
                     </div>
                     {n > 0 && (
-                      <span className="tnum flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white">
+                      <span className="tnum flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
                         {toPersianDigits(n)}
                       </span>
                     )}

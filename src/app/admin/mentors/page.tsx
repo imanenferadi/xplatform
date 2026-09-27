@@ -278,7 +278,7 @@ function AdminMentorsPage() {
                       <div dir="ltr" className="tnum truncate text-xs text-text-500">
                         {inv.link}
                       </div>
-                      <div className="mt-0.5 text-[11px] text-text-500">ساخته‌شده {inv.createdAt} · انقضا: ۷ روز</div>
+                      <div className="mt-0.5 text-xs text-text-500">ساخته‌شده {inv.createdAt} · انقضا: ۷ روز</div>
                     </div>
                     <button
                       onClick={() => copyInviteLink(inv)}
@@ -407,7 +407,7 @@ function AdminMentorsPage() {
                             </div>
                           </Allowed>
                           {!verified && (
-                            <p className="mt-1.5 text-[11px] text-text-500">
+                            <p className="mt-1.5 text-xs text-text-500">
                               برای تأیید، همه‌ی مراحل چک‌لیست احراز رو تیک بزن.
                             </p>
                           )}

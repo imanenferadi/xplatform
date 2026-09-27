@@ -36,7 +36,7 @@ export function AboutStudent({ studentId }: { studentId: string }) {
         {schedule.length === 0 ? (
           <p className="text-xs text-text-500">ساعت مدرسه و کلاس‌هاش ثبت نشده.</p>
         ) : (
-          <div className="grid grid-cols-7 gap-1 text-center text-[11px]">
+          <div className="grid grid-cols-7 gap-1 text-center text-xs">
             {WEEK_DAYS.map((d) => {
               const h = freeHours(schedule, d);
               return (
@@ -51,7 +51,7 @@ export function AboutStudent({ studentId }: { studentId: string }) {
           </div>
         )}
         {schedule.some((c) => c.kind === "class") && (
-          <p className="mt-1 text-[11px] text-text-500">
+          <p className="mt-1 text-xs text-text-500">
             کلاس‌ها:{" "}
             {schedule
               .filter((c) => c.kind === "class")
@@ -68,7 +68,7 @@ export function AboutStudent({ studentId }: { studentId: string }) {
         ) : (
           <div className="flex flex-wrap gap-1.5">
             {CHECKIN_SUBJECTS.flatMap((s) => books.filter((b) => b.subject === s)).map((b) => (
-              <span key={b.id} className="rounded-x-pill bg-surface-2 px-2.5 py-1 text-[11px] text-text-700">
+              <span key={b.id} className="rounded-x-pill bg-surface-2 px-2.5 py-1 text-xs text-text-700">
                 <span className="font-medium text-text-900">{b.subject}:</span> {b.title} ({b.kind}،{" "}
                 {BOOK_STATUS_LABEL[b.status]})
               </span>
@@ -95,7 +95,7 @@ export function BooksHint({ studentId, subject }: { studentId: string; subject: 
   const list = books.filter((b) => b.subject === subject && b.status !== "done");
   if (list.length === 0) return null;
   return (
-    <div className="mt-1 flex items-center gap-1 text-[11px] text-text-500">
+    <div className="mt-1 flex items-center gap-1 text-xs text-text-500">
       <BookOpen size={11} /> منابعش: {list.map((b) => `${b.title} (${b.kind})`).join("، ")}
     </div>
   );

@@ -33,6 +33,9 @@ export function MentorShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
+      <a href="#main" className="skip-link">
+        رفتن به محتوای اصلی
+      </a>
       <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-l border-border bg-navy-900 md:flex">
         <div className="flex items-center justify-between p-4">
           <span className="text-sm font-bold text-white">X · مشاور</span>
@@ -63,7 +66,7 @@ export function MentorShell({ children }: { children: React.ReactNode }) {
           href="/mentor/guide"
           className={cn(
             "mx-2 mb-2 flex items-center gap-2 rounded-x-sm px-3 py-1.5 text-xs transition-colors",
-            pathname === "/mentor/guide" ? "bg-white/10 text-white" : "text-white/50 hover:text-white"
+            pathname === "/mentor/guide" ? "bg-white/10 text-white" : "text-white/60 hover:text-white"
           )}
         >
           <BookOpenCheck size={14} /> راهنمای مشاور
@@ -74,7 +77,7 @@ export function MentorShell({ children }: { children: React.ReactNode }) {
             <Avatar name="سارا" size="sm" />
             <div className="min-w-0">
               <div className="truncate text-xs font-medium text-white">سارا محمدی</div>
-              <div className="truncate text-[11px] text-white/50">
+              <div className="truncate text-xs text-white/60">
                 <CapacityNote mentor={mentors[0]} />
               </div>
             </div>
@@ -87,7 +90,9 @@ export function MentorShell({ children }: { children: React.ReactNode }) {
         <Avatar name="سارا" size="sm" />
       </div>
 
-      <main className="min-w-0 flex-1 pt-14 md:pt-0">{children}</main>
+      <main id="main" tabIndex={-1} className="min-w-0 flex-1 pt-14 md:pt-0">
+        {children}
+      </main>
     </div>
   );
 }

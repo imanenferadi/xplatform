@@ -1,5 +1,7 @@
 "use client";
 
+import { FormActions, SaveStatus } from "@/components/ui/Form";
+import { toast } from "@/components/ui/Toaster";
 import { useState } from "react";
 import Link from "next/link";
 import { ClipboardCheck, School, BookOpen, Check, Plus, Trash2, CheckCircle2, Circle } from "lucide-react";
@@ -117,24 +119,26 @@ function IntakeForm({
   const [form, setForm] = useState<Intake>(
     saved ?? { targetMajor: "", quota: "", exams: [], dailyHours: "", challenges: [], finals: "", expectation: "" }
   );
-  const [errors, setErrors] = useState<string[]>([]);
+  const [errors, setErrors] = useState<Partial<Record<keyof Intake, string>>>({});
 
   function set<K extends keyof Intake>(k: K, v: Intake[K]) {
     setForm((f) => ({ ...f, [k]: v }));
+    setErrors((e) => ({ ...e, [k]: undefined }));
     setJustSaved(false);
   }
   const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const missing: string[] = [];
-    if (!form.targetMajor) missing.push("رشته‌ی هدف");
-    if (!form.quota) missing.push("سهمیه");
-    if (!form.dailyHours) missing.push("ساعت مطالعه‌ی فعلی");
-    if (form.challenges.length === 0) missing.push("سخت‌ترین چالش");
-    if (!form.finals) missing.push("وضعیت نهایی");
-    setErrors(missing);
-    if (missing.length) return;
+    // Each error sits under its own question (same pattern as every form).
+    const next: Partial<Record<keyof Intake, string>> = {};
+    if (!form.targetMajor) next.targetMajor = "رشته‌ی هدفت رو انتخاب کن.";
+    if (!form.quota) next.quota = "سهمیه رو انتخاب کن (اگه نمی‌دونی: «نمی‌دونم»).";
+    if (!form.dailyHours) next.dailyHours = "ساعت مطالعه‌ی الانت رو انتخاب کن.";
+    if (form.challenges.length === 0) next.challenges = "حداقل یک چالش رو انتخاب کن.";
+    if (!form.finals) next.finals = "وضعیت امتحانات نهایی رو انتخاب کن.";
+    setErrors(next);
+    if (Object.keys(next).length) return;
     saveIntake({ ...form, expectation: form.expectation.trim() });
     setJustSaved(true);
   }
@@ -146,21 +150,28 @@ function IntakeForm({
           <ClipboardCheck size={16} className="text-blue-600" /> پرسشنامه‌ی شروع
         </h2>
         <form onSubmit={submit} noValidate className="space-y-4">
-          <Question label="رشته‌ی هدفت چیه؟">
+          <Question label="رشته‌ی هدفت چیه؟" error={errors.targetMajor}>
             {TARGET_MAJORS.map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => set("targetMajor", m)}
+                aria-pressed={form.targetMajor === m}
                 className={chip(form.targetMajor === m)}
               >
                 {m}
               </button>
             ))}
           </Question>
-          <Question label="سهمیه‌ی منطقه‌ات؟">
+          <Question label="سهمیه‌ی منطقه‌ات؟" error={errors.quota}>
             {QUOTAS.map((q) => (
-              <button key={q} type="button" onClick={() => set("quota", q)} className={chip(form.quota === q)}>
+              <button
+                key={q}
+                type="button"
+                onClick={() => set("quota", q)}
+                aria-pressed={form.quota === q}
+                className={chip(form.quota === q)}
+              >
                 {q}
               </button>
             ))}
@@ -181,39 +192,48 @@ function IntakeForm({
                         )
                   )
                 }
+                aria-pressed={form.exams.includes(x)}
                 className={chip(form.exams.includes(x))}
               >
                 {x}
               </button>
             ))}
           </Question>
-          <Question label="الان روزی چقدر درس می‌خونی؟">
+          <Question label="الان روزی چقدر درس می‌خونی؟" error={errors.dailyHours}>
             {DAILY_HOURS_OPTIONS.map((h) => (
               <button
                 key={h}
                 type="button"
                 onClick={() => set("dailyHours", h)}
+                aria-pressed={form.dailyHours === h}
                 className={chip(form.dailyHours === h)}
               >
                 {h}
               </button>
             ))}
           </Question>
-          <Question label="سخت‌ترین چالشت چیه؟" hint="چندتایی">
+          <Question label="سخت‌ترین چالشت چیه؟" hint="چندتایی" error={errors.challenges}>
             {STUDY_CHALLENGES.map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => set("challenges", toggle(form.challenges, c))}
+                aria-pressed={form.challenges.includes(c)}
                 className={chip(form.challenges.includes(c))}
               >
                 {c}
               </button>
             ))}
           </Question>
-          <Question label="امتحانات نهایی؟">
+          <Question label="امتحانات نهایی؟" error={errors.finals}>
             {FINALS_STATUS.map((f) => (
-              <button key={f} type="button" onClick={() => set("finals", f)} className={chip(form.finals === f)}>
+              <button
+                key={f}
+                type="button"
+                onClick={() => set("finals", f)}
+                aria-pressed={form.finals === f}
+                className={chip(form.finals === f)}
+              >
                 {f}
               </button>
             ))}
@@ -231,27 +251,40 @@ function IntakeForm({
               className="w-full rounded-x-md border border-border bg-surface p-3 text-sm text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600"
             />
           </div>
-          {errors.length > 0 && <p className="text-xs text-red-500">این‌ها رو هنوز جواب ندادی: {errors.join("، ")}</p>}
-          <div className="flex items-center gap-3">
+          <FormActions status={<SaveStatus show={justSaved} text="ذخیره شد و برای مشاورت فرستاده شد" />}>
             <Button type="submit" size="md">
               {saved ? "به‌روزرسانی" : "ثبت پرسشنامه"}
             </Button>
-            {justSaved && <span className="text-sm text-mint-500">ذخیره شد و برای مشاورت فرستاده شد ✓</span>}
-          </div>
+          </FormActions>
         </form>
       </CardContent>
     </Card>
   );
 }
 
-function Question({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Question({
+  label,
+  hint,
+  error,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div>
-      <div className="mb-2 text-sm font-medium text-text-700">
+    <fieldset aria-invalid={error ? true : undefined}>
+      <legend className="mb-2 text-sm font-medium text-text-700">
         {label} {hint && <span className="text-xs font-normal text-text-500">({hint})</span>}
-      </div>
+      </legend>
       <div className="flex flex-wrap gap-1.5">{children}</div>
-    </div>
+      {error && (
+        <p role="alert" className="mt-1.5 text-xs text-red-500">
+          {error}
+        </p>
+      )}
+    </fieldset>
   );
 }
 
@@ -316,7 +349,7 @@ function ScheduleSection({ schedule }: { schedule: Commitment[] }) {
                       {c.title} <span className="tnum">{toPersianDigits(`${c.start}–${c.end}`)}</span>
                       <button
                         type="button"
-                        onClick={() => removeCommitment(c.id)}
+                        onClick={() => toast(`«${c.title}» حذف شد`, removeCommitment(c.id))}
                         aria-label={`حذف ${c.title} ${day}`}
                         className="text-text-500 hover:text-red-500"
                       >
@@ -443,7 +476,7 @@ function BooksSection({
                     </select>
                     <button
                       type="button"
-                      onClick={() => removeBook(b.id)}
+                      onClick={() => toast(`«${b.title}» حذف شد`, removeBook(b.id))}
                       aria-label={`حذف ${b.title}`}
                       className="text-text-500 hover:text-red-500"
                     >

@@ -1,5 +1,6 @@
 "use client";
 
+import { FormActions } from "@/components/ui/Form";
 import { useState } from "react";
 import Link from "next/link";
 import { LifeBuoy, Plus, ArrowRight, Paperclip, Send, Star, CheckCircle2, ChevronLeft, HelpCircle } from "lucide-react";
@@ -64,9 +65,7 @@ export function SupportCenter({ requester }: { requester: { name: string; role: 
           </Button>
         )}
       </div>
-      <p className="mb-6 text-sm text-text-500">
-        {INTRO[requester.role]} — اینجا ثبت کن و همین‌جا جواب بگیر.
-      </p>
+      <p className="mb-6 text-sm text-text-500">{INTRO[requester.role]} — اینجا ثبت کن و همین‌جا جواب بگیر.</p>
 
       {view.kind === "list" && (
         <>
@@ -192,7 +191,11 @@ function NewTicket({
                 </button>
               ))}
             </div>
-            {errors.category && <p className="mt-1 text-xs text-red-500">{errors.category}</p>}
+            {errors.category && (
+              <p role="alert" className="mt-1.5 text-xs text-red-500">
+                {errors.category}
+              </p>
+            )}
           </div>
 
           {suggestions.length > 0 && (
@@ -221,7 +224,11 @@ function NewTicket({
               placeholder="مثلاً: عکس کارنامه آپلود نمی‌شه"
               className="h-10 w-full rounded-x-sm border border-border bg-surface px-3 text-sm text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600"
             />
-            {errors.subject && <p className="mt-1 text-xs text-red-500">{errors.subject}</p>}
+            {errors.subject && (
+              <p role="alert" className="mt-1.5 text-xs text-red-500">
+                {errors.subject}
+              </p>
+            )}
           </div>
 
           <div>
@@ -239,7 +246,11 @@ function NewTicket({
               placeholder="چی شد، کِی شد، و انتظار داشتی چی بشه؟"
               className="w-full rounded-x-md border border-border bg-surface p-3 text-sm text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600"
             />
-            {errors.text && <p className="mt-1 text-xs text-red-500">{errors.text}</p>}
+            {errors.text && (
+              <p role="alert" className="mt-1.5 text-xs text-red-500">
+                {errors.text}
+              </p>
+            )}
           </div>
 
           <label className="flex cursor-pointer items-center gap-2 text-xs text-text-500 hover:text-text-900">
@@ -253,14 +264,14 @@ function NewTicket({
             />
           </label>
 
-          <div className="flex gap-2">
+          <FormActions>
             <Button type="submit" size="md">
               <Send size={14} /> ثبت تیکت
             </Button>
             <Button type="button" size="md" variant="secondary" onClick={onCancel}>
               انصراف
             </Button>
-          </div>
+          </FormActions>
         </form>
       </CardContent>
     </Card>
@@ -310,10 +321,7 @@ function TicketThread({
                 )}
               >
                 <div
-                  className={cn(
-                    "mb-0.5 text-[11px] font-medium",
-                    m.from === "user" ? "text-white/70" : "text-blue-600"
-                  )}
+                  className={cn("mb-0.5 text-xs font-medium", m.from === "user" ? "text-white/70" : "text-blue-600")}
                 >
                   {m.from === "user" ? "شما" : `${m.author} — پشتیبانی`}
                 </div>
@@ -321,14 +329,14 @@ function TicketThread({
                 {m.attachment && (
                   <div
                     className={cn(
-                      "mt-1 flex items-center gap-1 text-[11px]",
+                      "mt-1 flex items-center gap-1 text-xs",
                       m.from === "user" ? "text-white/70" : "text-text-500"
                     )}
                   >
                     <Paperclip size={11} /> {m.attachment}
                   </div>
                 )}
-                <div className={cn("tnum mt-1 text-[10px]", m.from === "user" ? "text-white/60" : "text-text-500")}>
+                <div className={cn("tnum mt-1 text-xs", m.from === "user" ? "text-white/60" : "text-text-500")}>
                   {m.time}
                 </div>
               </div>

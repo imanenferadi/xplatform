@@ -59,10 +59,10 @@ function parseTests(v: string): number | string {
   return n;
 }
 
-// The nightly routine: one flow instead of three pages — what you studied
+// Tonight's گزارش کار: one flow instead of three pages — what you studied
 // (today's plan is pre-filled, so it's mostly ticks), today's mistakes
 // straight into the notebook, then sleep and mood. About a minute.
-export default function NightRoutinePage() {
+export default function NightlyReportPage() {
   const mentor = mentors[0];
   const todayTasks = useTodayTasks();
   const doneIds = useDoneIds();
@@ -240,7 +240,7 @@ export default function NightRoutinePage() {
       <div className="mx-auto max-w-2xl px-4 py-6 md:py-10">
         <div className="mb-1 flex items-center gap-2">
           <Moon size={18} className="text-blue-600" />
-          <h1 className="text-xl font-bold text-text-900">روتین شب</h1>
+          <h1 className="text-xl font-bold text-text-900">گزارش کار امشب</h1>
         </div>
         <p className="mb-4 text-sm text-text-500">
           سه قدم کوتاه — مستقیم می‌ره برای {mentor.name} و توی جمع هفته حساب می‌شه.
@@ -250,7 +250,7 @@ export default function NightRoutinePage() {
           {STEPS.map((label, i) => (
             <div key={label} className="flex-1">
               <div className={cn("h-1.5 rounded-x-pill", i <= step ? "bg-blue-600" : "bg-surface-2")} />
-              <div className={cn("mt-1 text-[11px]", i === step ? "font-bold text-text-900" : "text-text-500")}>
+              <div className={cn("mt-1 text-xs", i === step ? "font-bold text-text-900" : "text-text-500")}>
                 {toPersianDigits(i + 1)}. {label}
               </div>
             </div>

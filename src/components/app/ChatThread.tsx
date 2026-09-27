@@ -84,22 +84,19 @@ function Thread({ studentId, side }: { studentId: string; side: Side }) {
                 )}
               >
                 {m.broadcast && (
-                  <div className={cn("mb-1 text-[10px] font-medium", mine ? "text-white/70" : "text-blue-600")}>
+                  <div className={cn("mb-1 text-xs font-medium", mine ? "text-white/70" : "text-blue-600")}>
                     📣 پیام گروهی
                   </div>
                 )}
                 {m.voice ? <VoiceBubble clip={m.voice} mine={mine} /> : m.text}
                 <div
-                  className={cn(
-                    "tnum mt-1 flex items-center gap-1 text-[10px]",
-                    mine ? "text-white/60" : "text-text-500"
-                  )}
+                  className={cn("tnum mt-1 flex items-center gap-1 text-xs", mine ? "text-white/60" : "text-text-500")}
                 >
                   {m.time}
                   {mine &&
                     !m.broadcast &&
                     (theirMark >= m.id ? (
-                      <span className="flex items-center gap-0.5 text-cyan-500">
+                      <span className="flex items-center gap-0.5 font-medium text-white">
                         <CheckCheck size={12} /> خوانده شد
                       </span>
                     ) : (

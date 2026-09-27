@@ -31,8 +31,10 @@ export function addCommitment(c: Commitment) {
   store.set({ ...store.get(), schedule: [...store.get().schedule, c] });
 }
 
-export function removeCommitment(id: string) {
-  store.set({ ...store.get(), schedule: store.get().schedule.filter((c) => c.id !== id) });
+export function removeCommitment(id: string): () => void {
+  const before = store.get();
+  store.set({ ...before, schedule: before.schedule.filter((c) => c.id !== id) });
+  return () => store.set({ ...store.get(), schedule: before.schedule });
 }
 
 export function addBook(b: BookItem) {
@@ -43,8 +45,10 @@ export function updateBook(id: string, patch: Partial<BookItem>) {
   store.set({ ...store.get(), books: store.get().books.map((b) => (b.id === id ? { ...b, ...patch } : b)) });
 }
 
-export function removeBook(id: string) {
-  store.set({ ...store.get(), books: store.get().books.filter((b) => b.id !== id) });
+export function removeBook(id: string): () => void {
+  const before = store.get();
+  store.set({ ...before, books: before.books.filter((b) => b.id !== id) });
+  return () => store.set({ ...store.get(), books: before.books });
 }
 
 /** The three start-up steps and whether each is done. */

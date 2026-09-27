@@ -121,8 +121,11 @@ export function updateTask(studentId: string, week: PlanWeek, day: string, id: s
   }));
 }
 
-export function removeTask(studentId: string, week: PlanWeek, day: string, id: string) {
+/** Removes a task from the draft; returns an undo that restores the draft as it was. */
+export function removeTask(studentId: string, week: PlanWeek, day: string, id: string): () => void {
+  const before = plans.get();
   editDraft(studentId, week, (d) => ({ ...d, days: { ...d.days, [day]: d.days[day].filter((t) => t.id !== id) } }));
+  return () => plans.set(before);
 }
 
 export function setPlanNote(studentId: string, week: PlanWeek, note: string) {

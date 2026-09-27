@@ -1,5 +1,7 @@
 "use client";
 
+import { FormActions, SaveStatus } from "@/components/ui/Form";
+import { saveProfile, useProfile } from "@/lib/profile-store";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -16,6 +18,7 @@ import {
 import { StudentShell } from "@/components/app/StudentShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { mentors, targetMajor, studentProfile } from "@/lib/mock-data";
 import { MySubscription } from "@/components/app/MySubscription";
@@ -58,8 +61,18 @@ function Dot() {
 
 export default function ProfilePage() {
   const mentor = mentors[0];
-  const [name, setName] = useState(studentProfile.name);
-  const [city, setCity] = useState(studentProfile.city);
+  const profile = useProfile();
+  const [name, setName] = useState(profile.name);
+  const [city, setCity] = useState(profile.city);
+  const [nameError, setNameError] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  function saveInfo(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return setNameError("اسمت رو بنویس.");
+    saveProfile({ name: name.trim(), city: city.trim() });
+    setSaved(true);
+  }
   const [prefs, setPrefs] = useState(studentProfile.notificationPrefs);
   const parentAccess = useParentAccess();
 
@@ -85,11 +98,39 @@ export default function ProfilePage() {
         </Card>
 
         <Card className="mt-4">
-          <CardContent className="space-y-4">
-            <h2 className="text-sm font-bold text-text-900">اطلاعات فردی</h2>
-            <Input label="نام" value={name} onChange={(e) => setName(e.target.value)} />
-            <Input label="شهر" value={city} onChange={(e) => setCity(e.target.value)} />
-            <Input label="پایه‌ی تحصیلی" value={studentProfile.grade} disabled />
+          <CardContent>
+            <form onSubmit={saveInfo} noValidate className="space-y-4">
+              <h2 className="text-sm font-bold text-text-900">اطلاعات فردی</h2>
+              <Input
+                label="نام"
+                value={name}
+                error={nameError}
+                onChange={(e) => {
+                  setName(e.target.value.slice(0, 40));
+                  setNameError("");
+                  setSaved(false);
+                }}
+              />
+              <Input
+                label="شهر"
+                value={city}
+                onChange={(e) => {
+                  setCity(e.target.value.slice(0, 40));
+                  setSaved(false);
+                }}
+              />
+              <Input
+                label="پایه‌ی تحصیلی"
+                value={studentProfile.grade}
+                disabled
+                helperText="برای تغییر پایه به پشتیبانی پیام بده."
+              />
+              <FormActions status={<SaveStatus show={saved} />}>
+                <Button type="submit" size="md">
+                  ذخیره
+                </Button>
+              </FormActions>
+            </form>
           </CardContent>
         </Card>
 
@@ -136,7 +177,7 @@ export default function ProfilePage() {
                 <div key={key} className="flex items-center justify-between gap-3">
                   <div>
                     <div className="text-sm text-text-700">{PARENT_ACCESS_LABELS[key].label}</div>
-                    <div className="text-[11px] text-text-500">{PARENT_ACCESS_LABELS[key].hint}</div>
+                    <div className="text-xs text-text-500">{PARENT_ACCESS_LABELS[key].hint}</div>
                   </div>
                   <Toggle
                     checked={parentAccess[key]}
@@ -146,7 +187,7 @@ export default function ProfilePage() {
                 </div>
               ))}
             </div>
-            <div className="mt-4 space-y-1.5 border-t border-border pt-3 text-[11px] text-text-500">
+            <div className="mt-4 space-y-1.5 border-t border-border pt-3 text-xs text-text-500">
               <div className="flex items-center gap-1.5">
                 <Dot /> اشتراک و پرداخت همیشه برای والدین پیداست — پرداخت‌کننده خودشونن.
               </div>

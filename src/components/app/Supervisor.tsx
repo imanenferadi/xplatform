@@ -16,11 +16,14 @@ export function SupervisorShell({ children }: { children: React.ReactNode }) {
   const me = useSupervisor();
   return (
     <div className="min-h-screen bg-background">
+      <a href="#main" className="skip-link">
+        رفتن به محتوای اصلی
+      </a>
       <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-navy-900 px-4 py-3">
         <Link href="/supervisor" className="text-sm font-bold text-white">
           X · سرپرست آموزشی
         </Link>
-        <span className="flex items-center gap-1 rounded-x-pill bg-white/10 px-2.5 py-0.5 text-[11px] text-white/80">
+        <span className="flex items-center gap-1 rounded-x-pill bg-white/10 px-2.5 py-0.5 text-xs text-white/80">
           <Eye size={11} /> فقط‌خواندنی
         </span>
         <span className="flex-1" />
@@ -31,7 +34,9 @@ export function SupervisorShell({ children }: { children: React.ReactNode }) {
           </span>
         )}
       </header>
-      <main>{children}</main>
+      <main id="main" tabIndex={-1}>
+        {children}
+      </main>
     </div>
   );
 }

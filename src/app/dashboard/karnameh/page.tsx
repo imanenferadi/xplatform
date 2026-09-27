@@ -6,6 +6,7 @@ import { StudentShell } from "@/components/app/StudentShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PercentCalculator } from "@/components/app/PercentCalculator";
 import { addKarnameh, readKarnamehFile, useKarnamehs } from "@/lib/karnameh-store";
 
 export default function KarnamehUploadPage() {
@@ -155,6 +156,10 @@ export default function KarnamehUploadPage() {
           {uploads.length === 0 && (
             <p className="py-6 text-center text-sm text-text-500">هنوز کارنامه‌ای آپلود نکردی.</p>
           )}
+        </div>
+
+        <div className="mt-10 border-t border-border pt-8">
+          <PercentCalculator />
         </div>
       </div>
     </StudentShell>

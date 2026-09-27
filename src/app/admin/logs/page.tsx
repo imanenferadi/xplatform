@@ -307,13 +307,13 @@ function LogRow({ log, open, onToggle }: { log: PlatformLogEntry; open: boolean;
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5 text-sm text-text-900">
               <span className="font-medium">{log.actor}</span>
-              <span className="text-[11px] text-text-500">({log.actorRole})</span>
+              <span className="text-xs text-text-500">({log.actorRole})</span>
               <span>— {log.action}</span>
             </div>
             <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-text-500">
               <span className="truncate">{log.target}</span>
               {log.followUp.tags.map((t) => (
-                <span key={t} className="rounded-x-pill bg-surface-2 px-2 py-0.5 text-[10px] text-text-700">
+                <span key={t} className="rounded-x-pill bg-surface-2 px-2 py-0.5 text-xs text-text-700">
                   #{t}
                 </span>
               ))}
@@ -382,7 +382,7 @@ function EventDetails({ log }: { log: PlatformLogEntry }) {
           </Row>
         )}
         <Row label="شناسه">
-          <span dir="ltr" className="font-mono text-[11px]">
+          <span dir="ltr" className="font-mono text-xs">
             {log.id}
           </span>
         </Row>
