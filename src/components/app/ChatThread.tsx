@@ -1,20 +1,55 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send, CheckCheck, Check } from "lucide-react";
+import { Send, CheckCheck, Check, Flag } from "lucide-react";
 import { VoiceBubble, VoiceRecordButton } from "@/components/app/Voice";
 import { markRead, persistVoice, sendMessage, useReadMark, useThread, type Side } from "@/lib/chat-store";
 import type { VoiceClip } from "@/lib/use-voice-recorder";
+import { useViewAsTab } from "@/lib/viewas-store";
+import { createTicket } from "@/lib/ticket-store";
+import { mentorStudents, type ChatMessage } from "@/lib/mock-data";
+
+const studentName = (id: string) => mentorStudents.find((s) => s.id === id)?.name ?? "";
 import { cn } from "@/lib/utils";
 
 // The same thread from either side: mine on the left-hand bubble colour,
 // theirs on the other, «خوانده شد» once the other side has opened it.
 export function ChatThread({ studentId, side }: { studentId: string; side: Side }) {
+  // Support «view as user» never shows the mentor conversation.
+  if (useViewAsTab())
+    return (
+      <p className="py-16 text-center text-sm text-text-500">
+        در حالت مشاهده‌ی پشتیبانی، گفتگو با مشاور نمایش داده نمی‌شه.
+      </p>
+    );
+  return <Thread studentId={studentId} side={side} />;
+}
+
+function Thread({ studentId, side }: { studentId: string; side: Side }) {
   const thread = useThread(studentId);
   const theirMark = useReadMark(studentId, side === "mentor" ? "student" : "mentor");
   const [input, setInput] = useState("");
   const [voiceNote, setVoiceNote] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
+  const [confirming, setConfirming] = useState<number | null>(null);
+  const [reported, setReported] = useState<Record<number, string>>({});
+
+  // Staff never read chats; a reported message reaches support as a ticket
+  // quoting only that one message, sent by the person who reported it.
+  function report(m: ChatMessage) {
+    const other = side === "student" ? "سارا محمدی (مشاور)" : `${studentName(studentId)} (دانش‌آموز)`;
+    const id = createTicket({
+      subject: "گزارش یک پیام در گفتگو",
+      category: "سایر",
+      text: `پیام گزارش‌شده از ${other}، ${m.time}:\n«${m.voice ? "پیام صوتی" : m.text}»`,
+      requester:
+        side === "student"
+          ? { name: "ایمان", role: "دانش‌آموز", userId: "u-1" }
+          : { name: "سارا محمدی", role: "مشاور", userId: "u-3" },
+    });
+    setReported((r) => ({ ...r, [m.id]: id }));
+    setConfirming(null);
+  }
 
   // Opening the thread (and every new message while it's open) counts as read.
   useEffect(() => {
@@ -69,6 +104,34 @@ export function ChatThread({ studentId, side }: { studentId: string; side: Side 
                       </span>
                     ) : (
                       <Check size={12} aria-label="ارسال شد" />
+                    ))}
+                  {!mine &&
+                    (reported[m.id] ? (
+                      <span className="text-orange-500">گزارش شد ({reported[m.id]})</span>
+                    ) : confirming === m.id ? (
+                      <span className="flex items-center gap-1.5">
+                        برای پشتیبانی بفرستم؟
+                        <button
+                          type="button"
+                          onClick={() => report(m)}
+                          className="font-medium text-red-500 hover:underline"
+                        >
+                          بفرست
+                        </button>
+                        <button type="button" onClick={() => setConfirming(null)} className="hover:underline">
+                          نه
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setConfirming(m.id)}
+                        aria-label="گزارش این پیام"
+                        title="گزارش این پیام"
+                        className="opacity-60 hover:text-red-500 hover:opacity-100"
+                      >
+                        <Flag size={11} />
+                      </button>
                     ))}
                 </div>
               </div>

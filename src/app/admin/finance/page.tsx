@@ -16,6 +16,7 @@ import {
   ExportButton,
   FollowUpBadges,
   ReasonPrompt,
+  Allowed,
 } from "@/components/admin/AdminKit";
 import {
   PLATFORM_COMMISSION_PERCENT,
@@ -253,9 +254,11 @@ export default function AdminFinancePage() {
                           onCancel={() => setPayingId(null)}
                         />
                       ) : (
-                        <Button size="md" onClick={() => setPayingId(p.id)}>
-                          <Check size={15} /> پرداخت شد
-                        </Button>
+                        <Allowed perm="payout.mark">
+                          <Button size="md" onClick={() => setPayingId(p.id)}>
+                            <Check size={15} /> پرداخت شد
+                          </Button>
+                        </Allowed>
                       ))}
                     <EntityActivity match={p.mentorName} />
                   </div>

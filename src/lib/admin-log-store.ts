@@ -4,7 +4,8 @@ import { useMemo } from "react";
 import { createLocalStore } from "./local-store";
 import { platformLogs, type LogFollowUp, type PlatformLogEntry } from "./mock-data";
 import { toCsv } from "./csv";
-import { CURRENT_ADMIN, FOLLOW_UP_LABEL, nowClock, saveFollowUp, useFollowUps } from "./followup-store";
+import { currentAdminName } from "./staff-store";
+import { FOLLOW_UP_LABEL, nowClock, saveFollowUp, useFollowUps } from "./followup-store";
 
 // Audit log bridge (localStorage until there's a backend): `added` holds
 // events recorded live by admin actions on other admin pages. The only
@@ -38,7 +39,7 @@ type NewEvent = Omit<PlatformLogEntry, "id" | "date" | "time" | "actor" | "actor
 export function logEvent(e: NewEvent) {
   const s = store.get();
   const entry: PlatformLogEntry = {
-    actor: CURRENT_ADMIN,
+    actor: currentAdminName(),
     actorRole: "ادمین",
     device: "تهران · همین مرورگر",
     ...e,

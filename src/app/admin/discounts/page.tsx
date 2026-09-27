@@ -15,6 +15,7 @@ import {
   ExportButton,
   FilterSelect,
   FollowUpBadges,
+  Allowed,
 } from "@/components/admin/AdminKit";
 import {
   DEMO_TODAY_ISO,
@@ -114,9 +115,11 @@ export default function AdminDiscountsPage() {
           <div className="flex gap-2">
             <ExportButton count={filtered.length} onExport={exportCodes} />
             {!creating && (
-              <Button size="md" onClick={() => setCreating(true)}>
-                <Plus size={15} /> کد جدید
-              </Button>
+              <Allowed perm="discounts.manage">
+                <Button size="md" onClick={() => setCreating(true)}>
+                  <Plus size={15} /> کد جدید
+                </Button>
+              </Allowed>
             )}
           </div>
         </div>
@@ -204,17 +207,19 @@ export default function AdminDiscountsPage() {
                       ]}
                     />
                     {(st === "active" || st === "paused") && (
-                      <Button size="md" variant="secondary" onClick={() => togglePause(c)}>
-                        {c.paused ? (
-                          <>
-                            <Play size={14} /> فعال کن
-                          </>
-                        ) : (
-                          <>
-                            <Pause size={14} /> متوقف کن
-                          </>
-                        )}
-                      </Button>
+                      <Allowed perm="discounts.manage">
+                        <Button size="md" variant="secondary" onClick={() => togglePause(c)}>
+                          {c.paused ? (
+                            <>
+                              <Play size={14} /> فعال کن
+                            </>
+                          ) : (
+                            <>
+                              <Pause size={14} /> متوقف کن
+                            </>
+                          )}
+                        </Button>
+                      </Allowed>
                     )}
                     <EntityActivity match={c.code} />
                   </div>

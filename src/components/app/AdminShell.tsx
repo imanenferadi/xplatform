@@ -14,10 +14,14 @@ import {
   Gauge,
   TicketPercent,
   UserMinus,
+  ShieldCheck,
+  Lock,
 } from "lucide-react";
 import { cn, toPersianDigits } from "@/lib/utils";
 import { useInboxCounts } from "@/lib/admin-inbox";
 import { AdminSearch } from "@/components/admin/AdminSearch";
+import { PAGE_PERM, ROLE_META, can } from "@/lib/permissions";
+import { signInAs, useMe, useStaff } from "@/lib/staff-store";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
 
@@ -50,6 +54,7 @@ const groups: { label: string | null; links: NavLink[] }[] = [
       { href: "/admin/tickets", label: "تیکت‌ها", icon: LifeBuoy },
       { href: "/admin/churn", label: "دلایل لغو", icon: UserMinus },
       { href: "/admin/logs", label: "لاگ فعالیت‌ها", icon: ScrollText },
+      { href: "/admin/staff", label: "کارکنان و نقش‌ها", icon: ShieldCheck },
     ],
   },
 ];
@@ -58,6 +63,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const counts = useInboxCounts();
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  const me = useMe();
+  const staff = useStaff();
+  // Deny by default: a page with no rule, or one this role lacks, isn't shown.
+  const pagePerm = PAGE_PERM[pathname];
+  const allowed = pagePerm !== undefined && can(me.role, pagePerm);
+  const visibleGroups = groups
+    .map((g) => ({ ...g, links: g.links.filter((l) => can(me.role, PAGE_PERM[l.href])) }))
+    .filter((g) => g.links.length > 0);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -70,7 +83,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <AdminSearch />
 
         <nav className="flex-1 overflow-y-auto px-2">
-          {groups.map((g) => (
+          {visibleGroups.map((g) => (
             <div key={g.label ?? "today"} className="mb-3">
               {g.label && <div className="px-3 pb-1 pt-1 text-[11px] font-medium text-white/40">{g.label}</div>}
               <div className="space-y-0.5">
@@ -109,16 +122,56 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
         <div className="border-t border-white/10 p-3">
           <div className="flex items-center gap-2.5 px-1">
-            <Avatar name="ادمین" size="sm" />
+            <Avatar name={me.name} size="sm" />
             <div className="min-w-0">
-              <div className="truncate text-xs font-medium text-white">ادمین پلتفرم</div>
-              <div className="truncate text-[11px] text-white/50">دسترسی کامل</div>
+              <div className="truncate text-xs font-medium text-white">{me.name}</div>
+              <div className="truncate text-[11px] text-white/50">{ROLE_META[me.role].label}</div>
             </div>
           </div>
+          {/* Demo stand-in for staff login: see the panel as each role. */}
+          <label className="mt-2 block text-[10px] text-white/40">
+            ورود به‌عنوان (دمو)
+            <select
+              value={me.id}
+              onChange={(e) => signInAs(e.target.value)}
+              aria-label="ورود به‌عنوان"
+              className="mt-1 h-8 w-full rounded-x-sm border border-white/15 bg-navy-900 px-2 text-xs text-white"
+            >
+              {staff
+                .filter((m) => m.active && m.role !== "supervisor")
+                .map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} — {ROLE_META[m.role].short}
+                  </option>
+                ))}
+            </select>
+          </label>
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1">{children}</main>
+      <main className="min-w-0 flex-1">
+        {me.role === "auditor" && allowed && (
+          <div className="bg-orange-500/10 px-6 py-2 text-xs text-orange-500">
+            حسابرس: همه‌چیز فقط‌خواندنیه و دکمه‌های عملیاتی غیرفعال‌اند.
+          </div>
+        )}
+        {allowed ? (
+          children
+        ) : (
+          <div className="mx-auto max-w-md px-6 py-24 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-surface-2">
+              <Lock size={20} className="text-text-500" />
+            </div>
+            <h1 className="mt-3 font-bold text-text-900">به این بخش دسترسی نداری</h1>
+            <p className="mt-1 text-sm text-text-500">
+              نقش تو «{ROLE_META[me.role].label}» است ({ROLE_META[me.role].desc}). اگه لازمش داری، از مدیر کل بخواه.
+            </p>
+            <Link href="/admin" className="mt-4 inline-block text-sm text-blue-600 hover:underline">
+              برگرد به «امروز»
+            </Link>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

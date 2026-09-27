@@ -8,7 +8,9 @@ import { useSubscription } from "./subscription-store";
 import { useChurn } from "./churn-store";
 import { useLogs } from "./admin-log-store";
 import { computeQuality } from "./quality";
-import { CURRENT_ADMIN } from "./followup-store";
+import { useMe } from "./staff-store";
+import { useProposals } from "./reassign-proposals";
+import { PAGE_PERM, can, seesLogCategory, seesTicketCategory } from "./permissions";
 import { toPersianDigits } from "./utils";
 
 export type InboxPriority = "urgent" | "high" | "normal";
@@ -29,12 +31,15 @@ export function useAdminInbox(): InboxItem[] {
   const sub = useSubscription();
   const { responses } = useChurn();
   const logs = useLogs();
+  const me = useMe();
+  const proposals = useProposals();
 
   return useMemo(() => {
     const items: InboxItem[] = [];
 
     for (const t of tickets) {
       if (t.status === "closed" || t.status === "answered") continue;
+      if (!seesTicketCategory(me.role, t.category)) continue;
       const sla = slaState(t);
       if (sla.overdue || t.status === "new")
         items.push({
@@ -84,6 +89,17 @@ export function useAdminInbox(): InboxItem[] {
         href: "/admin/mentors",
       });
 
+    if (can(me.role, "reassign.execute"))
+      for (const p of proposals.filter((x) => x.status === "pending"))
+        items.push({
+          key: `rp-${p.id}`,
+          priority: "high",
+          kind: "تعویض مشاور",
+          title: `پیشنهاد تعویض مشاور ${p.studentName}`,
+          detail: `${p.fromMentor} ← ${p.toMentor} · ${p.reason} · از ${p.by}`,
+          href: "/admin/reassign",
+        });
+
     const pendingPayouts = mentorPayouts.filter((p) => p.status === "pending");
     if (pendingPayouts.length)
       items.push({
@@ -110,7 +126,10 @@ export function useAdminInbox(): InboxItem[] {
         });
     }
 
-    for (const l of logs.filter((x) => x.followUp.status === "in_progress" && x.followUp.assignee === CURRENT_ADMIN))
+    for (const l of logs.filter(
+      (x) =>
+        x.followUp.status === "in_progress" && x.followUp.assignee === me.name && seesLogCategory(me.role, x.category)
+    ))
       items.push({
         key: `f-${l.id}`,
         priority: "normal",
@@ -121,8 +140,14 @@ export function useAdminInbox(): InboxItem[] {
       });
 
     const rank: Record<InboxPriority, number> = { urgent: 0, high: 1, normal: 2 };
-    return items.sort((a, b) => rank[a.priority] - rank[b.priority]);
-  }, [tickets, stored, sub, responses, logs]);
+    // Only what this role can act on or open.
+    return items
+      .filter((i) => {
+        const perm = PAGE_PERM[i.href.split("?")[0]];
+        return perm !== undefined && can(me.role, perm);
+      })
+      .sort((a, b) => rank[a.priority] - rank[b.priority]);
+  }, [tickets, stored, sub, responses, logs, me, proposals]);
 }
 
 /** Waiting items per admin page, for the sidebar counters. */

@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, X, History, Search, Download, ScrollText, ArrowLeft } from "lucide-react";
+import { ChevronDown, X, History, Search, Download, ScrollText, ArrowLeft, Lock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { LOG_ADMINS, type FollowUpStatus, type LogFollowUp } from "@/lib/mock-data";
+import { type FollowUpStatus, type LogFollowUp } from "@/lib/mock-data";
+import { can, rolesWith, seesLogCategory, type Perm } from "@/lib/permissions";
+import { useCan, useMe, useStaff } from "@/lib/staff-store";
 import { EMPTY_FOLLOW_UP, saveFollowUp, useFollowUps } from "@/lib/followup-store";
 import { useLogs } from "@/lib/admin-log-store";
 import { cn, toPersianDigits } from "@/lib/utils";
@@ -93,6 +95,21 @@ export function FollowUpBadges({ entityKey }: { entityKey: string }) {
 
 export function EntityFollowUp({ entityKey }: { entityKey: string }) {
   const { value } = useEntityFollowUp(entityKey);
+  const allowed = useCan();
+  if (!allowed("logs.followup"))
+    return (
+      <div className="text-xs">
+        <div className="mb-2 font-bold text-text-900">پیگیری</div>
+        <p className="text-text-700">
+          {FOLLOW_UP_STATUS[value.status].label}
+          {value.assignee && ` · مسئول: ${value.assignee}`}
+        </p>
+        {value.note && <p className="mt-1 text-text-500">«{value.note}»</p>}
+        <p className="mt-2 flex items-center gap-1 text-text-500">
+          <Lock size={11} /> ویرایش پیگیری: فقط {rolesWith("logs.followup")}
+        </p>
+      </div>
+    );
   return (
     // Remount after each save so the draft starts from the saved values.
     <FollowUpEditor key={value.history.length} value={value} onSave={(next) => saveFollowUp(entityKey, value, next)} />
@@ -113,6 +130,9 @@ export function FollowUpEditor({
     note: saved.note,
   });
   const [tagInput, setTagInput] = useState("");
+  const assignees = useStaff()
+    .filter((m) => m.active && m.role !== "supervisor" && m.role !== "auditor")
+    .map((m) => m.name);
 
   const dirty =
     draft.status !== saved.status ||
@@ -155,7 +175,7 @@ export function FollowUpEditor({
           className="h-9 w-full rounded-x-sm border border-border bg-surface px-3 text-xs text-text-900"
         >
           <option value="">بدون مسئول</option>
-          {LOG_ADMINS.map((a) => (
+          {assignees.map((a) => (
             <option key={a} value={a}>
               {a}
             </option>
@@ -244,14 +264,18 @@ export function FollowUpEditor({
 
 /** Recent log events about this person — straight from the audit log. */
 export function EntityActivity({ match, limit = 5 }: { match: string; limit?: number }) {
-  const logs = useLogs().filter((l) => l.target.includes(match) || l.actor === match);
+  const me = useMe();
+  // Only the log categories this role may read.
+  const logs = useLogs().filter(
+    (l) => (l.target.includes(match) || l.actor === match) && seesLogCategory(me.role, l.category)
+  );
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
         <span className="flex items-center gap-1 text-xs font-bold text-text-900">
           <ScrollText size={12} className="text-text-500" /> تاریخچه‌ی فعالیت
         </span>
-        {logs.length > 0 && (
+        {logs.length > 0 && can(me.role, "logs.view") && (
           <Link
             href={`/admin/logs?q=${encodeURIComponent(match)}`}
             className="flex items-center gap-1 text-[11px] text-blue-600 hover:underline"
@@ -408,5 +432,16 @@ export function ExportButton({ count, onExport }: { count: number; onExport: () 
     <Button size="md" variant="secondary" onClick={onExport} disabled={count === 0}>
       <Download size={15} /> خروجی CSV ({toPersianDigits(count)})
     </Button>
+  );
+}
+
+/** Renders its children only for roles holding `perm`; otherwise says who can. */
+export function Allowed({ perm, children }: { perm: Perm; children: React.ReactNode }) {
+  const allowed = useCan();
+  if (allowed(perm)) return children;
+  return (
+    <p className="flex items-center gap-1 text-xs text-text-500">
+      <Lock size={12} /> این کار فقط با نقش {rolesWith(perm)} انجام می‌شه.
+    </p>
   );
 }

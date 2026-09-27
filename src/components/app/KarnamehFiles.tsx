@@ -15,7 +15,15 @@ import { cn } from "@/lib/utils";
 // The karnameh files of one student, openable by the mentor. Opening one
 // tells the student it was seen. The mentor can also attach one herself
 // (e.g. a sheet the parent sent on WhatsApp).
-export function KarnamehFiles({ studentId, studentName }: { studentId: string; studentName: string }) {
+export function KarnamehFiles({
+  studentId,
+  studentName,
+  readOnly = false,
+}: {
+  studentId: string;
+  studentName: string;
+  readOnly?: boolean; // supervisor: can open files, doesn't mark them seen or upload
+}) {
   const files = useKarnamehs(studentId);
   const [viewing, setViewing] = useState<StoredKarnameh | null>(null);
   const [busy, setBusy] = useState(false);
@@ -31,7 +39,7 @@ export function KarnamehFiles({ studentId, studentName }: { studentId: string; s
 
   function open(k: StoredKarnameh) {
     setViewing(k);
-    if (!k.seenByMentor) markKarnamehSeen(k.id);
+    if (!k.seenByMentor && !readOnly) markKarnamehSeen(k.id);
   }
 
   async function upload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -82,15 +90,17 @@ export function KarnamehFiles({ studentId, studentName }: { studentId: string; s
         </div>
       )}
 
-      <input ref={input} type="file" accept="image/*,.pdf" className="hidden" onChange={upload} />
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => input.current?.click()}
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-x-md border border-dashed border-border py-2.5 text-sm text-text-500 hover:border-blue-600 hover:text-blue-600 disabled:opacity-50"
-      >
-        <Upload size={15} /> {busy ? "در حال آماده‌سازی..." : "آپلود کارنامه برای این دانش‌آموز"}
-      </button>
+      {!readOnly && <input ref={input} type="file" accept="image/*,.pdf" className="hidden" onChange={upload} />}
+      {!readOnly && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => input.current?.click()}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-x-md border border-dashed border-border py-2.5 text-sm text-text-500 hover:border-blue-600 hover:text-blue-600 disabled:opacity-50"
+        >
+          <Upload size={15} /> {busy ? "در حال آماده‌سازی..." : "آپلود کارنامه برای این دانش‌آموز"}
+        </button>
+      )}
       {note && <p className="mt-2 text-xs text-orange-500">{note}</p>}
 
       {viewing && (

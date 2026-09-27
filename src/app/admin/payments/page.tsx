@@ -17,6 +17,7 @@ import {
   FilterSelect,
   FollowUpBadges,
   ReasonPrompt,
+  Allowed,
   SearchBox,
 } from "@/components/admin/AdminKit";
 import { REFUND_REJECT_REASONS, transactions as initialTransactions, type Transaction } from "@/lib/mock-data";
@@ -192,14 +193,16 @@ function AdminPaymentsPage() {
                 </div>
                 {guaranteeRefund.status === "pending" ? (
                   rejecting !== "guarantee" && (
-                    <div className="flex shrink-0 gap-2">
-                      <Button size="md" variant="secondary" onClick={() => setRejecting("guarantee")}>
-                        <X size={15} /> رد
-                      </Button>
-                      <Button size="md" onClick={() => decideGuarantee("approved")}>
-                        <Check size={15} /> برگشت وجه
-                      </Button>
-                    </div>
+                    <Allowed perm="refund.decide">
+                      <div className="flex shrink-0 gap-2">
+                        <Button size="md" variant="secondary" onClick={() => setRejecting("guarantee")}>
+                          <X size={15} /> رد
+                        </Button>
+                        <Button size="md" onClick={() => decideGuarantee("approved")}>
+                          <Check size={15} /> برگشت وجه
+                        </Button>
+                      </div>
+                    </Allowed>
                   )
                 ) : (
                   <Badge tone={statusMeta[guaranteeRefund.status].tone}>
@@ -319,14 +322,16 @@ function AdminPaymentsPage() {
                           onCancel={() => setRejecting(null)}
                         />
                       ) : (
-                        <div className="flex gap-2">
-                          <Button size="md" variant="secondary" onClick={() => setRejecting(t.id)}>
-                            <X size={15} /> رد
-                          </Button>
-                          <Button size="md" onClick={() => decide(t, "approved")}>
-                            <Check size={15} /> تأیید بازپرداخت
-                          </Button>
-                        </div>
+                        <Allowed perm="refund.decide">
+                          <div className="flex gap-2">
+                            <Button size="md" variant="secondary" onClick={() => setRejecting(t.id)}>
+                              <X size={15} /> رد
+                            </Button>
+                            <Button size="md" onClick={() => decide(t, "approved")}>
+                              <Check size={15} /> تأیید بازپرداخت
+                            </Button>
+                          </div>
+                        </Allowed>
                       ))}
                     <EntityActivity match={t.studentName} />
                   </div>

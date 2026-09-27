@@ -38,6 +38,7 @@ import { acknowledgeOverride, slotDay, useAvailability, useOverrides, useWeekSes
 import { createLocalStore } from "@/lib/local-store";
 import { useMentorUnreadCounts } from "@/lib/chat-store";
 import { useAllKarnamehs } from "@/lib/karnameh-store";
+import { markNoteSeen, useSupervisorNotes } from "@/lib/supervisor-store";
 import { cn, toPersianDigits } from "@/lib/utils";
 
 type Tone = "urgent" | "today" | "soon";
@@ -75,6 +76,7 @@ export function MentorToday() {
   const unread = useMentorUnreadCounts();
   const overrides = useOverrides();
   const karnamehs = useAllKarnamehs();
+  const supervisorNotes = useSupervisorNotes();
   const nameOf = (id: string) => mentorStudents.find((s) => s.id === id)?.name ?? "";
 
   const tasks: Task[] = [];
@@ -87,6 +89,26 @@ export function MentorToday() {
       title: `${c.parentName} درخواست تماس داده`,
       detail: `${c.topic} · وقت پیشنهادی ${c.slot}`,
       inline: <PendingCall call={c} />,
+    });
+
+  for (const n of supervisorNotes.filter((x) => !x.seen))
+    tasks.push({
+      key: `sn-${n.id}`,
+      tone: "urgent",
+      icon: GraduationCap,
+      title: `یادداشت سرپرست آموزشی درباره‌ی ${n.studentName}`,
+      detail: `«${n.text}» — ${n.by}`,
+      href: `/mentor/students/${n.studentId}`,
+      action: "پرونده",
+      inline: (
+        <button
+          type="button"
+          onClick={() => markNoteSeen(n.id)}
+          className="flex items-center gap-1 rounded-x-pill border border-border px-3 py-1 text-xs text-text-700 hover:border-blue-300"
+        >
+          <Check size={12} /> دیدم
+        </button>
+      ),
     });
 
   for (const o of overrides.filter((x) => x.by === "student" && !x.seen))

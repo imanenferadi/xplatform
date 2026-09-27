@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Vazirmatn } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { ViewAsBoot } from "@/components/app/SupportView";
 
 const vazirmatn = Vazirmatn({
   variable: "--font-vazirmatn",
@@ -40,17 +41,13 @@ const themeInitScript = `
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="fa"
-      dir="rtl"
-      className={`${vazirmatn.variable} h-full`}
-      suppressHydrationWarning
-    >
+    <html lang="fa" dir="rtl" className={`${vazirmatn.variable} h-full`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-background text-text-700 antialiased">
         {/* next/script, not a raw <script>: React warns about raw script tags
             rendered on the client; beforeInteractive still runs before
             hydration, so there's no light/dark flash. */}
         <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <ViewAsBoot />
         {children}
       </body>
     </html>

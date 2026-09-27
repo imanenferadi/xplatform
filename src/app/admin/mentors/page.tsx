@@ -20,6 +20,7 @@ import {
   FollowUpBadges,
   ReasonPrompt,
   SearchBox,
+  Allowed,
 } from "@/components/admin/AdminKit";
 import {
   MENTOR_REJECT_REASONS,
@@ -256,10 +257,12 @@ function AdminMentorsPage() {
                 onChange={(e) => setInviteName(e.target.value)}
                 className="flex-1"
               />
-              <Button onClick={generateInviteLink} disabled={!inviteName.trim()}>
-                <Link2 size={15} />
-                تولید لینک دعوت
-              </Button>
+              <Allowed perm="mentors.approve">
+                <Button onClick={generateInviteLink} disabled={!inviteName.trim()}>
+                  <Link2 size={15} />
+                  تولید لینک دعوت
+                </Button>
+              </Allowed>
             </div>
             {invites.length > 0 && (
               <div className="mt-4 space-y-2">
@@ -393,14 +396,16 @@ function AdminMentorsPage() {
                         />
                       ) : (
                         <div>
-                          <div className="flex gap-2">
-                            <Button size="md" variant="secondary" onClick={() => setRejecting(r.id)}>
-                              <X size={15} /> رد
-                            </Button>
-                            <Button size="md" disabled={!verified} onClick={() => decide(r, "approved")}>
-                              <Check size={15} /> {r.source === "site" ? "تأیید و انتشار" : "تأیید"}
-                            </Button>
-                          </div>
+                          <Allowed perm="mentors.approve">
+                            <div className="flex gap-2">
+                              <Button size="md" variant="secondary" onClick={() => setRejecting(r.id)}>
+                                <X size={15} /> رد
+                              </Button>
+                              <Button size="md" disabled={!verified} onClick={() => decide(r, "approved")}>
+                                <Check size={15} /> {r.source === "site" ? "تأیید و انتشار" : "تأیید"}
+                              </Button>
+                            </div>
+                          </Allowed>
                           {!verified && (
                             <p className="mt-1.5 text-[11px] text-text-500">
                               برای تأیید، همه‌ی مراحل چک‌لیست احراز رو تیک بزن.

@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { LifeBuoy, Send, Lock, Paperclip, History, ArrowLeftRight, Receipt, AlertTriangle, Star } from "lucide-react";
 import { AdminShell } from "@/components/app/AdminShell";
+import { ViewAsControl } from "@/components/admin/ViewAsControl";
+import { ROLE_META, rolesWith, seesTicketCategory } from "@/lib/permissions";
+import { useCan, useMe, useStaff } from "@/lib/staff-store";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { AdminRow, EntityActivity, ExportButton, FilterSelect, SearchBox } from "@/components/admin/AdminKit";
 import {
   CANNED_REPLIES,
-  LOG_ADMINS,
   TICKET_CATEGORIES,
   TICKET_PRIORITY,
   TICKET_STATUS,
@@ -50,7 +52,10 @@ export default function AdminTicketsPage() {
 }
 
 function Tickets() {
-  const tickets = useTickets();
+  const me = useMe();
+  const allTickets = useTickets();
+  // Each role works (and sees) only its own ticket categories.
+  const tickets = useMemo(() => allTickets.filter((t) => seesTicketCategory(me.role, t.category)), [allTickets, me]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<TicketStatus | "همه">("همه");
   const [category, setCategory] = useState<TicketCategory | "همه">("همه");
@@ -119,6 +124,12 @@ function Tickets() {
       </div>
       <p className="mb-5 text-sm text-text-500">
         یک کانال برای همه — دانش‌آموز، والد و مشاور. شکایت‌ها هم همین‌جا به‌عنوان تیکت دسته‌ی «مشاور» ثبت می‌شن.
+        {tickets.length < allTickets.length && (
+          <span className="mt-1 block text-xs text-blue-600">
+            با نقش «{ROLE_META[me.role].label}» فقط تیکت‌های دسته‌های خودت رو می‌بینی (
+            {TICKET_CATEGORIES.filter((c) => seesTicketCategory(me.role, c)).join("، ")}).
+          </span>
+        )}
       </p>
 
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -244,6 +255,11 @@ function Stat({
 }
 
 function TicketDetail({ ticket: t }: { ticket: Ticket }) {
+  const allowed = useCan();
+  const canAct = allowed("tickets.act");
+  const assignees = useStaff()
+    .filter((m) => m.active && m.role !== "supervisor" && m.role !== "auditor")
+    .map((m) => m.name);
   const [text, setText] = useState("");
   const [internal, setInternal] = useState(false);
   const sla = slaState(t);
@@ -294,7 +310,12 @@ function TicketDetail({ ticket: t }: { ticket: Ticket }) {
           ))}
         </div>
 
-        {t.status !== "closed" && (
+        {t.status !== "closed" && !canAct && (
+          <p className="mt-4 flex items-center gap-1 text-xs text-text-500">
+            <Lock size={12} /> پاسخ و یادداشت: فقط {rolesWith("tickets.act")}
+          </p>
+        )}
+        {t.status !== "closed" && canAct && (
           <div className="mt-4">
             <div className="mb-2 flex gap-1.5">
               {[false, true].map((isInternal) => (
@@ -348,12 +369,14 @@ function TicketDetail({ ticket: t }: { ticket: Ticket }) {
 
       {/* Properties */}
       <div className="space-y-4">
+        {allowed("viewas.request") && <ViewAsControl ticket={t} />}
         <div className="space-y-2 rounded-x-md bg-surface-2 p-3 text-xs">
           <Field label="وضعیت">
             <select
               value={t.status}
               onChange={(e) => adminUpdate(t.id, { status: e.target.value as TicketStatus })}
               aria-label="وضعیتِ این تیکت"
+              disabled={!canAct}
               className={selectClass}
             >
               {(Object.keys(TICKET_STATUS) as TicketStatus[]).map((s) => (
@@ -368,6 +391,7 @@ function TicketDetail({ ticket: t }: { ticket: Ticket }) {
               value={t.priority}
               onChange={(e) => adminUpdate(t.id, { priority: e.target.value as TicketPriority })}
               aria-label="اولویتِ این تیکت"
+              disabled={!canAct}
               className={selectClass}
             >
               {(Object.keys(TICKET_PRIORITY) as TicketPriority[]).map((p) => (
@@ -382,6 +406,7 @@ function TicketDetail({ ticket: t }: { ticket: Ticket }) {
               value={t.category}
               onChange={(e) => adminUpdate(t.id, { category: e.target.value as TicketCategory })}
               aria-label="دسته‌ی این تیکت"
+              disabled={!canAct}
               className={selectClass}
             >
               {TICKET_CATEGORIES.map((c) => (
@@ -396,10 +421,11 @@ function TicketDetail({ ticket: t }: { ticket: Ticket }) {
               value={t.assignee}
               onChange={(e) => adminUpdate(t.id, { assignee: e.target.value })}
               aria-label="مسئولِ این تیکت"
+              disabled={!canAct}
               className={selectClass}
             >
               <option value="">بدون مسئول</option>
-              {LOG_ADMINS.map((a) => (
+              {assignees.map((a) => (
                 <option key={a} value={a}>
                   {a}
                 </option>

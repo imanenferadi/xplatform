@@ -15,6 +15,7 @@ import {
   ExportButton,
   FollowUpBadges,
   ReasonPrompt,
+  Allowed,
 } from "@/components/admin/AdminKit";
 import { MENTOR_WARNING_REASONS, QUALITY_FLAGS, QUALITY_WEIGHTS, mentorQuality, mentors } from "@/lib/mock-data";
 import { computeQuality, type QualityRow } from "@/lib/quality";
@@ -258,9 +259,11 @@ export default function AdminQualityPage() {
                       />
                     ) : (
                       <div className="flex flex-wrap items-center gap-3">
-                        <Button size="md" variant="secondary" onClick={() => setWarning(r.mentor.id)}>
-                          <Send size={14} /> ارسال هشدار کتبی
-                        </Button>
+                        <Allowed perm="quality.warn">
+                          <Button size="md" variant="secondary" onClick={() => setWarning(r.mentor.id)}>
+                            <Send size={14} /> ارسال هشدار کتبی
+                          </Button>
+                        </Allowed>
                         <Link
                           href="/admin/reassign"
                           className="flex items-center gap-1 text-xs text-blue-600 hover:underline"

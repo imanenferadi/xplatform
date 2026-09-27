@@ -1,5 +1,6 @@
 "use client";
 
+import { currentAdminName } from "./staff-store";
 import { useMemo } from "react";
 import { createLocalStore } from "./local-store";
 import {
@@ -13,7 +14,7 @@ import {
   type TicketRole,
 } from "./mock-data";
 import { logEvent } from "./admin-log-store";
-import { CURRENT_ADMIN, nowClock } from "./followup-store";
+import { nowClock } from "./followup-store";
 
 // Support tickets, shared by the requester pages (/support, /mentor/support,
 // /parent/support) and /admin/tickets. localStorage bridge until there's a
@@ -105,7 +106,7 @@ export function supportMessage(id: string, text: string, internal: boolean) {
     const msg: TicketMessage = {
       id: `m${t.messages.length + 1}`,
       from: internal ? "internal" : "support",
-      author: CURRENT_ADMIN,
+      author: currentAdminName(),
       text,
       time: now(),
     };
@@ -120,7 +121,7 @@ export function supportMessage(id: string, text: string, internal: boolean) {
           ? t.history
           : [
               ...t.history,
-              { by: CURRENT_ADMIN, at: now(), change: `وضعیت: ${TICKET_STATUS[t.status].label} ← پاسخ داده شد` },
+              { by: currentAdminName(), at: now(), change: `وضعیت: ${TICKET_STATUS[t.status].label} ← پاسخ داده شد` },
             ],
     };
   });
@@ -141,7 +142,7 @@ export function supportMessage(id: string, text: string, internal: boolean) {
 type Editable = Pick<Ticket, "status" | "priority" | "category" | "assignee">;
 
 /** Admin changes to status / priority / category / assignee, each recorded. */
-export function adminUpdate(id: string, patch: Partial<Editable>, by = CURRENT_ADMIN) {
+export function adminUpdate(id: string, patch: Partial<Editable>, by = currentAdminName()) {
   const t = store.get().find((x) => x.id === id);
   if (!t) return;
   const changes: string[] = [];

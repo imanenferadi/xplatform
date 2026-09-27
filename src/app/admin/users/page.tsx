@@ -18,6 +18,7 @@ import {
   FollowUpBadges,
   ReasonPrompt,
   SearchBox,
+  Allowed,
 } from "@/components/admin/AdminKit";
 import {
   SUSPEND_REASONS,
@@ -236,17 +237,19 @@ function AdminUsersPage() {
                       />
                     ) : (
                       <div className="flex flex-wrap gap-2">
-                        <Button size="md" variant="secondary" onClick={() => setPrompt(u.id)}>
-                          {u.status === "active" ? (
-                            <>
-                              <Ban size={14} /> مسدود کن
-                            </>
-                          ) : (
-                            <>
-                              <RotateCcw size={14} /> فعال کن
-                            </>
-                          )}
-                        </Button>
+                        <Allowed perm="users.suspend">
+                          <Button size="md" variant="secondary" onClick={() => setPrompt(u.id)}>
+                            {u.status === "active" ? (
+                              <>
+                                <Ban size={14} /> مسدود کن
+                              </>
+                            ) : (
+                              <>
+                                <RotateCcw size={14} /> فعال کن
+                              </>
+                            )}
+                          </Button>
+                        </Allowed>
                         {mentor && (
                           <Link
                             href={`/admin/reassign?student=${u.id}`}

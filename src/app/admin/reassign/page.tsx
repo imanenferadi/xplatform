@@ -18,8 +18,17 @@ import {
   type ReassignRecord,
   type StudentAssignment,
 } from "@/lib/mock-data";
-import { AdminRow, DetailList, EntityActivity, EntityFollowUp, FollowUpBadges } from "@/components/admin/AdminKit";
-import { CURRENT_ADMIN, nowClock } from "@/lib/followup-store";
+import {
+  Allowed,
+  AdminRow,
+  DetailList,
+  EntityActivity,
+  EntityFollowUp,
+  FollowUpBadges,
+} from "@/components/admin/AdminKit";
+import { nowClock } from "@/lib/followup-store";
+import { currentAdminName, useCan } from "@/lib/staff-store";
+import { decideProposal, propose, useProposals, type ReassignProposal } from "@/lib/reassign-proposals";
 import { useCapacityOverrides } from "@/lib/capacity-store";
 import { logEvent } from "@/lib/admin-log-store";
 
@@ -56,6 +65,13 @@ function Reassign() {
   const [history, setHistory] = useState<ReassignRecord[]>(reassignHistory);
   const [openId, setOpenId] = useState<string | null>(null);
   const [lastDone, setLastDone] = useState("");
+  const allowed = useCan();
+  const canExecute = allowed("reassign.execute");
+  const canPropose = !canExecute && allowed("reassign.propose");
+  const proposals = useProposals();
+  const [fromProposal, setFromProposal] = useState<string | null>(null);
+  const [rejecting, setRejecting] = useState<string | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
 
   const student = assignments.find((a) => a.userId === userId);
   const candidates = student ? mentors.filter((m) => m.group === student.group && m.id !== student.mentorId) : [];
@@ -76,8 +92,41 @@ function Reassign() {
     if (Object.keys(next).length === 0) setConfirming(true);
   }
 
+  function sendProposal() {
+    if (!student) return;
+    propose({
+      userId: student.userId,
+      studentName: student.name,
+      fromMentor: mentorName(student.mentorId),
+      toMentorId: newMentorId,
+      toMentor: mentorName(newMentorId),
+      reason,
+      handover: handover.trim(),
+    });
+    setLastDone(`پیشنهاد فرستاده شد: ${student.name} ← ${mentorName(newMentorId)} (منتظر مدیر عملیات)`);
+    setUserId("");
+    setNewMentorId("");
+    setReason("");
+    setHandover("");
+    setConfirming(false);
+  }
+
+  function reviewProposal(p: ReassignProposal) {
+    setFromProposal(p.id);
+    setUserId(p.userId);
+    setNewMentorId(p.toMentorId);
+    setReason(p.reason);
+    setHandover(p.handover);
+    setErrors({});
+    setConfirming(true);
+  }
+
   function confirm() {
     if (!student) return;
+    if (fromProposal) {
+      decideProposal(fromProposal, "executed");
+      setFromProposal(null);
+    }
     logEvent({
       category: "مشاوران",
       action: "تعویض مشاور",
@@ -100,7 +149,7 @@ function Reassign() {
         reason,
         handover: handover.trim(),
         date: `۷ مهر ۱۴۰۵، ${nowClock()}`,
-        admin: CURRENT_ADMIN,
+        admin: currentAdminName(),
       },
       ...h,
     ]);
@@ -129,6 +178,67 @@ function Reassign() {
           <span className="text-text-900">{lastDone}</span>
           <span className="text-xs text-text-500">· به دانش‌آموز و هر دو مشاور اطلاع داده شد</span>
         </div>
+      )}
+
+      {proposals.length > 0 && (canExecute || canPropose || allowed("reassign.view")) && (
+        <Card className="mb-5">
+          <CardContent>
+            <h2 className="mb-3 text-sm font-bold text-text-900">پیشنهادهای تعویض از پشتیبانی آموزشی</h2>
+            <ul className="space-y-2 text-sm">
+              {proposals.map((p) => (
+                <li key={p.id} className="rounded-x-md bg-surface-2 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium text-text-900">{p.studentName}</span>
+                    <span className="text-text-500">
+                      {p.fromMentor} ← {p.toMentor}
+                    </span>
+                    <Badge tone={p.status === "pending" ? "warning" : p.status === "executed" ? "success" : "neutral"}>
+                      {p.status === "pending" ? "منتظر بررسی" : p.status === "executed" ? "اجرا شد" : "رد شد"}
+                    </Badge>
+                  </div>
+                  <div className="mt-1 text-xs text-text-500">
+                    {p.reason} · پیشنهاد: {p.by}، {p.at}
+                    {p.decidedBy && ` · تصمیم: ${p.decidedBy}`}
+                    {p.rejectNote && ` — «${p.rejectNote}»`}
+                  </div>
+                  {p.status === "pending" &&
+                    canExecute &&
+                    (rejecting === p.id ? (
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <input
+                          value={rejectNote}
+                          onChange={(e) => setRejectNote(e.target.value.slice(0, 120))}
+                          placeholder="دلیل رد (اجباری)"
+                          aria-label="دلیل رد پیشنهاد"
+                          className="h-9 flex-1 rounded-x-sm border border-border bg-surface px-3 text-xs text-text-900"
+                        />
+                        <Button
+                          size="md"
+                          disabled={!rejectNote.trim()}
+                          onClick={() => {
+                            decideProposal(p.id, "rejected", rejectNote.trim());
+                            setRejecting(null);
+                            setRejectNote("");
+                          }}
+                        >
+                          رد
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="mt-2 flex gap-2">
+                        <Button size="md" onClick={() => reviewProposal(p)}>
+                          بررسی و اجرا
+                        </Button>
+                        <Button size="md" variant="secondary" onClick={() => setRejecting(p.id)}>
+                          رد
+                        </Button>
+                      </div>
+                    ))}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
 
       <Card>
@@ -276,18 +386,26 @@ function Reassign() {
                       <span className="font-medium">{mentorName(newMentorId)}</span> منتقل بشه؟
                     </p>
                     <div className="mt-3 flex gap-2">
-                      <Button type="button" size="md" onClick={confirm}>
-                        تأیید تعویض
-                      </Button>
+                      {canExecute ? (
+                        <Button type="button" size="md" onClick={confirm}>
+                          تأیید تعویض
+                        </Button>
+                      ) : (
+                        <Button type="button" size="md" onClick={sendProposal}>
+                          ارسال پیشنهاد به مدیر عملیات
+                        </Button>
+                      )}
                       <Button type="button" size="md" variant="secondary" onClick={() => setConfirming(false)}>
                         برگشت
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <Button type="submit" size="md">
-                    بررسی و تعویض
-                  </Button>
+                  <Allowed perm={canPropose ? "reassign.propose" : "reassign.execute"}>
+                    <Button type="submit" size="md">
+                      {canPropose ? "بررسی و پیشنهاد" : "بررسی و تعویض"}
+                    </Button>
+                  </Allowed>
                 )}
               </>
             )}

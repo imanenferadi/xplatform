@@ -49,9 +49,7 @@ export default function LoginPage() {
           {step === "phone" ? (
             <>
               <h1 className="text-xl font-bold text-text-900">خوش اومدی!</h1>
-              <p className="mt-1 text-sm text-text-500">
-                برای ادامه، شماره موبایلت رو وارد کن.
-              </p>
+              <p className="mt-1 text-sm text-text-500">برای ادامه، شماره موبایلت رو وارد کن.</p>
               <form onSubmit={submitPhone} className="mt-6 space-y-4">
                 <Input
                   label="شماره موبایل"
@@ -76,9 +74,7 @@ export default function LoginPage() {
           ) : (
             <>
               <h1 className="text-xl font-bold text-text-900">کد رو وارد کن</h1>
-              <p className="mt-1 text-sm text-text-500">
-                کد ۴ رقمی به شماره {phone || "شما"} پیامک شد.
-              </p>
+              <p className="mt-1 text-sm text-text-500">کد ۴ رقمی به شماره {phone || "شما"} پیامک شد.</p>
               <form onSubmit={submitOtp} className="mt-6 space-y-4">
                 <Input
                   label="کد تأیید"
@@ -111,7 +107,11 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-text-500">
-          با ورود، <Link href="/privacy" className="text-blue-600 hover:underline">قوانین و حریم خصوصی</Link> را می‌پذیری.
+          با ورود،{" "}
+          <Link href="/privacy" className="text-blue-600 hover:underline">
+            قوانین و حریم خصوصی
+          </Link>{" "}
+          را می‌پذیری.
         </p>
 
         {/* Demo-only shortcuts — a real product would route these through
@@ -138,6 +138,10 @@ export default function LoginPage() {
           تیم پلتفرم هستی؟{" "}
           <Link href="/admin" className="text-blue-600 hover:underline">
             پنل ادمین را ببین
+          </Link>
+          {" · "}
+          <Link href="/supervisor" className="text-blue-600 hover:underline">
+            سرپرست آموزشی
           </Link>
         </p>
       </div>

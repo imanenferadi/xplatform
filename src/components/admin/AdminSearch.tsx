@@ -8,6 +8,8 @@ import { useTickets } from "@/lib/ticket-store";
 import { useStoredApplications } from "@/lib/mentor-applications-store";
 import { useDiscountCodes } from "@/lib/discount-store";
 import { useLogs } from "@/lib/admin-log-store";
+import { PAGE_PERM, can, seesLogCategory, seesTicketCategory } from "@/lib/permissions";
+import { useMe } from "@/lib/staff-store";
 import { cn, toLatinDigits, toPersianDigits } from "@/lib/utils";
 
 type Hit = { group: string; title: string; sub: string; href: string; haystack: string };
@@ -33,10 +35,14 @@ export function AdminSearch() {
   const [text, setText] = useState("");
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const tickets = useTickets();
   const stored = useStoredApplications();
   const codes = useDiscountCodes();
-  const logs = useLogs();
+  const me = useMe();
+  const tickets_ = useTickets();
+  const logs_ = useLogs();
+  // Search only what this role may open.
+  const logs = useMemo(() => logs_.filter((l) => seesLogCategory(me.role, l.category)), [logs_, me]);
+  const tickets = useMemo(() => tickets_.filter((t) => seesTicketCategory(me.role, t.category)), [tickets_, me]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -113,8 +119,13 @@ export function AdminSearch() {
         href: `/admin/logs?q=${q(l.target)}`,
         haystack: `${l.action} ${l.target} ${l.actor}`,
       })),
-    ].map((h) => ({ ...h, haystack: normalize(h.haystack) }));
-  }, [tickets, stored, codes, logs]);
+    ]
+      .filter((h) => {
+        const perm = PAGE_PERM[h.href.split("?")[0]];
+        return perm !== undefined && can(me.role, perm);
+      })
+      .map((h) => ({ ...h, haystack: normalize(h.haystack) }));
+  }, [tickets, stored, codes, logs, me]);
 
   const results = useMemo(() => {
     const needle = normalize(text);

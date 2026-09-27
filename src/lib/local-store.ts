@@ -6,6 +6,20 @@ import { useSyncExternalStore } from "react";
 // external store. Server render and hydration see `fallback`; the client
 // then swaps to the stored value. Replace with API calls once there's a
 // backend.
+export const VIEW_AS_TAB_KEY = "x-viewas-tab"; // sessionStorage: this tab is a support view
+export const VIEW_AS_STORE_KEY = "x-viewas";
+export const READ_ONLY_EVENT = "x-readonly-blocked";
+const WRITABLE_WHILE_VIEWING = new Set([VIEW_AS_STORE_KEY, "x-admin-log"]);
+
+/** True in a tab opened by support to view a user's account (read-only). */
+export function isReadOnlyTab(): boolean {
+  try {
+    return Boolean(sessionStorage.getItem(VIEW_AS_TAB_KEY));
+  } catch {
+    return false;
+  }
+}
+
 export function createLocalStore<T>(key: string, fallback: T) {
   const listeners = new Set<() => void>();
   let cachedRaw: string | null = null;
@@ -29,6 +43,12 @@ export function createLocalStore<T>(key: string, fallback: T) {
   }
 
   function set(value: T) {
+    // A support «view as user» tab is read-only: nothing it does is saved,
+    // except the view session's own bookkeeping and the audit log.
+    if (!WRITABLE_WHILE_VIEWING.has(key) && isReadOnlyTab()) {
+      window.dispatchEvent(new CustomEvent(READ_ONLY_EVENT));
+      return;
+    }
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch {

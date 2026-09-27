@@ -22,6 +22,7 @@ import { PlanEditor } from "@/components/app/PlanEditor";
 import { FixedSessionCard } from "@/components/app/FixedSession";
 import { CopyWeeklyReport } from "@/components/app/CopyWeeklyReport";
 import { KarnamehFiles } from "@/components/app/KarnamehFiles";
+import { SupervisorNotesForMentor } from "@/components/app/Supervisor";
 import { toPersianDigits } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -49,6 +50,8 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
             {risk.reason && <p className="mt-1 text-xs text-text-500">{risk.reason}</p>}
           </div>
         </div>
+
+        <SupervisorNotesForMentor studentId={student.id} />
 
         {/* What the student told us at start-up: goals, free time, books */}
         <Section title="درباره‌ی این دانش‌آموز">

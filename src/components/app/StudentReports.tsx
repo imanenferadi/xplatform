@@ -24,7 +24,15 @@ export function StudentMistakes({ studentId }: { studentId: string }) {
 }
 
 /** Recent nightly reports, each with the mentor's quick feedback. */
-export function StudentNightlyReports({ studentId, limit = 3 }: { studentId: string; limit?: number }) {
+export function StudentNightlyReports({
+  studentId,
+  limit = 3,
+  readOnly = false,
+}: {
+  studentId: string;
+  limit?: number;
+  readOnly?: boolean; // supervisor: sees the mentor's feedback, can't give any
+}) {
   const reports = byRecency(useStudentReports(studentId)).slice(0, limit);
   const feedback = useReportFeedback();
 
@@ -63,7 +71,15 @@ export function StudentNightlyReports({ studentId, limit = 3 }: { studentId: str
               {c.note && <p className="mt-1 text-sm text-text-900">«{c.note}»</p>}
             </div>
           </div>
-          <FeedbackBox reportId={c.id} existing={feedback[c.id]} />
+          {readOnly ? (
+            <p className="mt-2 border-t border-border pt-2 text-xs text-text-500">
+              {feedback[c.id]
+                ? `بازخورد مشاور: ${REPORT_REACTIONS[feedback[c.id].reaction].emoji} ${REPORT_REACTIONS[feedback[c.id].reaction].label}${feedback[c.id].comment ? ` — «${feedback[c.id].comment}»` : ""}`
+                : "مشاور هنوز بازخورد نداده."}
+            </p>
+          ) : (
+            <FeedbackBox reportId={c.id} existing={feedback[c.id]} />
+          )}
         </div>
       ))}
     </div>

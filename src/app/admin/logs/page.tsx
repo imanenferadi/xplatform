@@ -33,6 +33,9 @@ import {
 } from "@/lib/mock-data";
 import { logsToCsv, updateFollowUp, useLogs } from "@/lib/admin-log-store";
 import { cn, toPersianDigits } from "@/lib/utils";
+import { rolesWith, seesLogCategory } from "@/lib/permissions";
+import { useCan, useMe } from "@/lib/staff-store";
+import { FOLLOW_UP_LABEL } from "@/lib/followup-store";
 
 const CATEGORY_ICON: Record<LogCategory, React.ComponentType<{ size?: number; className?: string }>> = {
   مشاوران: UserCheck,
@@ -72,7 +75,11 @@ export default function AdminLogsPage() {
 
 // Other admin tabs link here with ?q=<name> ("همه در لاگ").
 function Logs() {
-  const logs = useLogs();
+  const me = useMe();
+  const allLogs = useLogs();
+  // Each role reads only its own log categories (auditor and مدیر کل: all).
+  const logs = useMemo(() => allLogs.filter((l) => seesLogCategory(me.role, l.category)), [allLogs, me]);
+  const categories = CATEGORIES.filter((c) => seesLogCategory(me.role, c));
   const [query, setQuery] = useState(useSearchParams().get("q") ?? "");
   const [category, setCategory] = useState<LogCategory | "همه">("همه");
   const [severity, setSeverity] = useState<LogSeverity | "همه">("همه");
@@ -167,7 +174,7 @@ function Logs() {
         />
       </div>
       <div className="mb-3 flex flex-wrap gap-1.5">
-        {(["همه", ...CATEGORIES] as const).map((c) => (
+        {(["همه", ...categories] as const).map((c) => (
           <button
             key={c}
             onClick={() => setCategory(c)}
@@ -284,6 +291,7 @@ function Stat({
 }
 
 function LogRow({ log, open, onToggle }: { log: PlatformLogEntry; open: boolean; onToggle: () => void }) {
+  const canFollowUp = useCan()("logs.followup");
   const Icon = CATEGORY_ICON[log.category];
   const sev = SEVERITY[log.severity];
   const st = STATUS[log.followUp.status];
@@ -323,11 +331,18 @@ function LogRow({ log, open, onToggle }: { log: PlatformLogEntry; open: boolean;
         <div className="grid gap-4 border-t border-border p-4 md:grid-cols-2">
           <EventDetails log={log} />
           {/* Remount after each save so the draft starts from the saved values. */}
-          <FollowUpEditor
-            key={log.followUp.history.length}
-            value={log.followUp}
-            onSave={(next) => updateFollowUp(log, next)}
-          />
+          {canFollowUp ? (
+            <FollowUpEditor
+              key={log.followUp.history.length}
+              value={log.followUp}
+              onSave={(next) => updateFollowUp(log, next)}
+            />
+          ) : (
+            <p className="flex items-center gap-1 text-xs text-text-500">
+              <Lock size={12} /> پیگیری: {FOLLOW_UP_LABEL[log.followUp.status]} — ویرایش فقط برای{" "}
+              {rolesWith("logs.followup")}
+            </p>
+          )}
         </div>
       )}
     </Card>

@@ -11,7 +11,10 @@ import { toPersianDigits } from "./utils";
 
 const store = createLocalStore<Record<string, LogFollowUp>>("x-followups", {});
 
-export const CURRENT_ADMIN = "ادمین پلتفرم";
+import { currentAdminName } from "./staff-store";
+
+/** Name of the signed-in admin (see staff-store). */
+export const CURRENT_ADMIN_NAME = currentAdminName;
 
 export const EMPTY_FOLLOW_UP: LogFollowUp = { status: "new", assignee: "", tags: [], note: "", history: [] };
 
@@ -37,7 +40,7 @@ export function saveFollowUp(key: string, prev: LogFollowUp, next: Omit<LogFollo
 
   const history = [
     ...prev.history,
-    ...changes.map((change) => ({ by: CURRENT_ADMIN, at: `امروز، ${nowClock()}`, change })),
+    ...changes.map((change) => ({ by: currentAdminName(), at: `امروز، ${nowClock()}`, change })),
   ];
   store.set({ ...store.get(), [key]: { ...next, history } });
   return true;
