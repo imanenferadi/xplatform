@@ -11,9 +11,11 @@ import {
   type Ticket,
   type TicketCategory,
   type TicketMessage,
+  type TicketReferral,
   type TicketRole,
 } from "./mock-data";
 import { logEvent } from "./admin-log-store";
+import { ROLE_META, type StaffRole } from "./permissions";
 import { nowClock } from "./followup-store";
 
 // Support tickets, shared by the requester pages (/support, /mentor/support,
@@ -113,6 +115,7 @@ export function supportMessage(id: string, text: string, internal: boolean) {
     if (internal) return { ...t, messages: [...t.messages, msg] };
     return {
       ...t,
+      referrals: closeLoops(t.referrals),
       status: "answered",
       unreadForUser: true,
       messages: [...t.messages, msg],
@@ -157,6 +160,7 @@ export function adminUpdate(id: string, patch: Partial<Editable>, by = currentAd
   update(id, (x) => ({
     ...x,
     ...patch,
+    ...(patch.status === "closed" ? { referrals: closeLoops(x.referrals) } : {}),
     history: [...x.history, ...changes.map((change) => ({ by, at: now(), change }))],
   }));
   if (patch.status === "closed" || (patch.priority && patch.priority !== t.priority)) {
@@ -185,4 +189,109 @@ export function rateTicket(id: string, rating: number) {
 /** Tickets where support replied and the requester hasn't looked yet. */
 export function useUnreadTicketCount(requesterName: string) {
   return useMyTickets(requesterName).filter((t) => t.unreadForUser).length;
+}
+
+// ---------------------------------------------------------------- referrals
+
+const closeLoops = (list: TicketReferral[] | undefined) =>
+  list?.map((r) => (r.status === "done" || r.status === "returned" ? { ...r, closedLoop: true } : r));
+
+function referralLog(action: string, t: Ticket, r: TicketReferral, text: string) {
+  logEvent({
+    category: "پشتیبانی",
+    action,
+    target: `${t.id} — ${t.requester.name}`,
+    severity: "info",
+    details: [
+      { label: "از", value: ROLE_META[r.fromRole as StaffRole].label },
+      { label: "به", value: ROLE_META[r.toRole as StaffRole].label },
+      { label: "یادداشت", value: text },
+    ],
+    href: `/admin/tickets?t=${t.id}`,
+  });
+}
+
+function internalNote(t: Ticket, text: string): TicketMessage {
+  return { id: `m${t.messages.length + 1}`, from: "internal", author: currentAdminName(), text, time: now() };
+}
+
+/** Hand the ticket to another role. Returns an error message, or null. */
+export function referTicket(id: string, fromRole: StaffRole, toRole: StaffRole, note: string): string | null {
+  const t = store.get().find((x) => x.id === id);
+  if (!t) return "تیکت پیدا نشد.";
+  if (toRole === fromRole) return "به نقش خودت نمی‌شه ارجاع داد.";
+  if (note.trim().length < 10) return "بنویس نقش مقصد دقیقاً چیکار کنه (حداقل ۱۰ حرف).";
+  if (t.referrals?.some((r) => r.toRole === toRole && r.status === "open"))
+    return `یک ارجاع باز به ${ROLE_META[toRole].label} همین الان هست.`;
+  const r: TicketReferral = {
+    id: `rf-${Date.now()}`,
+    toRole,
+    fromRole,
+    by: currentAdminName(),
+    note: note.trim(),
+    at: now(),
+    status: "open",
+  };
+  update(id, (x) => ({
+    ...x,
+    status: x.status === "new" ? "in_progress" : x.status,
+    referrals: [...(x.referrals ?? []), r],
+    messages: [...x.messages, internalNote(x, `↪ ارجاع به ${ROLE_META[toRole].label}: ${r.note}`)],
+    history: [...x.history, { by: r.by, at: r.at, change: `ارجاع به ${ROLE_META[toRole].label}` }],
+  }));
+  referralLog("ارجاع تیکت", t, r, r.note);
+  return null;
+}
+
+/** The receiving role: done (with what was done) or sent back (with why). */
+export function answerReferral(
+  id: string,
+  referralId: string,
+  outcome: "done" | "returned",
+  answer: string
+): string | null {
+  const t = store.get().find((x) => x.id === id);
+  const r = t?.referrals?.find((x) => x.id === referralId);
+  if (!t || !r || r.status !== "open") return "این ارجاع دیگه باز نیست.";
+  if (answer.trim().length < 5) return outcome === "done" ? "بنویس چی انجام دادی." : "بنویس چرا برمی‌گردونی.";
+  const role = ROLE_META[r.toRole as StaffRole].label;
+  const next: TicketReferral = {
+    ...r,
+    status: outcome,
+    answer: answer.trim(),
+    answeredBy: currentAdminName(),
+    answeredAt: now(),
+  };
+  update(id, (x) => ({
+    ...x,
+    referrals: x.referrals?.map((y) => (y.id === referralId ? next : y)),
+    messages: [
+      ...x.messages,
+      internalNote(
+        x,
+        `${outcome === "done" ? "✓" : "↩"} ${role} ${outcome === "done" ? "انجام داد" : "برگردوند"}: ${answer.trim()}`
+      ),
+    ],
+    history: [
+      ...x.history,
+      { by: currentAdminName(), at: now(), change: `ارجاع ${role}: ${outcome === "done" ? "انجام شد" : "برگشت خورد"}` },
+    ],
+  }));
+  referralLog(outcome === "done" ? "انجام ارجاع" : "برگشت ارجاع", t, r, answer.trim());
+  return null;
+}
+
+/** The referring side withdraws a referral made by mistake (only while open). */
+export function cancelReferral(id: string, referralId: string) {
+  const t = store.get().find((x) => x.id === id);
+  const r = t?.referrals?.find((x) => x.id === referralId);
+  if (!t || !r || r.status !== "open") return;
+  const role = ROLE_META[r.toRole as StaffRole].label;
+  update(id, (x) => ({
+    ...x,
+    referrals: x.referrals?.map((y) => (y.id === referralId ? { ...y, status: "cancelled" as const } : y)),
+    messages: [...x.messages, internalNote(x, `✕ ارجاع به ${role} لغو شد`)],
+    history: [...x.history, { by: currentAdminName(), at: now(), change: `لغو ارجاع به ${role}` }],
+  }));
+  referralLog("لغو ارجاع", t, r, "لغو توسط ارجاع‌دهنده");
 }

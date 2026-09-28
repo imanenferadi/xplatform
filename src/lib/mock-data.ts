@@ -144,8 +144,7 @@ export const mentors: Mentor[] = [
     capacityTotal: 12,
     rating: 4.7,
     reviewCount: 15,
-    story:
-      "تست‌زنی زمان‌بندی‌شده تغییرم داد؛ از رتبه‌ی نامشخص به ۲۰۰ رسیدم فقط با تمرین تحت فشار زمانی واقعی.",
+    story: "تست‌زنی زمان‌بندی‌شده تغییرم داد؛ از رتبه‌ی نامشخص به ۲۰۰ رسیدم فقط با تمرین تحت فشار زمانی واقعی.",
     strengths: [
       { subject: "فیزیک", score: 91 },
       { subject: "ریاضی", score: 88 },
@@ -486,83 +485,295 @@ export const moodLabels: Record<NightlyCheckIn["mood"], string> = {
 // Check-ins for the mentor's students — this feed is what replaces the
 // mentor's Telegram group in the current real-world workflow.
 // The recent ones — what the mentor's "گزارش کارهای دیشب" feed shows.
-export const nightlyCheckIns: NightlyCheckIn[] = withSleep([
+export const nightlyCheckIns: NightlyCheckIn[] = withSleep(
+  [
+    {
+      ...seedCheckIn(
+        "ci-1",
+        "3",
+        "this",
+        "دوشنبه",
+        [
+          ["زیست", "فیزیولوژی گیاهی", 50, 30],
+          ["شیمی", "تست‌زنی فصل ۲", 40, 25],
+        ],
+        "great",
+        "امروز خیلی خوب پیش رفت، شیمی رو کامل تموم کردم.",
+        "امشب"
+      ),
+      mentorSeen: false,
+    },
+    {
+      ...seedCheckIn(
+        "ci-2",
+        "2",
+        "this",
+        "یکشنبه",
+        [["ریاضی", "مثلثات", 35, 15]],
+        "tired",
+        "امروز مدرسه فوق‌العاده داشتیم، کم رسیدم بخونم.",
+        "دیشب"
+      ),
+      mentorSeen: false,
+    },
+    seedCheckIn("ci-3", "1", "last", "جمعه", [], "struggled", "", "۳ روز پیش"),
+  ],
   {
-    ...seedCheckIn(
-      "ci-1",
-      "3",
-      "this",
-      "دوشنبه",
-      [
-        ["زیست", "فیزیولوژی گیاهی", 50, 30],
-        ["شیمی", "تست‌زنی فصل ۲", 40, 25],
-      ],
-      "great",
-      "امروز خیلی خوب پیش رفت، شیمی رو کامل تموم کردم.",
-      "امشب"
-    ),
-    mentorSeen: false,
-  },
-  {
-    ...seedCheckIn("ci-2", "2", "this", "یکشنبه", [["ریاضی", "مثلثات", 35, 15]], "tired",
-      "امروز مدرسه فوق‌العاده داشتیم، کم رسیدم بخونم.", "دیشب"),
-    mentorSeen: false,
-  },
-  seedCheckIn("ci-3", "1", "last", "جمعه", [], "struggled", "", "۳ روز پیش"),
-], {
-  "ci-1": ["23:30", "06:30"],
-  "ci-2": ["01:15", "06:45"],
-});
+    "ci-1": ["23:30", "06:30"],
+    "ci-2": ["01:15", "06:45"],
+  }
+);
 
 // Older nights for the mentor's students — only feed the weekly summaries.
-export const checkInHistory: NightlyCheckIn[] = withSleep([
-  seedCheckIn("h3-1", "3", "last", "شنبه", [["زیست", "ژنتیک", 90, 40], ["شیمی", "استوکیومتری", 60, 30]], "great"),
-  seedCheckIn("h3-2", "3", "last", "یکشنبه", [["فیزیک", "حرکت‌شناسی", 75, 25], ["ریاضی", "تابع", 45, 20]], "ok"),
-  seedCheckIn("h3-3", "3", "last", "دوشنبه", [["زیست", "گردش خون", 80, 35], ["ادبیات", "آرایه‌ها", 30, 20]], "great"),
-  seedCheckIn("h3-4", "3", "last", "سه‌شنبه", [["شیمی", "تعادل", 70, 30], ["عربی", "ترجمه", 30, 15]], "ok"),
-  seedCheckIn("h3-5", "3", "last", "چهارشنبه", [["زیست", "تنفس", 60, 30], ["فیزیک", "دینامیک", 60, 20]], "tired"),
-  seedCheckIn("h3-6", "3", "last", "پنجشنبه", [["ریاضی", "مشتق", 60, 25], ["شیمی", "آلی", 45, 20]], "ok"),
-  seedCheckIn("h3-7", "3", "last", "جمعه", [["زیست", "آزمون جامع قلمچی", 90, 50]], "ok", "آزمون قلمچی بود"),
-  seedCheckIn("h3-8", "3", "this", "شنبه", [["زیست", "تنظیم عصبی", 70, 30], ["فیزیک", "کار و انرژی", 50, 20]], "great"),
-  seedCheckIn("h3-9", "3", "this", "یکشنبه", [["شیمی", "تعادل", 60, 35], ["ریاضی", "مثلثات", 40, 15]], "ok"),
+export const checkInHistory: NightlyCheckIn[] = withSleep(
+  [
+    seedCheckIn(
+      "h3-1",
+      "3",
+      "last",
+      "شنبه",
+      [
+        ["زیست", "ژنتیک", 90, 40],
+        ["شیمی", "استوکیومتری", 60, 30],
+      ],
+      "great"
+    ),
+    seedCheckIn(
+      "h3-2",
+      "3",
+      "last",
+      "یکشنبه",
+      [
+        ["فیزیک", "حرکت‌شناسی", 75, 25],
+        ["ریاضی", "تابع", 45, 20],
+      ],
+      "ok"
+    ),
+    seedCheckIn(
+      "h3-3",
+      "3",
+      "last",
+      "دوشنبه",
+      [
+        ["زیست", "گردش خون", 80, 35],
+        ["ادبیات", "آرایه‌ها", 30, 20],
+      ],
+      "great"
+    ),
+    seedCheckIn(
+      "h3-4",
+      "3",
+      "last",
+      "سه‌شنبه",
+      [
+        ["شیمی", "تعادل", 70, 30],
+        ["عربی", "ترجمه", 30, 15],
+      ],
+      "ok"
+    ),
+    seedCheckIn(
+      "h3-5",
+      "3",
+      "last",
+      "چهارشنبه",
+      [
+        ["زیست", "تنفس", 60, 30],
+        ["فیزیک", "دینامیک", 60, 20],
+      ],
+      "tired"
+    ),
+    seedCheckIn(
+      "h3-6",
+      "3",
+      "last",
+      "پنجشنبه",
+      [
+        ["ریاضی", "مشتق", 60, 25],
+        ["شیمی", "آلی", 45, 20],
+      ],
+      "ok"
+    ),
+    seedCheckIn("h3-7", "3", "last", "جمعه", [["زیست", "آزمون جامع قلمچی", 90, 50]], "ok", "آزمون قلمچی بود"),
+    seedCheckIn(
+      "h3-8",
+      "3",
+      "this",
+      "شنبه",
+      [
+        ["زیست", "تنظیم عصبی", 70, 30],
+        ["فیزیک", "کار و انرژی", 50, 20],
+      ],
+      "great"
+    ),
+    seedCheckIn(
+      "h3-9",
+      "3",
+      "this",
+      "یکشنبه",
+      [
+        ["شیمی", "تعادل", 60, 35],
+        ["ریاضی", "مثلثات", 40, 15],
+      ],
+      "ok"
+    ),
 
-  seedCheckIn("h2-1", "2", "last", "شنبه", [["ریاضی", "حد", 90, 30], ["فیزیک", "الکتریسیته", 60, 20]], "ok"),
-  seedCheckIn("h2-2", "2", "last", "دوشنبه", [["ریاضی", "مشتق", 70, 25], ["شیمی", "اسید و باز", 40, 15]], "ok"),
-  seedCheckIn("h2-3", "2", "last", "چهارشنبه", [["فیزیک", "مغناطیس", 60, 20]], "tired"),
-  seedCheckIn("h2-4", "2", "last", "پنجشنبه", [["ریاضی", "انتگرال", 50, 15], ["زبان", "لغت", 20, 10]], "ok"),
-  seedCheckIn("h2-5", "2", "this", "شنبه", [["ریاضی", "مثلثات", 45, 20]], "ok"),
+    seedCheckIn(
+      "h2-1",
+      "2",
+      "last",
+      "شنبه",
+      [
+        ["ریاضی", "حد", 90, 30],
+        ["فیزیک", "الکتریسیته", 60, 20],
+      ],
+      "ok"
+    ),
+    seedCheckIn(
+      "h2-2",
+      "2",
+      "last",
+      "دوشنبه",
+      [
+        ["ریاضی", "مشتق", 70, 25],
+        ["شیمی", "اسید و باز", 40, 15],
+      ],
+      "ok"
+    ),
+    seedCheckIn("h2-3", "2", "last", "چهارشنبه", [["فیزیک", "مغناطیس", 60, 20]], "tired"),
+    seedCheckIn(
+      "h2-4",
+      "2",
+      "last",
+      "پنجشنبه",
+      [
+        ["ریاضی", "انتگرال", 50, 15],
+        ["زبان", "لغت", 20, 10],
+      ],
+      "ok"
+    ),
+    seedCheckIn("h2-5", "2", "this", "شنبه", [["ریاضی", "مثلثات", 45, 20]], "ok"),
 
-  seedCheckIn("h1-1", "1", "last", "شنبه", [["زیست", "سلول", 40, 10]], "tired"),
-  seedCheckIn("h1-2", "1", "last", "سه‌شنبه", [["شیمی", "آلی", 30, 5]], "struggled", "هیچی نفهمیدم از آلی"),
-], {
-  "h3-1": ["23:00", "06:30"], "h3-2": ["23:30", "06:30"], "h3-3": ["23:15", "06:30"], "h3-4": ["00:00", "06:45"],
-  "h3-5": ["00:30", "06:45"], "h3-6": ["23:30", "07:00"], "h3-7": ["23:00", "06:00"], "h3-8": ["23:00", "06:30"],
-  "h3-9": ["23:45", "06:30"],
-  "h2-1": ["00:30", "06:30"], "h2-2": ["01:00", "06:30"], "h2-3": ["01:30", "06:45"], "h2-4": ["00:45", "07:00"],
-  "h2-5": ["01:00", "06:30"],
-});
+    seedCheckIn("h1-1", "1", "last", "شنبه", [["زیست", "سلول", 40, 10]], "tired"),
+    seedCheckIn("h1-2", "1", "last", "سه‌شنبه", [["شیمی", "آلی", 30, 5]], "struggled", "هیچی نفهمیدم از آلی"),
+  ],
+  {
+    "h3-1": ["23:00", "06:30"],
+    "h3-2": ["23:30", "06:30"],
+    "h3-3": ["23:15", "06:30"],
+    "h3-4": ["00:00", "06:45"],
+    "h3-5": ["00:30", "06:45"],
+    "h3-6": ["23:30", "07:00"],
+    "h3-7": ["23:00", "06:00"],
+    "h3-8": ["23:00", "06:30"],
+    "h3-9": ["23:45", "06:30"],
+    "h2-1": ["00:30", "06:30"],
+    "h2-2": ["01:00", "06:30"],
+    "h2-3": ["01:30", "06:45"],
+    "h2-4": ["00:45", "07:00"],
+    "h2-5": ["01:00", "06:30"],
+  }
+);
 
 // The logged-in student's own (ایمان) past nights; tonight's is entered on
 // /dashboard/report and kept in the browser (see checkin-store).
-export const myCheckInSeed: NightlyCheckIn[] = withSleep([
-  seedCheckIn("me-1", "me", "last", "شنبه", [["زیست", "ژنتیک", 80, 30], ["شیمی", "استوکیومتری", 50, 25]], "ok"),
-  seedCheckIn("me-2", "me", "last", "یکشنبه", [["ریاضی", "تابع", 60, 20], ["فیزیک", "حرکت‌شناسی", 45, 15]], "great"),
-  seedCheckIn("me-3", "me", "last", "دوشنبه", [["زیست", "گردش خون", 70, 35], ["ادبیات", "قرابت معنایی", 25, 15]], "ok"),
-  seedCheckIn("me-4", "me", "last", "سه‌شنبه", [["شیمی", "تعادل", 60, 20]], "tired", "شیمی سنگین بود"),
-  seedCheckIn("me-5", "me", "last", "چهارشنبه", [["فیزیک", "دینامیک", 50, 20], ["عربی", "قواعد", 30, 20]], "ok"),
-  seedCheckIn("me-6", "me", "last", "پنجشنبه", [["زیست", "تنفس", 60, 30], ["ریاضی", "مشتق", 40, 15]], "great"),
-  seedCheckIn("me-7", "me", "last", "جمعه", [["زیست", "آزمون جامع قلمچی", 90, 45]], "ok"),
-  seedCheckIn("me-8", "me", "this", "شنبه", [["زیست", "تنظیم عصبی", 160, 40]], "ok"),
-  seedCheckIn("me-9", "me", "this", "یکشنبه", [["فیزیک", "حرکت‌شناسی", 110, 20], ["شیمی", "تست‌زنی فصل ۲", 30, 25]], "great"),
-], {
-  "me-1": ["23:30", "07:00"], "me-2": ["23:00", "06:30"], "me-3": ["00:30", "06:30"], "me-4": ["01:00", "06:30"],
-  "me-5": ["23:30", "06:45"], "me-6": ["23:00", "06:30"], "me-7": ["23:30", "06:00"],
-  "me-8": ["23:15", "06:45"], "me-9": ["00:15", "06:45"],
-});
+export const myCheckInSeed: NightlyCheckIn[] = withSleep(
+  [
+    seedCheckIn(
+      "me-1",
+      "me",
+      "last",
+      "شنبه",
+      [
+        ["زیست", "ژنتیک", 80, 30],
+        ["شیمی", "استوکیومتری", 50, 25],
+      ],
+      "ok"
+    ),
+    seedCheckIn(
+      "me-2",
+      "me",
+      "last",
+      "یکشنبه",
+      [
+        ["ریاضی", "تابع", 60, 20],
+        ["فیزیک", "حرکت‌شناسی", 45, 15],
+      ],
+      "great"
+    ),
+    seedCheckIn(
+      "me-3",
+      "me",
+      "last",
+      "دوشنبه",
+      [
+        ["زیست", "گردش خون", 70, 35],
+        ["ادبیات", "قرابت معنایی", 25, 15],
+      ],
+      "ok"
+    ),
+    seedCheckIn("me-4", "me", "last", "سه‌شنبه", [["شیمی", "تعادل", 60, 20]], "tired", "شیمی سنگین بود"),
+    seedCheckIn(
+      "me-5",
+      "me",
+      "last",
+      "چهارشنبه",
+      [
+        ["فیزیک", "دینامیک", 50, 20],
+        ["عربی", "قواعد", 30, 20],
+      ],
+      "ok"
+    ),
+    seedCheckIn(
+      "me-6",
+      "me",
+      "last",
+      "پنجشنبه",
+      [
+        ["زیست", "تنفس", 60, 30],
+        ["ریاضی", "مشتق", 40, 15],
+      ],
+      "great"
+    ),
+    seedCheckIn("me-7", "me", "last", "جمعه", [["زیست", "آزمون جامع قلمچی", 90, 45]], "ok"),
+    seedCheckIn("me-8", "me", "this", "شنبه", [["زیست", "تنظیم عصبی", 160, 40]], "ok"),
+    seedCheckIn(
+      "me-9",
+      "me",
+      "this",
+      "یکشنبه",
+      [
+        ["فیزیک", "حرکت‌شناسی", 110, 20],
+        ["شیمی", "تست‌زنی فصل ۲", 30, 25],
+      ],
+      "great"
+    ),
+  ],
+  {
+    "me-1": ["23:30", "07:00"],
+    "me-2": ["23:00", "06:30"],
+    "me-3": ["00:30", "06:30"],
+    "me-4": ["01:00", "06:30"],
+    "me-5": ["23:30", "06:45"],
+    "me-6": ["23:00", "06:30"],
+    "me-7": ["23:30", "06:00"],
+    "me-8": ["23:15", "06:45"],
+    "me-9": ["00:15", "06:45"],
+  }
+);
 
 export const chatMessages = [
-  { id: 1, from: "mentor" as const, text: "سلام! برنامه‌ی این هفته رو دیدی؟ از فردا شیمی آلی رو شروع می‌کنیم.", time: "۰۹:۱۲" },
-  { id: 2, from: "student" as const, text: "سلام سارا جان، دیدم. یه سوال داشتم از فصل ۲ شیمی که گیر کردم", time: "۱۴:۰۳" },
+  {
+    id: 1,
+    from: "mentor" as const,
+    text: "سلام! برنامه‌ی این هفته رو دیدی؟ از فردا شیمی آلی رو شروع می‌کنیم.",
+    time: "۰۹:۱۲",
+  },
+  {
+    id: 2,
+    from: "student" as const,
+    text: "سلام سارا جان، دیدم. یه سوال داشتم از فصل ۲ شیمی که گیر کردم",
+    time: "۱۴:۰۳",
+  },
   { id: 3, from: "student" as const, text: "الان عکسشو می‌فرستم", time: "۱۴:۰۳" },
   { id: 4, from: "mentor" as const, text: "باشه بفرست ببینم. فردا سر جلسه هم روش کار می‌کنیم.", time: "۱۸:۴۰" },
 ];
@@ -769,8 +980,7 @@ export const parentWeeklyReport = {
   studyHoursTarget: 16,
   planCompletionPercent: 68,
   trend: "improving" as "improving" | "steady" | "declining",
-  mentorNote:
-    "این هفته پیشرفت خوبی توی شیمی داشت. تمرکز هفته‌ی بعد رو می‌ذاریم روی فیزیک. اگه سوالی بود در خدمتم.",
+  mentorNote: "این هفته پیشرفت خوبی توی شیمی داشت. تمرکز هفته‌ی بعد رو می‌ذاریم روی فیزیک. اگه سوالی بود در خدمتم.",
   mentorName: "سارا محمدی",
 };
 
@@ -860,11 +1070,7 @@ export const pricingPlans = [
     price: 1490000,
     period: "در ماه",
     highlight: true,
-    features: [
-      "همه‌ی امکانات پایه",
-      "مشاور اختصاصی از رتبه‌برترها",
-      "جلسه‌ی هفتگی + چت مستقیم",
-    ],
+    features: ["همه‌ی امکانات پایه", "مشاور اختصاصی از رتبه‌برترها", "جلسه‌ی هفتگی + چت مستقیم"],
   },
   {
     id: "premium",
@@ -994,7 +1200,8 @@ export const newsArticles: NewsArticle[] = [
   {
     slug: "konkur-1406-what-we-know",
     title: "کنکور ۱۴۰۶: تا الان چه می‌دونیم؟",
-    excerpt: "سازمان سنجش هنوز تاریخ دقیق کنکور ۱۴۰۶ رو اعلام نکرده؛ این یادداشت می‌گه تا اون موقع چطور برنامه‌ریزی کنید.",
+    excerpt:
+      "سازمان سنجش هنوز تاریخ دقیق کنکور ۱۴۰۶ رو اعلام نکرده؛ این یادداشت می‌گه تا اون موقع چطور برنامه‌ریزی کنید.",
     body: "تا امروز سازمان سنجش آموزش کشور تاریخ رسمی کنکور سراسری ۱۴۰۶ رو اعلام نکرده. کنکور ۱۴۰۵ روز ۲۹ مرداد برگزار شد، پس هر تاریخی که الان در شبکه‌های اجتماعی دست‌به‌دست می‌شه غیررسمیه. روزشمار داشبورد شما فعلاً با یک تاریخ تخمینی (۱۵ تیر ۱۴۰۶) کار می‌کنه و به‌محض اعلام رسمی به‌روز می‌شه. پیشنهاد مشاوران ما: برنامه‌ی نیم‌سال اول رو بر اساس امتحانات نهایی دی و آزمون‌های آزمایشی بچینید، نه بر اساس یک تاریخ حدسی برای کنکور.",
     date: "۱ مهر ۱۴۰۵",
     category: "تقویم کنکور",
@@ -1121,16 +1328,71 @@ export const SUSPEND_REASONS = [
 ];
 
 export const adminUsers: AdminUser[] = [
-  { id: "u-1", name: "ایمان", role: "دانش‌آموز", phone: "۰۹۱۲ ۱۲۳ ۴۵۶۷", joinedAt: "۱۴۰۴/۰۴/۱۲", status: "active",
-    city: "تهران", plan: "همراه", totalPaid: 4360000, lastLogin: "امروز، ۰۸:۱۲", device: "Chrome روی Android" },
-  { id: "u-2", name: "امیرحسین رضایی", role: "دانش‌آموز", phone: "۰۹۳۵ ۲۲۲ ۳۳۴۴", joinedAt: "۱۴۰۴/۰۲/۰۱", status: "active",
-    city: "کرج", plan: "همراه", totalPaid: 5960000, lastLogin: "۳ روز پیش", device: "اپ اندروید" },
-  { id: "u-3", name: "سارا محمدی", role: "مشاور", phone: "۰۹۱۲ ۹۹۹ ۸۸۷۷", joinedAt: "۱۴۰۳/۱۱/۱۰", status: "active",
-    city: "اصفهان", plan: "—", totalPaid: 0, lastLogin: "امروز، ۰۹:۴۰", device: "Safari روی iPhone" },
-  { id: "u-4", name: "رضا نامدار", role: "دانش‌آموز", phone: "۰۹۳۹ ۴۴۴ ۵۵۶۶", joinedAt: "۱۴۰۴/۰۵/۲۰", status: "suspended",
-    city: "مشهد", plan: "همراه", totalPaid: 1490000, lastLogin: "۶ مهر، ۱۷:۵۰", device: "اپ اندروید" },
-  { id: "u-5", name: "نگین احمدی", role: "دانش‌آموز", phone: "۰۹۱۷ ۳۳۳ ۲۲۱۱", joinedAt: "۱۴۰۴/۰۳/۰۵", status: "active",
-    city: "شیراز", plan: "پایه", totalPaid: 2670000, lastLogin: "دیروز، ۲۱:۰۵", device: "Chrome روی Windows" },
+  {
+    id: "u-1",
+    name: "ایمان",
+    role: "دانش‌آموز",
+    phone: "۰۹۱۲ ۱۲۳ ۴۵۶۷",
+    joinedAt: "۱۴۰۴/۰۴/۱۲",
+    status: "active",
+    city: "تهران",
+    plan: "همراه",
+    totalPaid: 4360000,
+    lastLogin: "امروز، ۰۸:۱۲",
+    device: "Chrome روی Android",
+  },
+  {
+    id: "u-2",
+    name: "امیرحسین رضایی",
+    role: "دانش‌آموز",
+    phone: "۰۹۳۵ ۲۲۲ ۳۳۴۴",
+    joinedAt: "۱۴۰۴/۰۲/۰۱",
+    status: "active",
+    city: "کرج",
+    plan: "همراه",
+    totalPaid: 5960000,
+    lastLogin: "۳ روز پیش",
+    device: "اپ اندروید",
+  },
+  {
+    id: "u-3",
+    name: "سارا محمدی",
+    role: "مشاور",
+    phone: "۰۹۱۲ ۹۹۹ ۸۸۷۷",
+    joinedAt: "۱۴۰۳/۱۱/۱۰",
+    status: "active",
+    city: "اصفهان",
+    plan: "—",
+    totalPaid: 0,
+    lastLogin: "امروز، ۰۹:۴۰",
+    device: "Safari روی iPhone",
+  },
+  {
+    id: "u-4",
+    name: "رضا نامدار",
+    role: "دانش‌آموز",
+    phone: "۰۹۳۹ ۴۴۴ ۵۵۶۶",
+    joinedAt: "۱۴۰۴/۰۵/۲۰",
+    status: "suspended",
+    city: "مشهد",
+    plan: "همراه",
+    totalPaid: 1490000,
+    lastLogin: "۶ مهر، ۱۷:۵۰",
+    device: "اپ اندروید",
+  },
+  {
+    id: "u-5",
+    name: "نگین احمدی",
+    role: "دانش‌آموز",
+    phone: "۰۹۱۷ ۳۳۳ ۲۲۱۱",
+    joinedAt: "۱۴۰۴/۰۳/۰۵",
+    status: "active",
+    city: "شیراز",
+    plan: "پایه",
+    totalPaid: 2670000,
+    lastLogin: "دیروز، ۲۱:۰۵",
+    device: "Chrome روی Windows",
+  },
 ];
 
 // Complaints now live in support tickets (seedTickets, category «مشاور» / «پرداخت و اشتراک»).
@@ -1157,11 +1419,57 @@ export type MentorPayout = {
 
 // What each mentor is owed for the period, after the platform commission.
 export const mentorPayouts: MentorPayout[] = [
-  { id: "po-1", mentorId: "sara-mohammadi", mentorName: "سارا محمدی", period: "شهریور ۱۴۰۵", students: 12, gross: 17880000, sheba: "IR•• •••• •••• 4521", status: "pending" },
-  { id: "po-2", mentorId: "negar-ahmadi", mentorName: "نگار احمدی", period: "شهریور ۱۴۰۵", students: 8, gross: 11920000, sheba: "IR•• •••• •••• 7730", status: "pending" },
-  { id: "po-3", mentorId: "amirhossein-rezaei", mentorName: "امیرحسین رضایی", period: "شهریور ۱۴۰۵", students: 7, gross: 10430000, sheba: "IR•• •••• •••• 0198", status: "pending" },
-  { id: "po-4", mentorId: "mahsa-ghasemi", mentorName: "مهسا قاسمی", period: "شهریور ۱۴۰۵", students: 8, gross: 9860000, sheba: "IR•• •••• •••• 3364", status: "pending" },
-  { id: "po-5", mentorId: "reza-karimi", mentorName: "رضا کریمی", period: "مرداد ۱۴۰۵", students: 10, gross: 14900000, sheba: "IR•• •••• •••• 8812", status: "paid", bankRef: "PAYA-40211" },
+  {
+    id: "po-1",
+    mentorId: "sara-mohammadi",
+    mentorName: "سارا محمدی",
+    period: "شهریور ۱۴۰۵",
+    students: 12,
+    gross: 17880000,
+    sheba: "IR•• •••• •••• 4521",
+    status: "pending",
+  },
+  {
+    id: "po-2",
+    mentorId: "negar-ahmadi",
+    mentorName: "نگار احمدی",
+    period: "شهریور ۱۴۰۵",
+    students: 8,
+    gross: 11920000,
+    sheba: "IR•• •••• •••• 7730",
+    status: "pending",
+  },
+  {
+    id: "po-3",
+    mentorId: "amirhossein-rezaei",
+    mentorName: "امیرحسین رضایی",
+    period: "شهریور ۱۴۰۵",
+    students: 7,
+    gross: 10430000,
+    sheba: "IR•• •••• •••• 0198",
+    status: "pending",
+  },
+  {
+    id: "po-4",
+    mentorId: "mahsa-ghasemi",
+    mentorName: "مهسا قاسمی",
+    period: "شهریور ۱۴۰۵",
+    students: 8,
+    gross: 9860000,
+    sheba: "IR•• •••• •••• 3364",
+    status: "pending",
+  },
+  {
+    id: "po-5",
+    mentorId: "reza-karimi",
+    mentorName: "رضا کریمی",
+    period: "مرداد ۱۴۰۵",
+    students: 10,
+    gross: 14900000,
+    sheba: "IR•• •••• •••• 8812",
+    status: "paid",
+    bankRef: "PAYA-40211",
+  },
 ];
 
 export const pendingMentorPayouts = mentorPayouts.filter((p) => p.status === "pending").length;
@@ -1517,7 +1825,12 @@ export type PrivateNote = { id: string; studentId: string; text: string; date: s
 
 export const mentorPrivateNotes: PrivateNote[] = [
   { id: "pn-1", studentId: "1", text: "بعد از جلسه‌ی قبل انگیزه‌اش کم شده بود؛ حواسم به این باشه.", date: "۲۰ شهریور" },
-  { id: "pn-2", studentId: "3", text: "خانواده فشار زیادی برای رشته‌ی پزشکی می‌ذارن؛ باید موقع صحبت با خودش مراقب باشم.", date: "۱۵ شهریور" },
+  {
+    id: "pn-2",
+    studentId: "3",
+    text: "خانواده فشار زیادی برای رشته‌ی پزشکی می‌ذارن؛ باید موقع صحبت با خودش مراقب باشم.",
+    date: "۱۵ شهریور",
+  },
 ];
 
 // A student's own free-form notebook — NOT the test-bank "دفترچه‌ی
@@ -1608,17 +1921,73 @@ function seedMistake(
   resolved = false,
   questionNo?: string
 ): MistakeEntry {
-  return { id, studentId, subject, topic, source, reason, fix, date, resolved, questionNo, createdIso: MISTAKE_DATE_ISO[date] };
+  return {
+    id,
+    studentId,
+    subject,
+    topic,
+    source,
+    reason,
+    fix,
+    date,
+    resolved,
+    questionNo,
+    createdIso: MISTAKE_DATE_ISO[date],
+  };
 }
 
 // The logged-in student's own notebook seed (see mistakes-store).
 export const myMistakesSeed: MistakeEntry[] = [
-  seedMistake("mm-1", "me", "شیمی", "استوکیومتری", "آزمون قلم‌چی ۴ مهر", "calculation", "واحد گرم به مول رو دوبار چک کنم", "۴ مهر", false, "۱۴۷"),
-  seedMistake("mm-2", "me", "زیست", "گردش خون", "آزمون قلم‌چی ۴ مهر", "careless", "کلمه‌ی «نادرست» توی صورت سؤال بود", "۴ مهر", false, "۱۲"),
+  seedMistake(
+    "mm-1",
+    "me",
+    "شیمی",
+    "استوکیومتری",
+    "آزمون قلم‌چی ۴ مهر",
+    "calculation",
+    "واحد گرم به مول رو دوبار چک کنم",
+    "۴ مهر",
+    false,
+    "۱۴۷"
+  ),
+  seedMistake(
+    "mm-2",
+    "me",
+    "زیست",
+    "گردش خون",
+    "آزمون قلم‌چی ۴ مهر",
+    "careless",
+    "کلمه‌ی «نادرست» توی صورت سؤال بود",
+    "۴ مهر",
+    false,
+    "۱۲"
+  ),
   seedMistake("mm-3", "me", "زیست", "ژنتیک", "آزمون قلم‌چی ۴ مهر", "concept", "", "۴ مهر", false, "۳۱"),
-  seedMistake("mm-4", "me", "فیزیک", "حرکت‌شناسی", "خیلی سبز فصل ۲", "careless", "جهت مثبت محور رو اول مشخص کنم", "۲ مهر", true, "۸۸"),
+  seedMistake(
+    "mm-4",
+    "me",
+    "فیزیک",
+    "حرکت‌شناسی",
+    "خیلی سبز فصل ۲",
+    "careless",
+    "جهت مثبت محور رو اول مشخص کنم",
+    "۲ مهر",
+    true,
+    "۸۸"
+  ),
   seedMistake("mm-5", "me", "ریاضی", "مشتق", "خیلی سبز فصل ۴", "calculation", "", "۱ مهر", false, "۱۰۲"),
-  seedMistake("mm-6", "me", "شیمی", "تعادل", "آزمون قلم‌چی ۴ مهر", "trap", "گزینه‌ی ۲ فقط نیمه‌ی اول درست بود", "۴ مهر", false, "۱۵۸"),
+  seedMistake(
+    "mm-6",
+    "me",
+    "شیمی",
+    "تعادل",
+    "آزمون قلم‌چی ۴ مهر",
+    "trap",
+    "گزینه‌ی ۲ فقط نیمه‌ی اول درست بود",
+    "۴ مهر",
+    false,
+    "۱۵۸"
+  ),
   seedMistake("mm-7", "me", "فیزیک", "دینامیک", "آزمون قلم‌چی ۴ مهر", "time", "", "۴ مهر", false, "۱۱۵"),
   seedMistake("mm-8", "me", "زیست", "تنفس", "مهروماه فصل ۵", "careless", "", "۳۱ شهریور", true, "۴۰"),
 ];
@@ -1821,6 +2190,26 @@ export type Ticket = {
   unreadForUser: boolean; // support replied and the requester hasn't opened it
   rating?: number;
   history: { by: string; at: string; change: string }[];
+  referrals?: TicketReferral[];
+};
+
+/**
+ * A hand-off to the role that can actually do the work (e.g. tech support →
+ * finance for an IBAN change). `closedLoop` turns true once someone answers
+ * the requester or closes the ticket after the referral came back.
+ */
+export type TicketReferral = {
+  id: string;
+  toRole: string; // StaffRole
+  fromRole: string;
+  by: string;
+  note: string;
+  at: string;
+  status: "open" | "done" | "returned" | "cancelled";
+  answer?: string;
+  answeredBy?: string;
+  answeredAt?: string;
+  closedLoop?: boolean;
 };
 
 export const seedTickets: Ticket[] = [
@@ -1982,11 +2371,46 @@ export type MentorQualityData = {
 };
 
 export const mentorQuality: MentorQualityData[] = [
-  { mentorId: "sara-mohammadi", reportRate: 88, retention: 92, planOnTime: 95, complaints: 0, responseTrend: [4, 3, 3, 3] },
-  { mentorId: "negar-ahmadi", reportRate: 54, retention: 70, planOnTime: 60, complaints: 2, responseTrend: [18, 26, 35, 41] },
-  { mentorId: "amirhossein-rezaei", reportRate: 81, retention: 88, planOnTime: 85, complaints: 0, responseTrend: [7, 6, 6, 6] },
-  { mentorId: "reza-karimi", reportRate: 76, retention: 85, planOnTime: 90, complaints: 0, responseTrend: [11, 10, 9, 9] },
-  { mentorId: "mahsa-ghasemi", reportRate: 83, retention: 80, planOnTime: 75, complaints: 1, responseTrend: [5, 5, 4, 4] },
+  {
+    mentorId: "sara-mohammadi",
+    reportRate: 88,
+    retention: 92,
+    planOnTime: 95,
+    complaints: 0,
+    responseTrend: [4, 3, 3, 3],
+  },
+  {
+    mentorId: "negar-ahmadi",
+    reportRate: 54,
+    retention: 70,
+    planOnTime: 60,
+    complaints: 2,
+    responseTrend: [18, 26, 35, 41],
+  },
+  {
+    mentorId: "amirhossein-rezaei",
+    reportRate: 81,
+    retention: 88,
+    planOnTime: 85,
+    complaints: 0,
+    responseTrend: [7, 6, 6, 6],
+  },
+  {
+    mentorId: "reza-karimi",
+    reportRate: 76,
+    retention: 85,
+    planOnTime: 90,
+    complaints: 0,
+    responseTrend: [11, 10, 9, 9],
+  },
+  {
+    mentorId: "mahsa-ghasemi",
+    reportRate: 83,
+    retention: 80,
+    planOnTime: 75,
+    complaints: 1,
+    responseTrend: [5, 5, 4, 4],
+  },
 ];
 
 // Weights of the 0–100 quality score. Change them here only.
@@ -2139,14 +2563,86 @@ export type ChurnResponse = {
 };
 
 export const seedChurnResponses: ChurnResponse[] = [
-  { id: "ch-1", student: "رضا نامدار", plan: "همراه", mentorId: "negar-ahmadi", reason: "mentor", text: "مشاورم جواب نمی‌ده.", outcome: "retained", date: "۴ مهر" },
-  { id: "ch-2", student: "پارمیس کاظمی", plan: "پایه", mentorId: "amirhossein-rezaei", reason: "price", text: "", outcome: "retained", date: "۳ مهر" },
-  { id: "ch-3", student: "آرش یزدانی", plan: "همراه", mentorId: "negar-ahmadi", reason: "mentor", text: "برنامه‌ها همیشه دوشنبه می‌رسید.", outcome: "cancelled", date: "۲ مهر" },
-  { id: "ch-4", student: "ترانه فرهادی", plan: "ویژه", mentorId: "sara-mohammadi", reason: "done", text: "برای نهایی دی دیگه لازم ندارم.", outcome: "cancelled", date: "۱ مهر" },
-  { id: "ch-5", student: "مهدی سلطانی", plan: "پایه", mentorId: "mahsa-ghasemi", reason: "time", text: "مدرسه‌ها شروع شده.", outcome: "retained", date: "۳۱ شهریور" },
-  { id: "ch-6", student: "سپیده رحیمی", plan: "همراه", mentorId: "reza-karimi", reason: "price", text: "", outcome: "cancelled", date: "۲۹ شهریور" },
-  { id: "ch-7", student: "امید شریفی", plan: "پایه", mentorId: "amirhossein-rezaei", reason: "no_result", text: "دو آزمون درصدم بالا نرفت.", outcome: "cancelled", date: "۲۷ شهریور" },
-  { id: "ch-8", student: "نازنین قربانی", plan: "همراه", mentorId: "mahsa-ghasemi", reason: "technical", text: "جلسه‌ها قطع می‌شد.", outcome: "cancelled", date: "۲۵ شهریور" },
+  {
+    id: "ch-1",
+    student: "رضا نامدار",
+    plan: "همراه",
+    mentorId: "negar-ahmadi",
+    reason: "mentor",
+    text: "مشاورم جواب نمی‌ده.",
+    outcome: "retained",
+    date: "۴ مهر",
+  },
+  {
+    id: "ch-2",
+    student: "پارمیس کاظمی",
+    plan: "پایه",
+    mentorId: "amirhossein-rezaei",
+    reason: "price",
+    text: "",
+    outcome: "retained",
+    date: "۳ مهر",
+  },
+  {
+    id: "ch-3",
+    student: "آرش یزدانی",
+    plan: "همراه",
+    mentorId: "negar-ahmadi",
+    reason: "mentor",
+    text: "برنامه‌ها همیشه دوشنبه می‌رسید.",
+    outcome: "cancelled",
+    date: "۲ مهر",
+  },
+  {
+    id: "ch-4",
+    student: "ترانه فرهادی",
+    plan: "ویژه",
+    mentorId: "sara-mohammadi",
+    reason: "done",
+    text: "برای نهایی دی دیگه لازم ندارم.",
+    outcome: "cancelled",
+    date: "۱ مهر",
+  },
+  {
+    id: "ch-5",
+    student: "مهدی سلطانی",
+    plan: "پایه",
+    mentorId: "mahsa-ghasemi",
+    reason: "time",
+    text: "مدرسه‌ها شروع شده.",
+    outcome: "retained",
+    date: "۳۱ شهریور",
+  },
+  {
+    id: "ch-6",
+    student: "سپیده رحیمی",
+    plan: "همراه",
+    mentorId: "reza-karimi",
+    reason: "price",
+    text: "",
+    outcome: "cancelled",
+    date: "۲۹ شهریور",
+  },
+  {
+    id: "ch-7",
+    student: "امید شریفی",
+    plan: "پایه",
+    mentorId: "amirhossein-rezaei",
+    reason: "no_result",
+    text: "دو آزمون درصدم بالا نرفت.",
+    outcome: "cancelled",
+    date: "۲۷ شهریور",
+  },
+  {
+    id: "ch-8",
+    student: "نازنین قربانی",
+    plan: "همراه",
+    mentorId: "mahsa-ghasemi",
+    reason: "technical",
+    text: "جلسه‌ها قطع می‌شد.",
+    outcome: "cancelled",
+    date: "۲۵ شهریور",
+  },
 ];
 
 // ---------------------------------------------------------------------
@@ -2155,7 +2651,14 @@ export const seedChurnResponses: ChurnResponse[] = [
 // three in the case file.
 // ---------------------------------------------------------------------
 
-export type Commitment = { id: string; day: string; title: string; start: string; end: string; kind: "school" | "class" };
+export type Commitment = {
+  id: string;
+  day: string;
+  title: string;
+  start: string;
+  end: string;
+  kind: "school" | "class";
+};
 export type BookKind = "درسنامه" | "تست" | "جمع‌بندی";
 export type BookStatus = "have" | "reading" | "done";
 export type BookItem = { id: string; subject: string; title: string; kind: BookKind; status: BookStatus };
@@ -2170,13 +2673,38 @@ export type Intake = {
 };
 export type StudentSetup = { intake: Intake | null; schedule: Commitment[]; books: BookItem[] };
 
-export const TARGET_MAJORS = ["پزشکی", "دندان‌پزشکی", "داروسازی", "پرستاری", "فیزیوتراپی", "علوم آزمایشگاهی", "مهندسی", "هنوز مطمئن نیستم"];
+export const TARGET_MAJORS = [
+  "پزشکی",
+  "دندان‌پزشکی",
+  "داروسازی",
+  "پرستاری",
+  "فیزیوتراپی",
+  "علوم آزمایشگاهی",
+  "مهندسی",
+  "هنوز مطمئن نیستم",
+];
 export const QUOTAS = ["منطقه ۱", "منطقه ۲", "منطقه ۳", "نمی‌دونم"];
 export const MOCK_EXAM_PROVIDERS = ["قلم‌چی", "گاج", "ماز", "سنجش", "هیچ‌کدوم"];
 export const DAILY_HOURS_OPTIONS = ["کمتر از ۲ ساعت", "۲ تا ۴ ساعت", "۴ تا ۶ ساعت", "بیشتر از ۶ ساعت"];
-export const STUDY_CHALLENGES = ["برنامه‌ریزی", "تمرکز و حواس‌پرتی", "یک درس خاص", "استرس و اضطراب", "انگیزه", "وقت کم به‌خاطر مدرسه"];
+export const STUDY_CHALLENGES = [
+  "برنامه‌ریزی",
+  "تمرکز و حواس‌پرتی",
+  "یک درس خاص",
+  "استرس و اضطراب",
+  "انگیزه",
+  "وقت کم به‌خاطر مدرسه",
+];
 export const FINALS_STATUS = ["هنوز امتحان نهایی ندادم", "نمره‌های نهایی‌ام خوبه", "باید نهایی رو ترمیم کنم"];
-export const BOOK_SUGGESTIONS = ["کتاب درسی", "خیلی سبز", "مهروماه", "گاج", "قلم‌چی (کانون)", "مبتکران", "الگو", "دریافت"];
+export const BOOK_SUGGESTIONS = [
+  "کتاب درسی",
+  "خیلی سبز",
+  "مهروماه",
+  "گاج",
+  "قلم‌چی (کانون)",
+  "مبتکران",
+  "الگو",
+  "دریافت",
+];
 export const BOOK_STATUS_LABEL: Record<BookStatus, string> = { have: "دارم", reading: "دارم می‌خونم", done: "تموم شد" };
 
 // Awake window 07:00–23:00 minus school/classes minus a fixed buffer for
@@ -2238,8 +2766,16 @@ export const REPORT_REACTIONS: Record<ReportReaction, { emoji: string; label: st
 export type ReportFeedback = { reaction: ReportReaction; comment: string; at: string };
 
 export const reportFeedbackSeed: Record<string, ReportFeedback> = {
-  "me-8": { reaction: "great", comment: "۴۰ تست تنظیم عصبی توی یک روز عالیه؛ همین ریتم رو نگه دار.", at: "یکشنبه، ۰۸:۱۰" },
-  "h3-9": { reaction: "keep_going", comment: "تعادل رو خوب پیش بردی، فردا مثلثات رو جدی‌تر بگیر.", at: "دوشنبه، ۰۷:۴۰" },
+  "me-8": {
+    reaction: "great",
+    comment: "۴۰ تست تنظیم عصبی توی یک روز عالیه؛ همین ریتم رو نگه دار.",
+    at: "یکشنبه، ۰۸:۱۰",
+  },
+  "h3-9": {
+    reaction: "keep_going",
+    comment: "تعادل رو خوب پیش بردی، فردا مثلثات رو جدی‌تر بگیر.",
+    at: "دوشنبه، ۰۷:۴۰",
+  },
 };
 
 // ---------------------------------------------------------------------
@@ -2312,15 +2848,87 @@ export const schoolSeed = {
   seats: 16,
   nextInvoice: "۱ آبان ۱۴۰۵",
   students: [
-    { id: "ss-1", name: "هستی کریمی", grade: "دوازدهم تجربی", mentorName: "سارا محمدی", reportRate: 92, studyHours: 27, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۰" },
-    { id: "ss-2", name: "پرهام صالحی", grade: "دوازدهم تجربی", mentorName: "امیرحسین رضایی", reportRate: 81, studyHours: 22, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۱" },
-    { id: "ss-3", name: "یاسمن نوروزی", grade: "یازدهم تجربی", mentorName: "سارا محمدی", reportRate: 64, studyHours: 14, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۲" },
-    { id: "ss-4", name: "آرین قاسمی", grade: "دوازدهم ریاضی", mentorName: "مهسا قاسمی", reportRate: 38, studyHours: 6, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۳" },
-    { id: "ss-5", name: "مهسا اکبری", grade: "دوازدهم تجربی", mentorName: "نگار احمدی", reportRate: 45, studyHours: 9, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۴" },
-    { id: "ss-6", name: "سینا مرادی", grade: "یازدهم ریاضی", mentorName: "رضا کریمی", reportRate: 88, studyHours: 24, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۵" },
-    { id: "ss-7", name: "نیکا جعفری", grade: "دوازدهم تجربی", mentorName: "سارا محمدی", reportRate: 76, studyHours: 18, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۶" },
-    { id: "ss-8", name: "امیرعلی حسینی", grade: "دوازدهم ریاضی", mentorName: "امیرحسین رضایی", reportRate: 70, studyHours: 16, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۷" },
-    { id: "ss-9", name: "ریحانه موسوی", grade: "یازدهم تجربی", mentorName: "نگار احمدی", reportRate: null, studyHours: null, phone: "۰۹۱۲ ۱۱۰ ۲۰۳۸" },
+    {
+      id: "ss-1",
+      name: "هستی کریمی",
+      grade: "دوازدهم تجربی",
+      mentorName: "سارا محمدی",
+      reportRate: 92,
+      studyHours: 27,
+      phone: "۰۹۱۲ ۱۱۰ ۲۰۳۰",
+    },
+    {
+      id: "ss-2",
+      name: "پرهام صالحی",
+      grade: "دوازدهم تجربی",
+      mentorName: "امیرحسین رضایی",
+      reportRate: 81,
+      studyHours: 22,
+      phone: "۰۹۱۲ ۱۱۰ ۲۰۳۱",
+    },
+    {
+      id: "ss-3",
+      name: "یاسمن نوروزی",
+      grade: "یازدهم تجربی",
+      mentorName: "سارا محمدی",
+      reportRate: 64,
+      studyHours: 14,
+      phone: "۰۹۱۲ ۱۱۰ ۲۰۳۲",
+    },
+    {
+      id: "ss-4",
+      name: "آرین قاسمی",
+      grade: "دوازدهم ریاضی",
+      mentorName: "مهسا قاسمی",
+      reportRate: 38,
+      studyHours: 6,
+      phone: "۰۹۱۲ ۱۱۰ ۲۰۳۳",
+    },
+    {
+      id: "ss-5",
+      name: "مهسا اکبری",
+      grade: "دوازدهم تجربی",
+      mentorName: "نگار احمدی",
+      reportRate: 45,
+      studyHours: 9,
+      phone: "۰۹۱۲ ۱۱۰ ۲۰۳۴",
+    },
+    {
+      id: "ss-6",
+      name: "سینا مرادی",
+      grade: "یازدهم ریاضی",
+      mentorName: "رضا کریمی",
+      reportRate: 88,
+      studyHours: 24,
+      phone: "۰۹۱۲ ۱۱۰ ۲۰۳۵",
+    },
+    {
+      id: "ss-7",
+      name: "نیکا جعفری",
+      grade: "دوازدهم تجربی",
+      mentorName: "سارا محمدی",
+      reportRate: 76,
+      studyHours: 18,
+      phone: "۰۹۱۲ ۱۱۰ ۲۰۳۶",
+    },
+    {
+      id: "ss-8",
+      name: "امیرعلی حسینی",
+      grade: "دوازدهم ریاضی",
+      mentorName: "امیرحسین رضایی",
+      reportRate: 70,
+      studyHours: 16,
+      phone: "۰۹۱۲ ۱۱۰ ۲۰۳۷",
+    },
+    {
+      id: "ss-9",
+      name: "ریحانه موسوی",
+      grade: "یازدهم تجربی",
+      mentorName: "نگار احمدی",
+      reportRate: null,
+      studyHours: null,
+      phone: "۰۹۱۲ ۱۱۰ ۲۰۳۸",
+    },
   ] as SchoolStudent[],
 };
 
@@ -2330,7 +2938,14 @@ export const schoolSeed = {
 // mentor's unsent edits (`draft`). Time blocks per subject, the way a
 // mentor writes it: «ریاضی ۳، فیزیک ۲، شیمی ۱.۵».
 // ---------------------------------------------------------------------
-export type PlanTask = { id: string; subject: string; topic: string; hours: number; chapter?: string; subtopic?: string };
+export type PlanTask = {
+  id: string;
+  subject: string;
+  topic: string;
+  hours: number;
+  chapter?: string;
+  subtopic?: string;
+};
 export type PlanDays = Record<string, PlanTask[]>;
 export type PlanWeek = "this" | "next";
 export type WeekPlan = { days: PlanDays; note: string; sentAt: string };

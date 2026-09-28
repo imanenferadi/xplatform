@@ -36,6 +36,19 @@ const INTRO: Record<TicketRole, string> = {
 const MAX_SUBJECT = 80;
 const MAX_TEXT = 2000;
 
+/** The requester sees which team has their ticket — never the internal notes. */
+const TEAM: Record<string, string> = {
+  finance: "تیم مالی",
+  tech_support: "تیم فنی",
+  edu_support: "تیم آموزشی",
+  ops: "تیم عملیات",
+  super: "مدیریت",
+};
+function handledBy(t: Ticket): string | null {
+  const open = t.referrals?.filter((r) => r.status === "open") ?? [];
+  return open.length ? `در حال بررسی توسط ${open.map((r) => TEAM[r.toRole]).join(" و ")}` : null;
+}
+
 // The requester's side of support tickets — same component for student,
 // parent and mentor; only who's asking changes.
 export function SupportCenter({ requester }: { requester: { name: string; role: TicketRole; userId?: string } }) {
@@ -87,6 +100,7 @@ export function SupportCenter({ requester }: { requester: { name: string; role: 
                       </div>
                       <div className="mt-0.5 text-xs text-text-500">
                         <span className="tnum">{t.id}</span> · {t.category} · {t.createdAt}
+                        {handledBy(t) && ` · ${handledBy(t)}`}
                       </div>
                     </div>
                     <Badge tone={STATUS_TONE[t.status]}>{TICKET_STATUS[t.status].userLabel}</Badge>
@@ -307,6 +321,7 @@ function TicketThread({
             <div className="mt-0.5 text-xs text-text-500">
               <span className="tnum">{t.id}</span> · {t.category} · {t.createdAt}
             </div>
+            {handledBy(t) && <div className="mt-1 text-xs font-medium text-blue-600">{handledBy(t)}</div>}
           </div>
           <Badge tone={STATUS_TONE[t.status]}>{TICKET_STATUS[t.status].userLabel}</Badge>
         </div>

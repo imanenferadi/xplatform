@@ -8,7 +8,7 @@ import { useTickets } from "@/lib/ticket-store";
 import { useStoredApplications } from "@/lib/mentor-applications-store";
 import { useDiscountCodes } from "@/lib/discount-store";
 import { useLogs } from "@/lib/admin-log-store";
-import { PAGE_PERM, can, seesLogCategory, seesTicketCategory } from "@/lib/permissions";
+import { PAGE_PERM, can, seesLogCategory, seesTicket } from "@/lib/permissions";
 import { useMe } from "@/lib/staff-store";
 import { cn, toLatinDigits, toPersianDigits } from "@/lib/utils";
 
@@ -42,7 +42,7 @@ export function AdminSearch() {
   const logs_ = useLogs();
   // Search only what this role may open.
   const logs = useMemo(() => logs_.filter((l) => seesLogCategory(me.role, l.category)), [logs_, me]);
-  const tickets = useMemo(() => tickets_.filter((t) => seesTicketCategory(me.role, t.category)), [tickets_, me]);
+  const tickets = useMemo(() => tickets_.filter((t) => seesTicket(me.role, t)), [tickets_, me]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {

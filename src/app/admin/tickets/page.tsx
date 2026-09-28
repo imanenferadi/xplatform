@@ -3,10 +3,22 @@
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { LifeBuoy, Send, Lock, Paperclip, History, ArrowLeftRight, Receipt, AlertTriangle, Star } from "lucide-react";
+import {
+  CornerUpLeft,
+  LifeBuoy,
+  Send,
+  Lock,
+  Paperclip,
+  History,
+  ArrowLeftRight,
+  Receipt,
+  AlertTriangle,
+  Star,
+} from "lucide-react";
 import { AdminShell } from "@/components/app/AdminShell";
 import { ViewAsControl } from "@/components/admin/ViewAsControl";
-import { ROLE_META, rolesWith, seesTicketCategory } from "@/lib/permissions";
+import { ReferralPanel } from "@/components/admin/ReferralPanel";
+import { ROLE_META, rolesWith, seesTicket, seesTicketCategory, type StaffRole } from "@/lib/permissions";
 import { useCan, useMe, useStaff } from "@/lib/staff-store";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -55,12 +67,13 @@ function Tickets() {
   const me = useMe();
   const allTickets = useTickets();
   // Each role works (and sees) only its own ticket categories.
-  const tickets = useMemo(() => allTickets.filter((t) => seesTicketCategory(me.role, t.category)), [allTickets, me]);
+  const tickets = useMemo(() => allTickets.filter((t) => seesTicket(me.role, t)), [allTickets, me]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<TicketStatus | "همه">("همه");
   const [category, setCategory] = useState<TicketCategory | "همه">("همه");
   const [priority, setPriority] = useState<TicketPriority | "همه">("همه");
   const [role, setRole] = useState<TicketRole | "همه">("همه");
+  const [referredToMe, setReferredToMe] = useState(false);
   const [openId, setOpenId] = useState<string | null>(useSearchParams().get("t"));
 
   // Overdue first, then by priority, closed tickets last.
@@ -81,6 +94,7 @@ function Tickets() {
       (category === "همه" || t.category === category) &&
       (priority === "همه" || t.priority === priority) &&
       (role === "همه" || t.requester.role === role) &&
+      (!referredToMe || Boolean(t.referrals?.some((r) => r.toRole === me.role && r.status === "open"))) &&
       (!query.trim() ||
         [t.id, t.subject, t.requester.name, ...t.messages.map((m) => m.text)].some((v) => v.includes(query.trim())))
   );
@@ -182,6 +196,10 @@ function Tickets() {
           onChange={setRole}
           options={(["دانش‌آموز", "والد", "مشاور"] as TicketRole[]).map((r) => ({ value: r, label: r }))}
         />
+        <label className="flex items-center gap-1.5 text-xs text-text-700">
+          <input type="checkbox" checked={referredToMe} onChange={(e) => setReferredToMe(e.target.checked)} />
+          فقط ارجاع‌شده به من
+        </label>
         <span className="mr-auto text-xs text-text-500">
           <span className="tnum">{toPersianDigits(filtered.length)}</span> تیکت
         </span>
@@ -208,6 +226,16 @@ function Tickets() {
                           <AlertTriangle size={11} /> دیرکرده
                         </span>
                       )}
+                      {t.referrals
+                        ?.filter((r) => r.status === "open")
+                        .map((r) => (
+                          <Badge key={r.id} tone={r.toRole === me.role ? "warning" : "info"}>
+                            <CornerUpLeft size={11} />
+                            {r.toRole === me.role
+                              ? `ارجاع به تو از ${ROLE_META[r.fromRole as StaffRole].short}`
+                              : `ارجاع به ${ROLE_META[r.toRole as StaffRole].short}`}
+                          </Badge>
+                        ))}
                     </div>
                     <div className="mt-0.5 text-xs text-text-500">
                       {t.requester.name} ({t.requester.role}) · {t.category} · {t.createdAt}
@@ -369,6 +397,7 @@ function TicketDetail({ ticket: t }: { ticket: Ticket }) {
 
       {/* Properties */}
       <div className="space-y-4">
+        <ReferralPanel ticket={t} />
         {allowed("viewas.request") && <ViewAsControl ticket={t} />}
         <div className="space-y-2 rounded-x-md bg-surface-2 p-3 text-xs">
           <Field label="وضعیت">

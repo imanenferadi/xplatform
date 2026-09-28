@@ -10,7 +10,7 @@ import { useLogs } from "./admin-log-store";
 import { computeQuality } from "./quality";
 import { useMe } from "./staff-store";
 import { useProposals } from "./reassign-proposals";
-import { PAGE_PERM, can, seesLogCategory, seesTicketCategory } from "./permissions";
+import { PAGE_PERM, ROLE_META, can, seesLogCategory, seesTicketCategory, type StaffRole } from "./permissions";
 import { toPersianDigits } from "./utils";
 
 export type InboxPriority = "urgent" | "high" | "normal";
@@ -38,6 +38,27 @@ export function useAdminInbox(): InboxItem[] {
     const items: InboxItem[] = [];
 
     for (const t of tickets) {
+      // Referrals: waiting on my role, or came back to my role to answer the user.
+      for (const r of t.referrals ?? []) {
+        if (r.status === "open" && r.toRole === me.role)
+          items.push({
+            key: `rf-${r.id}`,
+            priority: "high",
+            kind: "ارجاع",
+            title: `${t.id} — ارجاع از ${ROLE_META[r.fromRole as StaffRole].label}`,
+            detail: `«${r.note}» · ${r.by}`,
+            href: `/admin/tickets?t=${t.id}`,
+          });
+        if ((r.status === "done" || r.status === "returned") && !r.closedLoop && r.fromRole === me.role)
+          items.push({
+            key: `rb-${r.id}`,
+            priority: "high",
+            kind: "ارجاع",
+            title: `${t.id} — ${ROLE_META[r.toRole as StaffRole].label} ${r.status === "done" ? "انجام داد؛ به کاربر جواب بده" : "برگردوند"}`,
+            detail: `«${r.answer}» · ${r.answeredBy}`,
+            href: `/admin/tickets?t=${t.id}`,
+          });
+      }
       if (t.status === "closed" || t.status === "answered") continue;
       if (!seesTicketCategory(me.role, t.category)) continue;
       const sla = slaState(t);
@@ -50,7 +71,7 @@ export function useAdminInbox(): InboxItem[] {
           detail: `${t.requester.name} (${t.requester.role}) · اولویت ${TICKET_PRIORITY[t.priority].label}${
             sla.overdue ? " · از SLA گذشته" : ""
           }`,
-          href: "/admin/tickets",
+          href: `/admin/tickets?t=${t.id}`,
         });
     }
 

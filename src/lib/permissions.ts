@@ -140,6 +140,14 @@ export function can(role: StaffRole, perm: Perm): boolean {
   return POLICY[role].includes(perm);
 }
 
+/** A role sees a ticket in its categories, or one that was ever referred to it. */
+export function seesTicket(
+  role: StaffRole,
+  t: { category: TicketCategory; referrals?: { toRole: string }[] }
+): boolean {
+  return seesTicketCategory(role, t.category) || Boolean(t.referrals?.some((r) => r.toRole === role));
+}
+
 export function seesTicketCategory(role: StaffRole, c: TicketCategory): boolean {
   const s = TICKET_SCOPE[role];
   return s === "all" || s.includes(c);
@@ -149,6 +157,9 @@ export function seesLogCategory(role: StaffRole, c: LogCategory): boolean {
   const s = LOG_SCOPE[role];
   return s === "all" || s.includes(c);
 }
+
+/** Roles a ticket can be handed to (those who work tickets, plus مدیر کل for escalations). */
+export const REFERRAL_TARGETS: StaffRole[] = ["ops", "finance", "edu_support", "tech_support", "super"];
 
 /** Where each role lands after signing in — straight to its own work. */
 export const ROLE_HOME: Record<StaffRole, string> = {
