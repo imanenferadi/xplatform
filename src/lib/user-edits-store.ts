@@ -337,3 +337,9 @@ export function markNoticeSeen(id: string) {
   const s = store.get();
   store.set({ ...s, notices: s.notices.map((n) => (n.id === id ? { ...n, seen: true } : n)) });
 }
+
+/** Other stores (billing, …) leave a notice for an account owner or a mentor («mentor:<id>»). */
+export function addNotice(userId: string, text: string) {
+  const s = store.get();
+  store.set({ ...s, notices: notice(s, userId, text) });
+}

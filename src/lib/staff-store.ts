@@ -93,3 +93,9 @@ export function addStaff(name: string, role: StaffRole): string {
   staff.set([...staff.get(), { id, name, role, active: true, ...(role === "supervisor" ? { mentorIds: [] } : {}) }]);
   return id;
 }
+
+/** For non-React code: the signed-in admin's role (to enforce rules in stores, not just in the UI). */
+export function currentAdminRole(): StaffRole {
+  const list = staff.get();
+  return (list.find((m) => m.id === session.get()) ?? list[0]).role;
+}

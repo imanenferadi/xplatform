@@ -33,7 +33,10 @@ export type Perm =
   | "sheba.decide"
   | "users.edit"
   | "users.editPhone"
-  | "users.editAcademic";
+  | "users.editAcademic"
+  | "billing.manage"
+  | "billing.approve"
+  | "billing.gift";
 
 export const ROLE_META: Record<StaffRole, { label: string; short: string; desc: string }> = {
   super: { label: "مدیر کل", short: "مدیر کل", desc: "نقش‌ها و تنظیمات؛ همه‌ی بخش‌ها" },
@@ -73,6 +76,9 @@ const POLICY: Record<StaffRole, Perm[]> = {
     "users.edit",
     "users.editPhone",
     "users.editAcademic",
+    "billing.manage",
+    "billing.approve",
+    "billing.gift",
     "reassign.execute",
     "tickets.act",
     "logs.followup",
@@ -101,6 +107,8 @@ const POLICY: Record<StaffRole, Perm[]> = {
     "finance.view",
     "payout.mark",
     "sheba.decide",
+    "billing.manage",
+    "billing.approve",
     "payments.view",
     "refund.decide",
     "discounts.view",

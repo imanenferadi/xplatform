@@ -17,14 +17,22 @@ import {
 } from "@/lib/mock-data";
 import { recordChurn, undoMyCancellation, useChurn } from "@/lib/churn-store";
 import { createTicket } from "@/lib/ticket-store";
-import { guaranteeDaysLeft, requestRefund, useSubscription } from "@/lib/subscription-store";
+import {
+  guaranteeDaysLeft,
+  requestRefund,
+  useSubscription,
+} from "@/lib/subscription-store";
 import { cancelLink, payLinkUrl, usePaymentLinks } from "@/lib/purchase";
+import { fa, nextDue, useBilling, validUntilIso } from "@/lib/billing-store";
 import { addDaysIso, cn, formatJalali, toPersianDigits } from "@/lib/utils";
 
 // «اشتراک من» on the student's profile: the package, its installments, and
 // the 7-day no-questions money-back guarantee.
 export function MySubscription() {
   const sub = useSubscription();
+  // The finance ledger — what support sees, including moved installments, pauses and gift days.
+  const ledger = useBilling().subs.find((x) => x.userId === "u-1");
+  const due = ledger && nextDue(ledger);
   const pendingLink = usePaymentLinks().find((l) => l.status === "pending");
   const [asking, setAsking] = useState(false);
   const [reason, setReason] = useState("");
@@ -38,9 +46,15 @@ export function MySubscription() {
             <h2 className="text-sm font-bold text-text-900">اشتراک من</h2>
           </div>
           <span className="flex items-center gap-1.5">
-            {sub?.paidBy === "parent" && <Badge tone="success">پرداخت‌شده توسط والد</Badge>}
+            {sub?.paidBy === "parent" && (
+              <Badge tone="success">پرداخت‌شده توسط والد</Badge>
+            )}
             <Badge tone="brand">
-              {sub ? `${sub.planName} · ${sub.durationLabel}` : `${parentBilling.planName} · ماهانه`}
+              {sub
+                ? `${sub.planName} · ${sub.durationLabel}`
+                : ledger
+                  ? `${ledger.planName} · ${ledger.durationLabel}`
+                  : `${parentBilling.planName} · ماهانه`}
             </Badge>
           </span>
         </div>
@@ -48,7 +62,8 @@ export function MySubscription() {
         {pendingLink && (
           <div className="mb-3 rounded-x-md border border-blue-600/30 bg-blue-100 p-3 text-xs leading-[1.8] text-text-700">
             <div className="font-medium text-text-900">
-              منتظر پرداخت والد — پلن {pendingLink.order.planName} ({pendingLink.order.durationLabel})،{" "}
+              منتظر پرداخت والد — پلن {pendingLink.order.planName} (
+              {pendingLink.order.durationLabel})،{" "}
               <Toman amount={pendingLink.order.total} />
             </div>
             <div dir="ltr" className="mt-1 truncate text-text-500">
@@ -64,19 +79,63 @@ export function MySubscription() {
           </div>
         )}
 
-        {!sub ? (
+        {!sub && ledger ? (
           <>
             <p className="text-sm text-text-700">
-              <Toman amount={parentBilling.price} /> در ماه — تمدید بعدی {parentBilling.nextBillingDate}
+              اعتبار تا {formatJalali(validUntilIso(ledger))}
+            </p>
+            <p className="mt-1 text-xs leading-[1.8] text-text-500">
+              {due
+                ? `قسط بعدی: ${fa(due.amount)} تومان — ${formatJalali(due.dueIso)}`
+                : "همه‌ی اقساط پرداخت شده."}
+              {ledger.pauses.some((x) => !x.cancelled) &&
+                " · توقف موقت در اعتبار حساب شده."}
+              {ledger.giftDays > 0 &&
+                ` · ${toPersianDigits(ledger.giftDays)} روز هدیه اضافه شده.`}
+            </p>
+            <ul className="mt-2 space-y-1 text-xs">
+              {ledger.installments.map((i, n) => (
+                <li
+                  key={i.id}
+                  className="flex items-center gap-2 text-text-700"
+                >
+                  {i.paid ? (
+                    <Check size={12} className="text-mint-500" />
+                  ) : (
+                    <Clock size={12} className="text-text-500" />
+                  )}
+                  قسط {toPersianDigits(n + 1)} · {fa(i.amount)} تومان ·{" "}
+                  {i.paid
+                    ? `پرداخت ${formatJalali(i.paidIso!)}`
+                    : `موعد ${formatJalali(i.dueIso)}`}
+                </li>
+              ))}
+            </ul>
+            <AutoRenew
+              planName={ledger.planName}
+              activeUntil={formatJalali(validUntilIso(ledger))}
+            />
+          </>
+        ) : !sub ? (
+          <>
+            <p className="text-sm text-text-700">
+              <Toman amount={parentBilling.price} /> در ماه — تمدید بعدی{" "}
+              {parentBilling.nextBillingDate}
             </p>
             <p className="mt-2 text-xs leading-[1.8] text-text-500">
-              ضمانت {toPersianDigits(GUARANTEE_DAYS)} روزه‌ی بازگشت وجه برای هفته‌ی اول هر پکیج جدیده؛ این اشتراک از تیر
-              شروع شده.
+              ضمانت {toPersianDigits(GUARANTEE_DAYS)} روزه‌ی بازگشت وجه برای
+              هفته‌ی اول هر پکیج جدیده؛ این اشتراک از تیر شروع شده.
             </p>
-            <Link href="/checkout" className="mt-3 inline-block text-xs text-blue-600 hover:underline">
+            <Link
+              href="/checkout"
+              className="mt-3 inline-block text-xs text-blue-600 hover:underline"
+            >
               خرید پکیج سه‌ماهه یا تا کنکور (با تخفیف و اقساط)
             </Link>
-            <AutoRenew planName={parentBilling.planName} activeUntil={parentBilling.nextBillingDate} />
+            <AutoRenew
+              planName={parentBilling.planName}
+              activeUntil={parentBilling.nextBillingDate}
+            />
           </>
         ) : (
           <>
@@ -90,7 +149,10 @@ export function MySubscription() {
             {sub.installments.length > 1 && (
               <ol className="mt-3 space-y-1.5 border-t border-border pt-3">
                 {sub.installments.map((ins, i) => (
-                  <li key={i} className="flex items-center justify-between text-xs">
+                  <li
+                    key={i}
+                    className="flex items-center justify-between text-xs"
+                  >
                     <span className="flex items-center gap-1.5 text-text-700">
                       {ins.paid ? (
                         <Check size={12} className="text-mint-500" />
@@ -99,7 +161,11 @@ export function MySubscription() {
                       )}
                       قسط {toPersianDigits(i + 1)} — {ins.due}
                     </span>
-                    <span className={cn(ins.paid ? "text-text-900" : "text-text-500")}>
+                    <span
+                      className={cn(
+                        ins.paid ? "text-text-900" : "text-text-500",
+                      )}
+                    >
                       <Toman amount={ins.amount} />
                     </span>
                   </li>
@@ -107,12 +173,22 @@ export function MySubscription() {
               </ol>
             )}
 
-            <Guarantee sub={sub} asking={asking} setAsking={setAsking} reason={reason} setReason={setReason} />
+            <Guarantee
+              sub={sub}
+              asking={asking}
+              setAsking={setAsking}
+              reason={reason}
+              setReason={setReason}
+            />
             {sub.refund?.status !== "approved" && (
               <AutoRenew
                 planName={sub.planName}
                 activeUntil={formatJalali(
-                  addDaysIso(DEMO_TODAY_ISO, (PACKAGE_DURATIONS.find((d) => d.id === sub.durationId)?.months ?? 1) * 30)
+                  addDaysIso(
+                    DEMO_TODAY_ISO,
+                    (PACKAGE_DURATIONS.find((d) => d.id === sub.durationId)
+                      ?.months ?? 1) * 30,
+                  ),
                 )}
               />
             )}
@@ -144,20 +220,25 @@ function Guarantee({
       <div
         className={cn(
           "mt-4 rounded-x-md p-3 text-xs leading-[1.8]",
-          status === "rejected" ? "bg-red-500/10 text-text-700" : "bg-mint-500/10 text-text-700"
+          status === "rejected"
+            ? "bg-red-500/10 text-text-700"
+            : "bg-mint-500/10 text-text-700",
         )}
       >
         {status === "pending" && (
           <>
-            درخواست بازگشت <Toman amount={amount} /> ثبت شد. حداکثر تا ۴۸ ساعت کاری به کارتت برمی‌گرده.
+            درخواست بازگشت <Toman amount={amount} /> ثبت شد. حداکثر تا ۴۸ ساعت
+            کاری به کارتت برمی‌گرده.
           </>
         )}
         {status === "approved" && (
           <>
-            <Toman amount={amount} /> به کارتت برگشت داده شد و اشتراک لغو شد. امیدواریم دوباره ببینیمت.
+            <Toman amount={amount} /> به کارتت برگشت داده شد و اشتراک لغو شد.
+            امیدواریم دوباره ببینیمت.
           </>
         )}
-        {status === "rejected" && "درخواست بازگشت وجه تأیید نشد — برای جزئیات با پشتیبانی تماس بگیر."}
+        {status === "rejected" &&
+          "درخواست بازگشت وجه تأیید نشد — برای جزئیات با پشتیبانی تماس بگیر."}
       </div>
     );
   }
@@ -165,7 +246,8 @@ function Guarantee({
   if (daysLeft === 0) {
     return (
       <p className="mt-4 text-xs text-text-500">
-        مهلت {toPersianDigits(GUARANTEE_DAYS)} روزه‌ی ضمانت بازگشت وجه این پکیج تموم شده.
+        مهلت {toPersianDigits(GUARANTEE_DAYS)} روزه‌ی ضمانت بازگشت وجه این پکیج
+        تموم شده.
       </p>
     );
   }
@@ -176,7 +258,9 @@ function Guarantee({
         <RotateCcw size={14} className="mt-0.5 shrink-0 text-mint-500" />
         <span>
           <span className="font-medium text-text-900">
-            ضمانت بازگشت وجه: <span className="tnum">{toPersianDigits(daysLeft)}</span> روز دیگه وقت داری.
+            ضمانت بازگشت وجه:{" "}
+            <span className="tnum">{toPersianDigits(daysLeft)}</span> روز دیگه
+            وقت داری.
           </span>{" "}
           اگه راضی نیستی، کل مبلغی که پرداخت کردی بدون سؤال برمی‌گرده.
         </span>
@@ -194,7 +278,11 @@ function Guarantee({
             <Button size="md" onClick={() => requestRefund(reason.trim())}>
               بله، پولم رو برگردون
             </Button>
-            <Button size="md" variant="secondary" onClick={() => setAsking(false)}>
+            <Button
+              size="md"
+              variant="secondary"
+              onClick={() => setAsking(false)}
+            >
               منصرف شدم
             </Button>
           </div>
@@ -214,7 +302,13 @@ function Guarantee({
 
 // Asked before auto-renew is switched off: one question, then a retention
 // offer matched to the answer (see CHURN_REASONS).
-function AutoRenew({ planName, activeUntil }: { planName: string; activeUntil: string }) {
+function AutoRenew({
+  planName,
+  activeUntil,
+}: {
+  planName: string;
+  activeUntil: string;
+}) {
   const { mine } = useChurn();
   const [step, setStep] = useState<"idle" | "reason" | "offer">("idle");
   const [reason, setReason] = useState<ChurnReason | null>(null);
@@ -231,12 +325,19 @@ function AutoRenew({ planName, activeUntil }: { planName: string; activeUntil: s
           category: "مشاور",
           text: text.trim() || "از مشاورم راضی نیستم و می‌خوام مشاورم عوض بشه.",
           requester: { name: "ایمان", role: "دانش‌آموز", userId: "u-1" },
-        })
+        }),
       );
     }
     recordChurn(
-      { student: "ایمان", plan: planName, mentorId: "sara-mohammadi", reason, text: text.trim(), outcome },
-      CHURN_REASONS[reason].label
+      {
+        student: "ایمان",
+        plan: planName,
+        mentorId: "sara-mohammadi",
+        reason,
+        text: text.trim(),
+        outcome,
+      },
+      CHURN_REASONS[reason].label,
     );
     setStep("idle");
   }
@@ -247,8 +348,13 @@ function AutoRenew({ planName, activeUntil }: { planName: string; activeUntil: s
       <div className="mt-4 rounded-x-md bg-surface-2 p-3 text-xs leading-[1.8] text-text-700">
         {mine.outcome === "cancelled" ? (
           <>
-            تمدید خودکار خاموشه — اشتراکت تا {activeUntil} فعاله و بعدش تمدید نمی‌شه.{" "}
-            <button type="button" onClick={undoMyCancellation} className="text-blue-600 hover:underline">
+            تمدید خودکار خاموشه — اشتراکت تا {activeUntil} فعاله و بعدش تمدید
+            نمی‌شه.{" "}
+            <button
+              type="button"
+              onClick={undoMyCancellation}
+              className="text-blue-600 hover:underline"
+            >
               دوباره روشنش کن
             </button>
           </>
@@ -285,10 +391,15 @@ function AutoRenew({ planName, activeUntil }: { planName: string; activeUntil: s
   if (step === "reason") {
     return (
       <div className="mt-4 rounded-x-md border border-border p-3">
-        <div className="mb-2 text-sm font-medium text-text-900">قبل از رفتن، چرا می‌خوای لغو کنی؟</div>
+        <div className="mb-2 text-sm font-medium text-text-900">
+          قبل از رفتن، چرا می‌خوای لغو کنی؟
+        </div>
         <div className="space-y-1.5">
           {(Object.keys(CHURN_REASONS) as ChurnReason[]).map((k) => (
-            <label key={k} className="flex items-center gap-2 text-xs text-text-700">
+            <label
+              key={k}
+              className="flex items-center gap-2 text-xs text-text-700"
+            >
               <input
                 type="radio"
                 name="churn-reason"
@@ -332,13 +443,21 @@ function AutoRenew({ planName, activeUntil }: { planName: string; activeUntil: s
   const offer = reason ? CHURN_REASONS[reason].offer : undefined;
   return (
     <div className="mt-4 rounded-x-md border border-mint-500/40 bg-mint-500/10 p-3">
-      <div className="text-sm font-medium text-text-900">پیشنهاد ما: {offer?.title}</div>
-      <p className="mt-1 text-xs leading-[1.8] text-text-700">{offer?.detail}</p>
+      <div className="text-sm font-medium text-text-900">
+        پیشنهاد ما: {offer?.title}
+      </div>
+      <p className="mt-1 text-xs leading-[1.8] text-text-700">
+        {offer?.detail}
+      </p>
       <div className="mt-2 flex gap-2">
         <Button size="md" onClick={() => finish("retained")}>
           قبول می‌کنم
         </Button>
-        <Button size="md" variant="secondary" onClick={() => finish("cancelled")}>
+        <Button
+          size="md"
+          variant="secondary"
+          onClick={() => finish("cancelled")}
+        >
           نه، لغو کن
         </Button>
       </div>

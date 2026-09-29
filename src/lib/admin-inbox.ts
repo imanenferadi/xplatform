@@ -1,7 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import { TICKET_PRIORITY, mentorApplications, mentorPayouts, mentorQuality, mentors, transactions } from "./mock-data";
+import {
+  TICKET_PRIORITY,
+  mentorApplications,
+  mentorPayouts,
+  mentorQuality,
+  mentors,
+  transactions,
+} from "./mock-data";
 import { slaState, useTickets } from "./ticket-store";
 import { useStoredApplications } from "./mentor-applications-store";
 import { useSubscription } from "./subscription-store";
@@ -12,7 +19,15 @@ import { useMe } from "./staff-store";
 import { useProposals } from "./reassign-proposals";
 import { useShebaRequests } from "./payout-account-store";
 import { bankOf, maskIban } from "./iban";
-import { PAGE_PERM, ROLE_META, can, seesLogCategory, seesTicketCategory, type StaffRole } from "./permissions";
+import { PERM_FOR, fa, useBilling } from "./billing-store";
+import {
+  PAGE_PERM,
+  ROLE_META,
+  can,
+  seesLogCategory,
+  seesTicketCategory,
+  type StaffRole,
+} from "./permissions";
 import { toPersianDigits } from "./utils";
 
 export type InboxPriority = "urgent" | "high" | "normal";
@@ -36,6 +51,7 @@ export function useAdminInbox(): InboxItem[] {
   const me = useMe();
   const proposals = useProposals();
   const shebaRequests = useShebaRequests();
+  const { approvals } = useBilling();
 
   return useMemo(() => {
     const items: InboxItem[] = [];
@@ -52,7 +68,11 @@ export function useAdminInbox(): InboxItem[] {
             detail: `«${r.note}» · ${r.by}`,
             href: `/admin/tickets?t=${t.id}`,
           });
-        if ((r.status === "done" || r.status === "returned") && !r.closedLoop && r.fromRole === me.role)
+        if (
+          (r.status === "done" || r.status === "returned") &&
+          !r.closedLoop &&
+          r.fromRole === me.role
+        )
           items.push({
             key: `rb-${r.id}`,
             priority: "high",
@@ -78,7 +98,9 @@ export function useAdminInbox(): InboxItem[] {
         });
     }
 
-    for (const tx of transactions.filter((x) => x.type === "refund_request" && x.status === "pending"))
+    for (const tx of transactions.filter(
+      (x) => x.type === "refund_request" && x.status === "pending",
+    ))
       items.push({
         key: `r-${tx.id}`,
         priority: "high",
@@ -101,7 +123,9 @@ export function useAdminInbox(): InboxItem[] {
       ...mentorApplications
         .filter((a) => a.status === "pending")
         .map((a) => ({ id: a.id, name: a.name, at: a.appliedAt })),
-      ...stored.filter((a) => a.status === "pending").map((a) => ({ id: a.id, name: a.mentor.name, at: a.appliedAt })),
+      ...stored
+        .filter((a) => a.status === "pending")
+        .map((a) => ({ id: a.id, name: a.mentor.name, at: a.appliedAt })),
     ];
     for (const a of apps)
       items.push({
@@ -135,6 +159,26 @@ export function useAdminInbox(): InboxItem[] {
           href: "/admin/finance",
         });
 
+    // Second-person approvals: never to the one who recorded it.
+    for (const a of approvals)
+      if (
+        a.status === "pending" &&
+        a.createdBy !== me.name &&
+        can(me.role, PERM_FOR[a.kind])
+      )
+        items.push({
+          key: `ap-${a.id}`,
+          priority: "high",
+          kind: "تأیید نفر دوم",
+          title: a.manual
+            ? `ثبت دستی پرداخت ${a.manual.userName}`
+            : a.payout
+              ? `اصلاح تسویه‌ی ${a.payout.mentorName}`
+              : `هدیه‌ی تمدید برای ${a.gift!.userName}`,
+          detail: `${a.manual ? `${fa(a.manual.amount)} تومان` : a.payout ? `${fa(a.payout.fromGross)} ← ${fa(a.payout.toGross)} تومان` : `${toPersianDigits(a.gift!.days)} روز`} · ثبت: ${a.createdBy}`,
+          href: a.payout ? "/admin/finance" : "/admin/payments",
+        });
+
     const pendingPayouts = mentorPayouts.filter((p) => p.status === "pending");
     if (pendingPayouts.length)
       items.push({
@@ -163,7 +207,9 @@ export function useAdminInbox(): InboxItem[] {
 
     for (const l of logs.filter(
       (x) =>
-        x.followUp.status === "in_progress" && x.followUp.assignee === me.name && seesLogCategory(me.role, x.category)
+        x.followUp.status === "in_progress" &&
+        x.followUp.assignee === me.name &&
+        seesLogCategory(me.role, x.category),
     ))
       items.push({
         key: `f-${l.id}`,
@@ -174,7 +220,11 @@ export function useAdminInbox(): InboxItem[] {
         href: `/admin/logs?q=${encodeURIComponent(l.target)}`,
       });
 
-    const rank: Record<InboxPriority, number> = { urgent: 0, high: 1, normal: 2 };
+    const rank: Record<InboxPriority, number> = {
+      urgent: 0,
+      high: 1,
+      normal: 2,
+    };
     // Only what this role can act on or open.
     return items
       .filter((i) => {
@@ -182,7 +232,17 @@ export function useAdminInbox(): InboxItem[] {
         return perm !== undefined && can(me.role, perm);
       })
       .sort((a, b) => rank[a.priority] - rank[b.priority]);
-  }, [tickets, stored, sub, responses, logs, me, proposals, shebaRequests]);
+  }, [
+    tickets,
+    stored,
+    sub,
+    responses,
+    logs,
+    me,
+    proposals,
+    shebaRequests,
+    approvals,
+  ]);
 }
 
 /** Waiting items per admin page, for the sidebar counters. */
