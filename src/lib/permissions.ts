@@ -30,7 +30,10 @@ export type Perm =
   | "staff.view"
   | "staff.manage"
   | "viewas.request"
-  | "sheba.decide";
+  | "sheba.decide"
+  | "users.edit"
+  | "users.editPhone"
+  | "users.editAcademic";
 
 export const ROLE_META: Record<StaffRole, { label: string; short: string; desc: string }> = {
   super: { label: "مدیر کل", short: "مدیر کل", desc: "نقش‌ها و تنظیمات؛ همه‌ی بخش‌ها" },
@@ -67,6 +70,9 @@ const POLICY: Record<StaffRole, Perm[]> = {
     "mentors.approve",
     "quality.warn",
     "users.suspend",
+    "users.edit",
+    "users.editPhone",
+    "users.editAcademic",
     "reassign.execute",
     "tickets.act",
     "logs.followup",
@@ -80,6 +86,8 @@ const POLICY: Record<StaffRole, Perm[]> = {
     "quality.warn",
     "users.view",
     "users.suspend",
+    "users.edit",
+    "users.editAcademic",
     "reassign.view",
     "reassign.execute",
     "tickets.view",
@@ -107,6 +115,8 @@ const POLICY: Record<StaffRole, Perm[]> = {
   tech_support: [
     "inbox.view",
     "users.view",
+    "users.edit",
+    "users.editPhone",
     "tickets.view",
     "tickets.act",
     "logs.view",

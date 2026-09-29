@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   AlertCircle,
+  Bell,
   CalendarClock,
   CalendarX,
   Check,
@@ -41,6 +42,7 @@ import { useMentorUnreadCounts } from "@/lib/chat-store";
 import { useAllKarnamehs } from "@/lib/karnameh-store";
 import { markNoteSeen, useSupervisorNotes } from "@/lib/supervisor-store";
 import { useMyShebaRequests } from "@/lib/payout-account-store";
+import { markNoticeSeen, useNotices } from "@/lib/user-edits-store";
 import { maskIban } from "@/lib/iban";
 import { cn, toPersianDigits } from "@/lib/utils";
 
@@ -81,6 +83,7 @@ export function MentorToday() {
   const karnamehs = useAllKarnamehs();
   const supervisorNotes = useSupervisorNotes();
   const shebaDecisions = useMyShebaRequests(mentors[0].id);
+  const accountNotices = useNotices(`mentor:${mentors[0].id}`);
   const nameOf = (id: string) => mentorStudents.find((s) => s.id === id)?.name ?? "";
 
   const tasks: Task[] = [];
@@ -93,6 +96,24 @@ export function MentorToday() {
       title: `${c.parentName} درخواست تماس داده`,
       detail: `${c.topic} · وقت پیشنهادی ${c.slot}`,
       inline: <PendingCall call={c} />,
+    });
+
+  for (const n of accountNotices.filter((x) => !x.seen))
+    tasks.push({
+      key: `an-${n.id}`,
+      tone: "today",
+      icon: Bell,
+      title: "تغییر در اطلاعات یک دانش‌آموز",
+      detail: n.text,
+      inline: (
+        <button
+          type="button"
+          onClick={() => markNoticeSeen(n.id)}
+          className="flex items-center gap-1 rounded-x-pill border border-border px-3 py-1 text-xs text-text-700 hover:border-blue-300"
+        >
+          <Check size={12} /> دیدم
+        </button>
+      ),
     });
 
   for (const r of shebaDecisions.filter((x) => x.seenByMentor === false))

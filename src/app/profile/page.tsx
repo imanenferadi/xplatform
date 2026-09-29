@@ -1,7 +1,10 @@
 "use client";
 
+import { toast } from "@/components/ui/Toaster";
 import { FormActions, SaveStatus } from "@/components/ui/Form";
 import { saveProfile, useProfile } from "@/lib/profile-store";
+import { AccountNotices } from "@/components/app/AccountNotices";
+import { useUsers } from "@/lib/user-edits-store";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -62,17 +65,8 @@ function Dot() {
 export default function ProfilePage() {
   const mentor = mentors[0];
   const profile = useProfile();
-  const [name, setName] = useState(profile.name);
-  const [city, setCity] = useState(profile.city);
-  const [nameError, setNameError] = useState("");
-  const [saved, setSaved] = useState(false);
-
-  function saveInfo(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim()) return setNameError("اسمت رو بنویس.");
-    saveProfile({ name: name.trim(), city: city.trim() });
-    setSaved(true);
-  }
+  // Phone comes from the shared record too (support may have changed it).
+  const me = useUsers().find((u) => u.id === "u-1")!;
   const [prefs, setPrefs] = useState(studentProfile.notificationPrefs);
   const parentAccess = useParentAccess();
 
@@ -84,13 +78,15 @@ export default function ProfilePage() {
           <h1 className="text-xl font-bold text-text-900">پروفایل من</h1>
         </div>
 
+        <AccountNotices userId="u-1" studentName={profile.name} />
+
         <Card>
           <CardContent className="flex items-center gap-4">
-            <Avatar name={name} size="lg" />
+            <Avatar name={profile.name} size="lg" />
             <div>
-              <div className="font-bold text-text-900">{name}</div>
+              <div className="font-bold text-text-900">{profile.name}</div>
               <div dir="ltr" className="tnum text-right text-xs text-text-500">
-                {studentProfile.phone}
+                {me.phone}
               </div>
               <div className="mt-1 text-xs text-text-500">عضو از {studentProfile.joinedAt}</div>
             </div>
@@ -99,38 +95,10 @@ export default function ProfilePage() {
 
         <Card className="mt-4">
           <CardContent>
-            <form onSubmit={saveInfo} noValidate className="space-y-4">
-              <h2 className="text-sm font-bold text-text-900">اطلاعات فردی</h2>
-              <Input
-                label="نام"
-                value={name}
-                error={nameError}
-                onChange={(e) => {
-                  setName(e.target.value.slice(0, 40));
-                  setNameError("");
-                  setSaved(false);
-                }}
-              />
-              <Input
-                label="شهر"
-                value={city}
-                onChange={(e) => {
-                  setCity(e.target.value.slice(0, 40));
-                  setSaved(false);
-                }}
-              />
-              <Input
-                label="پایه‌ی تحصیلی"
-                value={studentProfile.grade}
-                disabled
-                helperText="برای تغییر پایه به پشتیبانی پیام بده."
-              />
-              <FormActions status={<SaveStatus show={saved} />}>
-                <Button type="submit" size="md">
-                  ذخیره
-                </Button>
-              </FormActions>
-            </form>
+            {/* Keyed on the saved values: when support corrects them (or they load
+                after hydration) the form restarts from the real data instead of
+                keeping — and later re-saving — a stale copy. */}
+            <ProfileInfoForm key={`${profile.name}|${profile.city}`} profile={profile} />
           </CardContent>
         </Card>
 
@@ -256,5 +224,54 @@ export default function ProfilePage() {
         </Link>
       </div>
     </StudentShell>
+  );
+}
+
+function ProfileInfoForm({ profile }: { profile: { name: string; city: string; grade?: string; group?: string } }) {
+  const [name, setName] = useState(profile.name);
+  const [city, setCity] = useState(profile.city);
+  const [nameError, setNameError] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  function saveInfo(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return setNameError("اسمت رو بنویس.");
+    saveProfile({ name: name.trim(), city: city.trim() });
+    toast("ذخیره شد");
+  }
+
+  return (
+    <form onSubmit={saveInfo} noValidate className="space-y-4">
+      <h2 className="text-sm font-bold text-text-900">اطلاعات فردی</h2>
+      <Input
+        label="نام"
+        value={name}
+        error={nameError}
+        onChange={(e) => {
+          setName(e.target.value.slice(0, 40));
+          setNameError("");
+          setSaved(false);
+        }}
+      />
+      <Input
+        label="شهر"
+        value={city}
+        onChange={(e) => {
+          setCity(e.target.value.slice(0, 40));
+          setSaved(false);
+        }}
+      />
+      <Input
+        label="پایه‌ی تحصیلی"
+        value={`پایه ${profile.grade} — ${profile.group}`}
+        disabled
+        helperText="برای تغییر پایه یا رشته به پشتیبانی پیام بده."
+      />
+      <FormActions status={<SaveStatus show={saved} />}>
+        <Button type="submit" size="md">
+          ذخیره
+        </Button>
+      </FormActions>
+    </form>
   );
 }

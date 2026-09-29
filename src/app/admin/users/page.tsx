@@ -20,24 +20,20 @@ import {
   SearchBox,
   Allowed,
 } from "@/components/admin/AdminKit";
-import {
-  SUSPEND_REASONS,
-  adminUsers as initialUsers,
-  mentors,
-  studentAssignments,
-  type AdminUser,
-} from "@/lib/mock-data";
+import { SUSPEND_REASONS, mentors, type AdminUser } from "@/lib/mock-data";
 import { logEvent } from "@/lib/admin-log-store";
 import { useTickets } from "@/lib/ticket-store";
+import { useUsers } from "@/lib/user-edits-store";
+import { UserEditPanel } from "@/components/admin/UserEditPanel";
 import { downloadCsv, toCsv } from "@/lib/csv";
 import { toPersianDigits } from "@/lib/utils";
 
 type Role = AdminUser["role"];
 type Status = AdminUser["status"];
 
-function currentMentor(name: string) {
-  const a = studentAssignments.find((x) => x.name === name);
-  return a ? (mentors.find((m) => m.id === a.mentorId)?.name ?? "—") : null;
+// By id, not by name — a support correction to the student's name mustn't lose the mentor.
+function currentMentor(mentorId?: string) {
+  return mentorId ? (mentors.find((m) => m.id === mentorId)?.name ?? "—") : null;
 }
 
 // Opened from the global search (Ctrl/⌘+K) with ?q= prefilled.
@@ -52,7 +48,13 @@ export default function AdminUsersPageRoute() {
 }
 
 function AdminUsersPage() {
-  const [users, setUsers] = useState(initialUsers);
+  // Seed users with staff corrections applied; suspend state stays page-local as before.
+  const edited = useUsers();
+  const [statusOverride, setStatusOverride] = useState<Record<string, Status>>({});
+  const users = useMemo(
+    () => edited.map((u) => (statusOverride[u.id] ? { ...u, status: statusOverride[u.id] } : u)),
+    [edited, statusOverride]
+  );
   const tickets = useTickets();
   const [query, setQuery] = useState(useSearchParams().get("q") ?? "");
   const [role, setRole] = useState<Role | "همه">("همه");
@@ -77,7 +79,7 @@ function AdminUsersPage() {
   }
 
   function setUserStatus(u: AdminUser, next: Status, reason: string, note: string) {
-    setUsers((us) => us.map((x) => (x.id === u.id ? { ...x, status: next } : x)));
+    setStatusOverride((o) => ({ ...o, [u.id]: next }));
     setPrompt(null);
     const suspending = next === "suspended";
     logEvent({
@@ -159,7 +161,7 @@ function AdminUsersPage() {
         <div className="space-y-2">
           {filtered.map((u) => {
             const key = `user:${u.id}`;
-            const mentor = u.role === "دانش‌آموز" ? currentMentor(u.name) : null;
+            const mentor = u.role === "دانش‌آموز" ? currentMentor(u.mentorId) : null;
             const userTickets = tickets.filter((t) => t.requester.name === u.name);
             return (
               <AdminRow
@@ -196,6 +198,9 @@ function AdminUsersPage() {
                           </span>,
                         ],
                         ["شهر", u.city],
+                        ...(u.grade
+                          ? ([["پایه و رشته", `${u.grade} — ${u.group}`]] as [string, React.ReactNode][])
+                          : []),
                         [
                           "عضو از",
                           <span key="j" className="tnum">
@@ -260,6 +265,7 @@ function AdminUsersPage() {
                         )}
                       </div>
                     )}
+                    <UserEditPanel user={u} users={users} />
                     <EntityActivity match={u.name} />
                   </div>
                   <EntityFollowUp entityKey={key} />
