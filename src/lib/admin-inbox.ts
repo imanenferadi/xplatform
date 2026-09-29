@@ -10,6 +10,8 @@ import { useLogs } from "./admin-log-store";
 import { computeQuality } from "./quality";
 import { useMe } from "./staff-store";
 import { useProposals } from "./reassign-proposals";
+import { useShebaRequests } from "./payout-account-store";
+import { bankOf, maskIban } from "./iban";
 import { PAGE_PERM, ROLE_META, can, seesLogCategory, seesTicketCategory, type StaffRole } from "./permissions";
 import { toPersianDigits } from "./utils";
 
@@ -33,6 +35,7 @@ export function useAdminInbox(): InboxItem[] {
   const logs = useLogs();
   const me = useMe();
   const proposals = useProposals();
+  const shebaRequests = useShebaRequests();
 
   return useMemo(() => {
     const items: InboxItem[] = [];
@@ -121,6 +124,17 @@ export function useAdminInbox(): InboxItem[] {
           href: "/admin/reassign",
         });
 
+    if (can(me.role, "sheba.decide"))
+      for (const r of shebaRequests.filter((x) => x.status === "pending"))
+        items.push({
+          key: `sh-${r.id}`,
+          priority: "high",
+          kind: "تغییر شبا",
+          title: `${r.mentorName} شبای جدید درخواست داده`,
+          detail: `${maskIban(r.newSheba)} · بانک ${bankOf(r.newSheba)} · ${r.requestedAt}`,
+          href: "/admin/finance",
+        });
+
     const pendingPayouts = mentorPayouts.filter((p) => p.status === "pending");
     if (pendingPayouts.length)
       items.push({
@@ -168,7 +182,7 @@ export function useAdminInbox(): InboxItem[] {
         return perm !== undefined && can(me.role, perm);
       })
       .sort((a, b) => rank[a.priority] - rank[b.priority]);
-  }, [tickets, stored, sub, responses, logs, me, proposals]);
+  }, [tickets, stored, sub, responses, logs, me, proposals, shebaRequests]);
 }
 
 /** Waiting items per admin page, for the sidebar counters. */

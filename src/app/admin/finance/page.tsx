@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Wallet, TrendingUp, TrendingDown, Banknote, Check } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, Banknote, Check, Lock } from "lucide-react";
 import { AdminShell } from "@/components/app/AdminShell";
+import { ShebaRequests } from "@/components/admin/ShebaRequests";
+import { SHEBA_HOLD_HOURS, usePayoutAccounts } from "@/lib/payout-account-store";
+import { bankOf, maskIban } from "@/lib/iban";
+import { clockOf, useNowMs } from "@/lib/viewas-store";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -44,6 +48,8 @@ export default function AdminFinancePage() {
   const [payouts, setPayouts] = useState<MentorPayout[]>(initialPayouts);
   const [openId, setOpenId] = useState<string | null>(null);
   const [payingId, setPayingId] = useState<string | null>(null);
+  const accounts = usePayoutAccounts();
+  const now = useNowMs();
 
   const thisMonth = platformRevenue[platformRevenue.length - 1];
   const lastMonth = platformRevenue[platformRevenue.length - 2];
@@ -53,7 +59,15 @@ export default function AdminFinancePage() {
   const pending = payouts.filter((p) => p.status === "pending");
   const pendingNet = pending.reduce((s, p) => s + p.gross - commissionOf(p.gross), 0);
 
+  // The payout goes to the mentor's *current* account (after any approved change).
+  const shebaOf = (p: MentorPayout) => (accounts[p.mentorId] ? maskIban(accounts[p.mentorId].sheba) : p.sheba);
+  const heldUntil = (p: MentorPayout) => {
+    const until = accounts[p.mentorId]?.holdUntilMs;
+    return until && now && now < until ? until : null;
+  };
+
   function markPaid(p: MentorPayout, bankRef: string) {
+    if (heldUntil(p)) return; // the 48h window after an IBAN change — never pay into a fresh account early
     setPayouts((ps) => ps.map((x) => (x.id === p.id ? { ...x, status: "paid", bankRef } : x)));
     setPayingId(null);
     logEvent({
@@ -67,7 +81,7 @@ export default function AdminFinancePage() {
           label: "مبلغ خالص",
           value: `${toPersianDigits((p.gross - commissionOf(p.gross)).toLocaleString("en-US"))} تومان`,
         },
-        { label: "شبا", value: p.sheba },
+        { label: "شبا", value: shebaOf(p) },
         { label: "کد پیگیری بانک", value: bankRef },
       ],
       href: "/admin/finance",
@@ -86,7 +100,7 @@ export default function AdminFinancePage() {
           String(p.gross),
           String(commissionOf(p.gross)),
           String(p.gross - commissionOf(p.gross)),
-          p.sheba,
+          shebaOf(p),
           p.status === "paid" ? "پرداخت‌شده" : "در انتظار",
           p.bankRef ?? "",
         ])
@@ -102,6 +116,8 @@ export default function AdminFinancePage() {
           <h1 className="text-xl font-bold text-text-900">داشبورد مالی</h1>
           <span className="text-sm text-text-500">— {thisMonth.monthLabel} ۱۴۰۵</span>
         </div>
+
+        <ShebaRequests />
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           <Kpi
@@ -236,8 +252,13 @@ export default function AdminFinancePage() {
                         ],
                         [
                           "شبا",
-                          <span key="sh" dir="ltr" className="font-mono text-xs">
-                            {p.sheba}
+                          <span key="sh">
+                            <span dir="ltr" className="font-mono text-xs">
+                              {shebaOf(p)}
+                            </span>
+                            {accounts[p.mentorId] && (
+                              <span className="text-xs text-text-500"> · {bankOf(accounts[p.mentorId].sheba)}</span>
+                            )}
                           </span>,
                         ],
                         ["کد پیگیری بانک", p.bankRef ?? "—"],
@@ -255,9 +276,19 @@ export default function AdminFinancePage() {
                         />
                       ) : (
                         <Allowed perm="payout.mark">
-                          <Button size="md" onClick={() => setPayingId(p.id)}>
-                            <Check size={15} /> پرداخت شد
-                          </Button>
+                          {heldUntil(p) ? (
+                            <p className="flex items-start gap-1.5 rounded-x-md bg-orange-500/10 p-3 text-xs leading-[1.8] text-text-700">
+                              <Lock size={13} className="mt-0.5 shrink-0 text-orange-500" />
+                              شبای این مشاور تازه عوض شده. برای امنیت، تسویه به حساب جدید تا{" "}
+                              {toPersianDigits(Math.ceil((heldUntil(p)! - now) / 3_600_000))} ساعت دیگه (ساعت{" "}
+                              {clockOf(heldUntil(p)!)}) انجام نمی‌شه — دوره‌ی {toPersianDigits(SHEBA_HOLD_HOURS)} ساعته
+                              بعد از تأیید تغییر شبا.
+                            </p>
+                          ) : (
+                            <Button size="md" onClick={() => setPayingId(p.id)}>
+                              <Check size={15} /> پرداخت شد
+                            </Button>
+                          )}
                         </Allowed>
                       ))}
                     <EntityActivity match={p.mentorName} />

@@ -29,7 +29,8 @@ export type Perm =
   | "logs.followup"
   | "staff.view"
   | "staff.manage"
-  | "viewas.request";
+  | "viewas.request"
+  | "sheba.decide";
 
 export const ROLE_META: Record<StaffRole, { label: string; short: string; desc: string }> = {
   super: { label: "مدیر کل", short: "مدیر کل", desc: "نقش‌ها و تنظیمات؛ همه‌ی بخش‌ها" },
@@ -61,6 +62,7 @@ const POLICY: Record<StaffRole, Perm[]> = {
     ...VIEW_ALL,
     "payout.mark",
     "refund.decide",
+    "sheba.decide",
     "discounts.manage",
     "mentors.approve",
     "quality.warn",
@@ -90,6 +92,7 @@ const POLICY: Record<StaffRole, Perm[]> = {
     "inbox.view",
     "finance.view",
     "payout.mark",
+    "sheba.decide",
     "payments.view",
     "refund.decide",
     "discounts.view",

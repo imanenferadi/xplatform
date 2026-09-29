@@ -1,5 +1,6 @@
 import { Wallet, CheckCircle2, Clock } from "lucide-react";
 import { MentorShell } from "@/components/app/MentorShell";
+import { PayoutAccountCard } from "@/components/app/PayoutAccountCard";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
@@ -85,6 +86,8 @@ export default function MentorEarningsPage() {
             </p>
           </CardContent>
         </Card>
+
+        <PayoutAccountCard mentorId={me.id} mentorName={me.name} />
 
         <Card className="mt-4">
           <CardContent>

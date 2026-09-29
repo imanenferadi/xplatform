@@ -10,6 +10,7 @@ import {
   FileText,
   ChevronLeft,
   GraduationCap,
+  Landmark,
   ListChecks,
   MessageCircle,
   Moon,
@@ -39,6 +40,8 @@ import { createLocalStore } from "@/lib/local-store";
 import { useMentorUnreadCounts } from "@/lib/chat-store";
 import { useAllKarnamehs } from "@/lib/karnameh-store";
 import { markNoteSeen, useSupervisorNotes } from "@/lib/supervisor-store";
+import { useMyShebaRequests } from "@/lib/payout-account-store";
+import { maskIban } from "@/lib/iban";
 import { cn, toPersianDigits } from "@/lib/utils";
 
 type Tone = "urgent" | "today" | "soon";
@@ -77,6 +80,7 @@ export function MentorToday() {
   const overrides = useOverrides();
   const karnamehs = useAllKarnamehs();
   const supervisorNotes = useSupervisorNotes();
+  const shebaDecisions = useMyShebaRequests(mentors[0].id);
   const nameOf = (id: string) => mentorStudents.find((s) => s.id === id)?.name ?? "";
 
   const tasks: Task[] = [];
@@ -89,6 +93,20 @@ export function MentorToday() {
       title: `${c.parentName} درخواست تماس داده`,
       detail: `${c.topic} · وقت پیشنهادی ${c.slot}`,
       inline: <PendingCall call={c} />,
+    });
+
+  for (const r of shebaDecisions.filter((x) => x.seenByMentor === false))
+    tasks.push({
+      key: `sh-${r.id}`,
+      tone: r.status === "approved" ? "today" : "urgent",
+      icon: Landmark,
+      title: r.status === "approved" ? "شبای جدیدت تأیید شد" : "درخواست تغییر شبا رد شد",
+      detail:
+        r.status === "approved"
+          ? `${maskIban(r.newSheba)} — اگه این تغییر کار تو نبوده، همین الان به پشتیبانی خبر بده`
+          : `«${r.decisionNote}»`,
+      href: "/mentor/earnings",
+      action: "دیدن",
     });
 
   for (const n of supervisorNotes.filter((x) => !x.seen))
