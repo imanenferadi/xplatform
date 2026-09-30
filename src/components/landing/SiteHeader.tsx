@@ -3,12 +3,12 @@ import { Logo } from "@/components/brand/Logo";
 import { buttonVariants } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
+// Absolute (/#…) so the header works from /mentors too.
 const links = [
-  { href: "#features", label: "امکانات" },
-  { href: "#demo", label: "دمو و پیش‌نمایش" },
-  { href: "#how", label: "چگونه کار می‌کند" },
-  { href: "#pricing", label: "تعرفه‌ها" },
-  { href: "/news", label: "اخبار" },
+  { href: "/#mentors", label: "مشاوران" },
+  { href: "/#how", label: "چطور کار می‌کنه" },
+  { href: "/#pricing", label: "تعرفه‌ها" },
+  { href: "/news", label: "اخبار کنکور" },
   { href: "/mentor/apply", label: "مشاور شو" },
 ];
 
@@ -38,17 +38,26 @@ export function SiteHeader() {
               >
                 {l.label}
               </a>
-            )
+            ),
           )}
         </nav>
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link href="/login" className={buttonVariants({ variant: "ghost", className: "hidden sm:inline-flex" })}>
+          <Link
+            href="/login"
+            className={buttonVariants({
+              variant: "ghost",
+              className: "hidden sm:inline-flex",
+            })}
+          >
             ورود
           </Link>
-          <Link href="/login" className={buttonVariants({ variant: "primary" })}>
-            تعیین سطح رایگان
+          <Link
+            href="/login"
+            className={buttonVariants({ variant: "primary" })}
+          >
+            ثبت‌نام رایگان
           </Link>
         </div>
       </div>

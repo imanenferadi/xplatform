@@ -49,7 +49,9 @@ export default function LoginPage() {
           {step === "phone" ? (
             <>
               <h1 className="text-xl font-bold text-text-900">خوش اومدی!</h1>
-              <p className="mt-1 text-sm text-text-500">برای ادامه، شماره موبایلت رو وارد کن.</p>
+              <p className="mt-1 text-sm text-text-500">
+                برای ادامه، شماره موبایلت رو وارد کن.
+              </p>
               <form onSubmit={submitPhone} className="mt-6 space-y-4">
                 <Input
                   label="شماره موبایل"
@@ -74,7 +76,9 @@ export default function LoginPage() {
           ) : (
             <>
               <h1 className="text-xl font-bold text-text-900">کد رو وارد کن</h1>
-              <p className="mt-1 text-sm text-text-500">کد ۴ رقمی به شماره {phone || "شما"} پیامک شد.</p>
+              <p className="mt-1 text-sm text-text-500">
+                کد ۴ رقمی به شماره {phone || "شما"} پیامک شد.
+              </p>
               <form onSubmit={submitOtp} className="mt-6 space-y-4">
                 <Input
                   label="کد تأیید"
@@ -114,36 +118,37 @@ export default function LoginPage() {
           را می‌پذیری.
         </p>
 
-        {/* Demo-only shortcuts — a real product would route these through
-            their own auth, not a link on this page. */}
         <p className="mt-3 text-center text-xs text-text-500">
-          والد هستی؟{" "}
-          <Link href="/parent" className="text-blue-600 hover:underline">
-            پنل والدین را ببین
-          </Link>
-        </p>
-        <p className="mt-1.5 text-center text-xs text-text-500">
           رتبه‌برتری و می‌خوای مشاور بشی؟{" "}
           <Link href="/mentor/apply" className="text-blue-600 hover:underline">
             ثبت‌نام مشاور
           </Link>
         </p>
-        <p className="mt-1.5 text-center text-xs text-text-500">
-          مدرسه یا آموزشگاهی؟{" "}
-          <Link href="/school" className="text-blue-600 hover:underline">
-            پنل آموزشگاه‌ها
-          </Link>
-        </p>
-        <p className="mt-1.5 text-center text-xs text-text-500">
-          تیم پلتفرم هستی؟{" "}
-          <Link href="/admin" className="text-blue-600 hover:underline">
-            پنل ادمین را ببین
-          </Link>
-          {" · "}
-          <Link href="/supervisor" className="text-blue-600 hover:underline">
-            سرپرست آموزشی
-          </Link>
-        </p>
+
+        {/* Demo-only shortcuts — a real product routes each role through its
+            own sign-in. Folded away so a visitor doesn't see admin links. */}
+        <details className="mt-6 rounded-x-md border border-border bg-surface px-3 py-2 text-xs text-text-500">
+          <summary className="cursor-pointer select-none text-center">
+            نسخه‌ی نمایشی: پنل‌های دیگه
+          </summary>
+          <div className="mt-2 flex flex-wrap justify-center gap-x-3 gap-y-1.5 pb-1">
+            <Link href="/parent" className="text-blue-600 hover:underline">
+              والدین
+            </Link>
+            <Link href="/mentor" className="text-blue-600 hover:underline">
+              مشاور
+            </Link>
+            <Link href="/school" className="text-blue-600 hover:underline">
+              آموزشگاه
+            </Link>
+            <Link href="/supervisor" className="text-blue-600 hover:underline">
+              سرپرست آموزشی
+            </Link>
+            <Link href="/admin" className="text-blue-600 hover:underline">
+              ادمین
+            </Link>
+          </div>
+        </details>
       </div>
     </div>
   );

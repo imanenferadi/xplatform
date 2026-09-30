@@ -11,6 +11,7 @@ import {
   Hourglass,
   ClipboardCheck,
   Repeat,
+  Sparkles,
 } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { buttonVariants } from "@/components/ui/Button";
@@ -40,6 +41,7 @@ import { aggregateWeek, formatStudyTime } from "@/lib/checkins";
 import { useUnread } from "@/lib/chat-store";
 import { useDueMistakes } from "@/lib/mistakes-store";
 import { useProfile } from "@/lib/profile-store";
+import { usePlacementDone } from "@/lib/placement-store";
 import { setupSteps, useMySetup } from "@/lib/setup-store";
 import { useMyCheckIns } from "@/lib/checkin-store";
 import { useReportFeedback } from "@/lib/feedback-store";
@@ -69,6 +71,7 @@ export default function DashboardPage() {
   const feedbackMap = useReportFeedback();
   const lastWithFeedback = byRecency(checkIns).find((c) => feedbackMap[c.id]);
   const feedback = lastWithFeedback ? feedbackMap[lastWithFeedback.id] : null;
+  const placementDone = usePlacementDone();
   const todoCount = tasks.filter((t) => !t.done).length;
 
   return (
@@ -263,11 +266,7 @@ export default function DashboardPage() {
             <ul className="divide-y divide-border/60">
               {feedback && lastWithFeedback && (
                 <Row
-                  href={
-                    feedback.reaction === "lets_talk"
-                      ? "/chat"
-                      : undefined
-                  }
+                  href={feedback.reaction === "lets_talk" ? "/chat" : undefined}
                   icon={
                     <span className="text-lg leading-none">
                       {REPORT_REACTIONS[feedback.reaction].emoji}
@@ -323,6 +322,14 @@ export default function DashboardPage() {
                 title="گزارش کار امشب"
                 sub={`یک دقیقه — برای ${mentor.name}`}
               />
+              {!placementDone && (
+                <Row
+                  href="/placement"
+                  icon={<Sparkles size={16} className="text-blue-600" />}
+                  title="تعیین سطح (اختیاری)"
+                  sub={`چند دقیقه — نیمرخ سطحت برای ${mentor.name} ارسال می‌شه`}
+                />
+              )}
             </ul>
           </CardContent>
         </Card>

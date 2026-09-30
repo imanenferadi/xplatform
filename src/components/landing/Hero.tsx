@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { ArrowLeft, BadgeCheck, Star } from "lucide-react";
 import { buttonVariants } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { GUARANTEE_DAYS } from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
+import { spotlightMentors } from "./mentor-ranking";
 
 export function Hero() {
   return (
@@ -15,91 +17,88 @@ export function Hero() {
       <div className="relative mx-auto grid max-w-[1200px] gap-10 px-4 py-16 md:grid-cols-[1.1fr_0.9fr] md:items-center md:px-8 md:py-24">
         <div>
           <Badge tone="brand" className="mb-5">
-            <Sparkles size={14} /> تعیین سطح + مشاور رتبه‌برتر + ابزار هوشمند
+            <BadgeCheck size={14} /> مشاورهای رتبه‌برتر کنکور، با رتبه‌ی
+            احرازشده
           </Badge>
 
           <h1 className="text-[32px] font-extrabold leading-[1.25] text-text-900 md:text-[44px]">
-            اول بفهم کجایی،
+            مشاورت رو خودت انتخاب کن،
             <br />
-            بعد برس به کسی که این مسیر رو رفته.
+            از بین رتبه‌برترهای کنکور.
           </h1>
 
           <p className="mt-5 max-w-xl text-lg leading-[1.75] text-text-700">
-            یک تعیین‌سطح هوشمند، نیمرخ واقعی تو را می‌سازد و از بین مشاورهای
-            تأییدشده، آدم‌هایی را پیشنهاد می‌دهد که مسیرشان به تو نزدیک‌تر است.
+            رتبه، دانشگاه، سبک مشاوره و ظرفیت خالی هر مشاور رو ببین. یه جلسه‌ی
+            آشنایی رایگان بگیر، بعد تصمیم بگیر. مشاورت هر هفته برنامه‌ت رو خودش
+            می‌نویسه.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link href="/login" className={buttonVariants({ size: "lg" })}>
-              تعیین سطح رایگان
+            <a href="#mentors" className={buttonVariants({ size: "lg" })}>
+              مشاورها رو ببین
               <ArrowLeft size={18} />
-            </Link>
-            <Link href="/matching" className={buttonVariants({ size: "lg", variant: "secondary" })}>
-              مشاورها را ببین
+            </a>
+            <Link
+              href="/login"
+              className={buttonVariants({ size: "lg", variant: "secondary" })}
+            >
+              ثبت‌نام رایگان
             </Link>
           </div>
 
           <p className="mt-4 text-sm text-text-500">
-            بدون کارت بانکی · فقط با شماره موبایل · ۳۰ تا ۴۵ دقیقه
+            بدون کارت بانکی · جلسه‌ی آشنایی رایگان · ضمانت{" "}
+            {toPersianDigits(GUARANTEE_DAYS)} روزه‌ی بازگشت وجه
           </p>
         </div>
 
-        <HeroLevelProfileCard />
+        <HeroMentorStack />
       </div>
     </section>
   );
 }
 
-/**
- * A compact live-looking preview of the placement result — the product's
- * visual flagship (design doc §12, T-06). Shown here at reduced fidelity
- * as a hero teaser; the full page lives at /placement/result.
- */
-function HeroLevelProfileCard() {
-  const subjects = [
-    { name: "ریاضی", value: 85 },
-    { name: "فیزیک", value: 72 },
-    { name: "شیمی", value: 48 },
-    { name: "زیست", value: 66 },
-  ];
-
+/** Three real mentors, best rank first — the product in one glance. */
+function HeroMentorStack() {
+  const top = spotlightMentors(3);
   return (
-    <div className="relative mx-auto w-full max-w-sm rotate-1 rounded-x-xl border border-border bg-surface p-6 shadow-x-lg md:rotate-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-text-500">نیمرخ سطح تو</span>
-        <Badge tone="info">در حال شکل‌گیری</Badge>
+    <div className="relative mx-auto w-full max-w-sm rotate-1 rounded-x-xl border border-border bg-surface p-5 shadow-x-lg md:rotate-2">
+      <div className="mb-3 text-sm font-medium text-text-500">
+        چند نفر از مشاورهای X
       </div>
-
-      <div className="mt-4 flex items-center gap-4">
-        <div className="tnum text-5xl font-extrabold text-text-900">۷۸</div>
-        <div className="text-sm text-text-500">
-          از ۱۰۰
-          <br />
-          بازه رتبه: ۸,۰۰۰ تا ۱۵,۰۰۰
-        </div>
-      </div>
-
-      <div className="mt-5 space-y-3">
-        {subjects.map((s) => (
-          <div key={s.name}>
-            <div className="mb-1 flex items-center justify-between text-xs">
-              <span className="text-text-700">{s.name}</span>
-              <span className="tnum text-text-500">{toPersianDigits(s.value)}٪</span>
+      <ul className="space-y-2.5">
+        {top.map((m) => (
+          <li
+            key={m.id}
+            className="flex items-center gap-3 rounded-x-md bg-surface-2 p-3"
+          >
+            <div
+              aria-hidden
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-text-900"
+            >
+              {m.name.slice(0, 1)}
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-x-pill bg-surface-2">
-              <div
-                className="h-full rounded-x-pill bg-blue-600"
-                style={{ width: `${s.value}%` }}
-              />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1 text-sm font-bold text-text-900">
+                {m.name}
+                <BadgeCheck
+                  size={13}
+                  className="shrink-0 text-blue-600"
+                  aria-label="رتبه احراز شده"
+                />
+              </div>
+              <div className="truncate text-xs text-text-500">{m.school}</div>
             </div>
-          </div>
+            <div className="text-left">
+              <Badge tone="brand">{m.rank}</Badge>
+              <div className="mt-1 flex items-center justify-end gap-0.5 text-xs text-text-500">
+                <Star size={11} className="fill-yellow-400 text-yellow-400" />
+                <span className="tnum">{toPersianDigits(m.rating)}</span>
+              </div>
+            </div>
+          </li>
         ))}
-      </div>
-
-      <div className="mt-5 flex items-center gap-2 rounded-x-md bg-blue-100 p-3 text-xs text-text-900">
-        <Sparkles size={14} className="shrink-0" />
-        شیمی نقطه‌ضعف توئه — بر همین اساس ۳ مشاور پیشنهاد دادیم.
-      </div>
+      </ul>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { Sparkles, Pause, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StepProgress } from "@/components/app/StepProgress";
 import { placementQuestions } from "@/lib/mock-data";
+import { markPlacementDone } from "@/lib/placement-store";
 import { cn, toPersianDigits } from "@/lib/utils";
 
 type Phase = "intro" | "question" | "paused" | "analyzing";
@@ -27,6 +28,7 @@ export default function PlacementPage() {
       setSelected(null);
       if (qIndex + 1 >= total) {
         setPhase("analyzing");
+        markPlacementDone();
         setTimeout(() => router.push("/placement/result"), 2600);
       } else {
         setQIndex((i) => i + 1);
@@ -42,23 +44,37 @@ export default function PlacementPage() {
             <Sparkles size={28} className="text-blue-600" />
           </div>
           <h1 className="text-2xl font-bold text-text-900">
-            ۳۰ دقیقه وقت بذار، دقیق‌تر بفهم کجایی.
+            چند دقیقه وقت بذار، دقیق‌تر بفهم کجایی.
           </h1>
           <p className="mt-3 text-text-500">
-            بر اساس انتخاب‌های قبلی‌ات (تجربی، دوازدهم) سؤال‌ها رو آماده کردیم.
+            اختیاریه — ولی مشاورت با نتیجه‌ش نقطه‌های ضعفت رو دقیق‌تر می‌بینه.
           </p>
 
           <div className="mt-8 grid grid-cols-3 gap-3 text-sm">
-            <InfoTile label="زمان" value="۳۰–۴۵ دقیقه" />
-            <InfoTile label="تعداد سؤال" value={`${toPersianDigits(total)} سؤال`} />
+            <InfoTile label="زمان" value="چند دقیقه" />
+            <InfoTile
+              label="تعداد سؤال"
+              value={`${toPersianDigits(total)} سؤال`}
+            />
             <InfoTile label="قابل توقف" value="بله" />
           </div>
 
-          <Button size="lg" className="mt-8 w-full" onClick={() => setPhase("question")}>
+          <Button
+            size="lg"
+            className="mt-8 w-full"
+            onClick={() => setPhase("question")}
+          >
             شروع تعیین سطح
           </Button>
           <p className="mt-4 text-xs text-text-500">
-            نتیجه فوری است و همیشه رایگان می‌ماند.
+            نتیجه فوریه و همیشه رایگانه.{" "}
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              className="text-blue-600 hover:underline"
+            >
+              فعلاً نه
+            </button>
           </p>
         </div>
       </div>
@@ -70,13 +86,18 @@ export default function PlacementPage() {
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
         <div className="max-w-sm">
           <h1 className="text-xl font-bold text-text-900">
-            {total - qIndex} سؤال مونده. می‌تونی همین‌جا ذخیره کنی و بعداً برگردی.
+            {total - qIndex} سؤال مونده. می‌تونی همین‌جا ذخیره کنی و بعداً
+            برگردی.
           </h1>
           <div className="mt-6 flex flex-col gap-3">
             <Button size="lg" onClick={() => setPhase("question")}>
               ادامه بده
             </Button>
-            <Button size="lg" variant="secondary" onClick={() => router.push("/dashboard")}>
+            <Button
+              size="lg"
+              variant="secondary"
+              onClick={() => router.push("/dashboard")}
+            >
               بعداً ادامه می‌دم
             </Button>
           </div>
@@ -92,8 +113,12 @@ export default function PlacementPage() {
           aria-hidden
           className="mb-6 h-14 w-14 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"
         />
-        <h1 className="text-lg font-bold text-text-900">در حال ساختن نیمرخ سطح تو...</h1>
-        <p className="mt-2 text-sm text-text-500">چند ثانیه بیشتر طول نمی‌کشه</p>
+        <h1 className="text-lg font-bold text-text-900">
+          در حال ساختن نیمرخ سطح تو...
+        </h1>
+        <p className="mt-2 text-sm text-text-500">
+          چند ثانیه بیشتر طول نمی‌کشه
+        </p>
       </div>
     );
   }
@@ -136,7 +161,7 @@ export default function PlacementPage() {
                 "w-full rounded-x-lg border-2 px-5 py-4 text-right text-base font-medium transition-colors",
                 selected === i
                   ? "border-blue-600 bg-blue-100 text-text-900"
-                  : "border-border bg-surface text-text-700 hover:border-blue-300"
+                  : "border-border bg-surface text-text-700 hover:border-blue-300",
               )}
             >
               {opt}

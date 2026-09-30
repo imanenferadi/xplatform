@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { SiteHeader } from "@/components/landing/SiteHeader";
 import { BadgeCheck, Star, Scale } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/Card";
@@ -13,13 +14,28 @@ import { useApprovedMentors } from "@/lib/mentor-applications-store";
 import { useCapacityOverrides } from "@/lib/capacity-store";
 import { cn, toPersianDigits } from "@/lib/utils";
 
-const GROUPS: ExamGroup[] = ["تجربی", "ریاضی", "انسانی"];
+const GROUPS: ExamGroup[] = ["تجربی", "ریاضی"];
 const MIN_RATINGS = [0, 4.5, 4.8];
 const MAX_COMPARE = 2;
 
-export default function MentorsListPage() {
+// Opened from onboarding with ?group=تجربی|ریاضی.
+export default function MentorsListPageRoute() {
+  return (
+    <>
+      <SiteHeader />
+      <Suspense>
+        <MentorsListPage />
+      </Suspense>
+    </>
+  );
+}
+
+function MentorsListPage() {
   const router = useRouter();
-  const [group, setGroup] = useState<ExamGroup | "همه">("همه");
+  const initial = useSearchParams().get("group");
+  const [group, setGroup] = useState<ExamGroup | "همه">(
+    GROUPS.includes(initial as ExamGroup) ? (initial as ExamGroup) : "همه",
+  );
   const [minRating, setMinRating] = useState(0);
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
@@ -41,8 +57,12 @@ export default function MentorsListPage() {
   const approved = useApprovedMentors();
   const remainingSeats = useCapacityOverrides();
   const allMentors = useMemo(
-    () => [...mentors, ...approved].map((m) => ({ ...m, capacity: remainingSeats(m) })),
-    [approved, remainingSeats]
+    () =>
+      [...mentors, ...approved].map((m) => ({
+        ...m,
+        capacity: remainingSeats(m),
+      })),
+    [approved, remainingSeats],
   );
 
   const filtered = useMemo(
@@ -53,7 +73,7 @@ export default function MentorsListPage() {
         if (onlyAvailable && m.capacity === 0) return false;
         return true;
       }),
-    [allMentors, group, minRating, onlyAvailable]
+    [allMentors, group, minRating, onlyAvailable],
   );
 
   return (
@@ -61,16 +81,23 @@ export default function MentorsListPage() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
           <div>
-            <h1 className="text-2xl font-bold text-text-900 md:text-[32px]">همه‌ی مشاوران</h1>
-            <p className="mt-2 text-text-500">فهرست کامل — برای پیشنهاد شخصی‌سازی‌شده به تعیین سطح برو.</p>
+            <h1 className="text-2xl font-bold text-text-900 md:text-[32px]">
+              مشاوران رتبه‌برتر
+            </h1>
+            <p className="mt-2 text-text-500">
+              رتبه، دانشگاه، سبک و ظرفیت هر مشاور رو ببین — جلسه‌ی آشنایی ۲۰
+              دقیقه‌ای رایگانه.
+            </p>
           </div>
           <button
-            onClick={() => (compareMode ? exitCompareMode() : setCompareMode(true))}
+            onClick={() =>
+              compareMode ? exitCompareMode() : setCompareMode(true)
+            }
             className={cn(
               "flex items-center gap-1.5 rounded-x-pill border px-3.5 py-1.5 text-xs font-medium transition-colors",
               compareMode
                 ? "border-blue-600 bg-blue-100 text-text-900"
-                : "border-border bg-surface text-text-700"
+                : "border-border bg-surface text-text-700",
             )}
           >
             <Scale size={14} />
@@ -89,7 +116,7 @@ export default function MentorsListPage() {
                   "rounded-x-pill border px-3.5 py-1.5 text-xs font-medium transition-colors",
                   group === g
                     ? "border-blue-600 bg-blue-100 text-text-900"
-                    : "border-border bg-surface text-text-700"
+                    : "border-border bg-surface text-text-700",
                 )}
               >
                 {g}
@@ -106,7 +133,7 @@ export default function MentorsListPage() {
                   "tnum rounded-x-pill border px-3.5 py-1.5 text-xs font-medium transition-colors",
                   minRating === r
                     ? "border-blue-600 bg-blue-100 text-text-900"
-                    : "border-border bg-surface text-text-700"
+                    : "border-border bg-surface text-text-700",
                 )}
               >
                 {r === 0 ? "همه‌ی امتیازها" : `${toPersianDigits(r)}+`}
@@ -120,7 +147,7 @@ export default function MentorsListPage() {
               "rounded-x-pill border px-3.5 py-1.5 text-xs font-medium transition-colors",
               onlyAvailable
                 ? "border-blue-600 bg-blue-100 text-text-900"
-                : "border-border bg-surface text-text-700"
+                : "border-border bg-surface text-text-700",
             )}
           >
             فقط با ظرفیت خالی
@@ -128,7 +155,9 @@ export default function MentorsListPage() {
         </div>
 
         {filtered.length === 0 ? (
-          <p className="py-16 text-center text-sm text-text-500">با این فیلترها مشاوری پیدا نشد.</p>
+          <p className="py-16 text-center text-sm text-text-500">
+            با این فیلترها مشاوری پیدا نشد.
+          </p>
         ) : (
           <div className="grid gap-5 md:grid-cols-3">
             {filtered.map((m) => {
@@ -136,21 +165,32 @@ export default function MentorsListPage() {
               return (
                 <Card
                   key={m.id}
-                  className={cn("flex flex-col", compareMode && isSelected && "border-blue-600 ring-2 ring-blue-600/20")}
+                  className={cn(
+                    "flex flex-col",
+                    compareMode &&
+                      isSelected &&
+                      "border-blue-600 ring-2 ring-blue-600/20",
+                  )}
                 >
                   <CardContent className="flex flex-1 flex-col">
                     <div className="flex items-center gap-3">
                       {compareMode && (
                         <button
                           onClick={() => toggleSelect(m.id)}
-                          disabled={!isSelected && selected.length >= MAX_COMPARE}
+                          disabled={
+                            !isSelected && selected.length >= MAX_COMPARE
+                          }
                           className={cn(
                             "flex h-5 w-5 shrink-0 items-center justify-center rounded-x-sm border-2 transition-colors disabled:opacity-30",
-                            isSelected ? "border-blue-600 bg-blue-600" : "border-border"
+                            isSelected
+                              ? "border-blue-600 bg-blue-600"
+                              : "border-border",
                           )}
                           aria-label={`انتخاب ${m.name} برای مقایسه`}
                         >
-                          {isSelected && <span className="h-2 w-2 rounded-x-sm bg-white" />}
+                          {isSelected && (
+                            <span className="h-2 w-2 rounded-x-sm bg-white" />
+                          )}
                         </button>
                       )}
                       <Avatar name={m.name} size="lg" />
@@ -158,7 +198,11 @@ export default function MentorsListPage() {
                         <div className="flex items-center gap-1 font-bold text-text-900">
                           {m.name}
                           {m.verified && (
-                            <BadgeCheck size={15} className="text-blue-600" aria-label="مشاور تأییدشده" />
+                            <BadgeCheck
+                              size={15}
+                              className="text-blue-600"
+                              aria-label="مشاور تأییدشده"
+                            />
                           )}
                         </div>
                         <div className="text-xs text-text-500">
@@ -178,8 +222,14 @@ export default function MentorsListPage() {
                         <Badge tone="success">مشاور تازه‌وارد</Badge>
                       ) : (
                         <span className="flex items-center gap-1">
-                          <Star size={13} className="fill-yellow-400 text-yellow-400" />
-                          <span className="tnum">{toPersianDigits(m.rating)}</span> ({toPersianDigits(m.reviewCount)} نظر)
+                          <Star
+                            size={13}
+                            className="fill-yellow-400 text-yellow-400"
+                          />
+                          <span className="tnum">
+                            {toPersianDigits(m.rating)}
+                          </span>{" "}
+                          ({toPersianDigits(m.reviewCount)} نظر)
                         </span>
                       )}
                       <span>
@@ -187,14 +237,23 @@ export default function MentorsListPage() {
                           "ظرفیت تکمیل"
                         ) : (
                           <>
-                            <span className="tnum">{toPersianDigits(m.capacity)}</span> ظرفیت باقی‌مانده
+                            <span className="tnum">
+                              {toPersianDigits(m.capacity)}
+                            </span>{" "}
+                            ظرفیت باقی‌مانده
                           </>
                         )}
                       </span>
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Link href={`/mentors/${m.id}`} className={buttonVariants({ size: "md", className: "w-full" })}>
+                    <Link
+                      href={`/mentors/${m.id}`}
+                      className={buttonVariants({
+                        size: "md",
+                        className: "w-full",
+                      })}
+                    >
                       مشاهده پروفایل
                     </Link>
                   </CardFooter>
@@ -209,9 +268,18 @@ export default function MentorsListPage() {
         <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
           <div className="flex items-center gap-3 rounded-x-lg border border-border bg-surface px-4 py-3 shadow-x-md">
             <span className="text-sm text-text-700">
-              {selected.map((id) => allMentors.find((m) => m.id === id)?.name).join(" و ")}
+              {selected
+                .map((id) => allMentors.find((m) => m.id === id)?.name)
+                .join(" و ")}
             </span>
-            <Button size="md" onClick={() => router.push(`/mentors/compare?a=${selected[0]}&b=${selected[1]}`)}>
+            <Button
+              size="md"
+              onClick={() =>
+                router.push(
+                  `/mentors/compare?a=${selected[0]}&b=${selected[1]}`,
+                )
+              }
+            >
               مقایسه کن
             </Button>
           </div>

@@ -55,7 +55,7 @@ export const mentors: Mentor[] = [
     capacity: 3,
     capacityTotal: 15,
     rating: 4.9,
-    reviewCount: 33,
+    reviewCount: 41,
     story:
       "سال دهم شیمی برام مثل یه زبون خارجی بود. با تجزیه‌کردن مسئله‌ها به قدم‌های خیلی کوچیک، از رتبه‌ی متوسط رسیدم به ۴۴۰. حالا می‌خوام همون مسیر رو با کسی که جای من بود، دوباره برم.",
     strengths: [
@@ -77,7 +77,7 @@ export const mentors: Mentor[] = [
     capacity: 5,
     capacityTotal: 12,
     rating: 4.9,
-    reviewCount: 33,
+    reviewCount: 27,
     story:
       "همیشه سریع تست می‌زدم ولی نامطمئن. با تحلیل زمان‌بندی خودم فهمیدم کجا سرعتم به دقتم ضربه می‌زنه. حالا همین روش تحلیلی رو با دانش‌آموزام کار می‌کنم.",
     strengths: [
@@ -99,7 +99,7 @@ export const mentors: Mentor[] = [
     capacity: 2,
     capacityTotal: 10,
     rating: 4.2,
-    reviewCount: 33,
+    reviewCount: 18,
     story:
       "تا یازدهم رتبه‌ام امیدوارکننده نبود. یک جهش واقعی در دوازدهم زدم، فقط با تغییر برنامه و انگیزه. می‌دونم افت انگیزه توی این مسیر یعنی چی.",
     strengths: [
@@ -1055,7 +1055,7 @@ export const pricingPlans = [
     name: "رایگان",
     price: 0,
     period: "",
-    features: ["تعیین سطح کامل", "نیمرخ سطح", "مشاهده‌ی ۳ مشاور پیشنهادی"],
+    features: ["دیدن همه‌ی مشاورها و پروفایلشون", "جلسه‌ی آشنایی ۲۰ دقیقه‌ای", "تعیین سطح (اختیاری)"],
   },
   {
     id: "basic",
