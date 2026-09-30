@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Lock, Pencil, Smartphone, Users as UsersIcon } from "lucide-react";
+import {
+  AlertTriangle,
+  Lock,
+  Pencil,
+  Smartphone,
+  Users as UsersIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { toast } from "@/components/ui/Toaster";
 import { mentors } from "@/lib/mock-data";
@@ -33,21 +39,29 @@ type Editing = "name" | "city" | "academic" | "phone" | "parent" | null;
 // «ویرایش اطلاعات»: each field on its own, reason required, logged
 // before/after, and the account owner is told. Phone needs a code sent to
 // the new number; a parent link waits for the student's approval.
-export function UserEditPanel({ user, users }: { user: EditableUser; users: EditableUser[] }) {
+export function UserEditPanel({
+  user,
+  users,
+}: {
+  user: EditableUser;
+  users: EditableUser[];
+}) {
   const allowed = useCan();
   const [editing, setEditing] = useState<Editing>(null);
   const parent = useParentLink(user.id);
   const isStudent = user.role === "دانش‌آموز";
-  const anyEdit = allowed("users.edit") || allowed("users.editPhone") || allowed("users.editAcademic");
+  const anyEdit =
+    allowed("users.edit") ||
+    allowed("users.editPhone") ||
+    allowed("users.editAcademic");
 
-  if (!anyEdit)
-    return (
-      <p className="flex items-center gap-1 text-xs text-text-500">
-        <Lock size={12} /> ویرایش اطلاعات فقط با نقش {rolesWith("users.edit")}.
-      </p>
-    );
-
-  const row = (key: Exclude<Editing, null>, label: string, value: React.ReactNode, perm: Perm, lockedWhy?: string) => (
+  const row = (
+    key: Exclude<Editing, null>,
+    label: string,
+    value: React.ReactNode,
+    perm: Perm,
+    lockedWhy?: string,
+  ) => (
     <div className="flex items-center gap-2 py-1.5">
       <span className="w-24 shrink-0 text-text-500">{label}</span>
       <span className="min-w-0 flex-1 text-text-900">{value}</span>
@@ -79,17 +93,26 @@ export function UserEditPanel({ user, users }: { user: EditableUser; users: Edit
 
   return (
     <div className="rounded-x-md border border-border p-3 text-xs">
-      <div className="mb-1 flex items-center gap-1.5 font-bold text-text-900">
-        <Pencil size={13} /> ویرایش اطلاعات
-      </div>
-      <p className="mb-2 text-text-500">هر تغییر دلیل می‌خواد، در لاگ ثبت می‌شه و به صاحب حساب خبر داده می‌شه.</p>
+      <div className="mb-1 font-bold text-text-900">اطلاعات فردی</div>
+      <p className="mb-2 text-text-500">
+        {anyEdit ? (
+          "برای تغییر، مداد رو بزن — دلیل می‌خواد، در لاگ ثبت می‌شه و به صاحب حساب خبر داده می‌شه."
+        ) : (
+          <span className="flex items-center gap-1">
+            <Lock size={11} /> فقط مشاهده — ویرایش با نقش{" "}
+            {rolesWith("users.edit")}.
+          </span>
+        )}
+      </p>
 
       {row(
         "name",
         "نام",
         user.name,
         "users.edit",
-        user.role === "مشاور" ? "اسم مشاور از پروفایل عمومی میاد؛ خودش از «پروفایل من» عوضش می‌کنه." : undefined
+        user.role === "مشاور"
+          ? "اسم مشاور از پروفایل عمومی میاد؛ خودش از «پروفایل من» عوضش می‌کنه."
+          : undefined,
       )}
       {editing === "name" && (
         <TextEdit
@@ -110,9 +133,19 @@ export function UserEditPanel({ user, users }: { user: EditableUser; users: Edit
         />
       )}
 
-      {isStudent && row("academic", "پایه و رشته", `${user.grade} — ${user.group}`, "users.editAcademic")}
+      {isStudent &&
+        row(
+          "academic",
+          "پایه و رشته",
+          `${user.grade} — ${user.group}`,
+          "users.editAcademic",
+        )}
       {isStudent && editing === "academic" && (
-        <AcademicEdit user={user} onDone={() => done("پایه و رشته ذخیره شد")} onCancel={() => setEditing(null)} />
+        <AcademicEdit
+          user={user}
+          onDone={() => done("پایه و رشته ذخیره شد")}
+          onCancel={() => setEditing(null)}
+        />
       )}
 
       {row(
@@ -121,7 +154,7 @@ export function UserEditPanel({ user, users }: { user: EditableUser; users: Edit
         <span dir="ltr" className="tnum">
           {user.phone}
         </span>,
-        "users.editPhone"
+        "users.editPhone",
       )}
       {editing === "phone" && (
         <PhoneEdit
@@ -139,24 +172,41 @@ export function UserEditPanel({ user, users }: { user: EditableUser; users: Edit
           parent ? (
             <>
               {parent.parentName} <span dir="ltr">{parent.parentPhone}</span>
-              <span className={cn(parent.status === "pending" ? "text-orange-500" : "text-mint-500")}>
+              <span
+                className={cn(
+                  parent.status === "pending"
+                    ? "text-orange-500"
+                    : "text-mint-500",
+                )}
+              >
                 {" "}
-                · {parent.status === "pending" ? "منتظر تأیید دانش‌آموز" : "وصل"}
+                ·{" "}
+                {parent.status === "pending" ? "منتظر تأیید دانش‌آموز" : "وصل"}
               </span>
             </>
           ) : (
             <span className="text-text-500">وصل نیست</span>
           ),
-          "users.edit"
+          "users.edit",
         )}
       {isStudent && editing === "parent" && (
-        <ParentEdit user={user} onDone={(m) => done(m)} onCancel={() => setEditing(null)} />
+        <ParentEdit
+          user={user}
+          onDone={(m) => done(m)}
+          onCancel={() => setEditing(null)}
+        />
       )}
     </div>
   );
 }
 
-function Reason({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function Reason({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <input
       value={value}
@@ -234,7 +284,15 @@ function TextEdit({
   );
 }
 
-function AcademicEdit({ user, onDone, onCancel }: { user: EditableUser; onDone: () => void; onCancel: () => void }) {
+function AcademicEdit({
+  user,
+  onDone,
+  onCancel,
+}: {
+  user: EditableUser;
+  onDone: () => void;
+  onCancel: () => void;
+}) {
   const [grade, setGrade] = useState(user.grade ?? "");
   const [group, setGroup] = useState<string>(user.group ?? "");
   const [reason, setReason] = useState("");
@@ -243,7 +301,8 @@ function AcademicEdit({ user, onDone, onCancel }: { user: EditableUser; onDone: 
   const mismatch = mentor && group && mentor.group !== group;
 
   function save() {
-    if (grade === user.grade && group === user.group) return setError("چیزی عوض نشده.");
+    if (grade === user.grade && group === user.group)
+      return setError("چیزی عوض نشده.");
     for (const [field, v] of [
       ["grade", grade],
       ["group", group],
@@ -282,8 +341,12 @@ function AcademicEdit({ user, onDone, onCancel }: { user: EditableUser; onDone: 
       {mismatch && (
         <p className="flex items-start gap-1 text-orange-500">
           <AlertTriangle size={13} className="mt-0.5 shrink-0" />
-          مشاور فعلی ({mentor.name} — {mentor.group}) با رشته‌ی {group} جور نیست. بعد از ذخیره،{" "}
-          <Link href={`/admin/reassign?student=${user.id}`} className="underline">
+          مشاور فعلی ({mentor.name} — {mentor.group}) با رشته‌ی {group} جور
+          نیست. بعد از ذخیره،{" "}
+          <Link
+            href={`/admin/reassign?student=${user.id}`}
+            className="underline"
+          >
             مشاورش رو عوض کن
           </Link>
           .
@@ -318,7 +381,10 @@ function PhoneEdit({
       <div className="mb-2 space-y-2 rounded-x-sm bg-surface-2 p-2.5">
         <input
           value={phone}
-          onChange={(e) => (setPhone(e.target.value.slice(0, 20)), setError(""))}
+          onChange={(e) => (
+            setPhone(e.target.value.slice(0, 20)),
+            setError("")
+          )}
           dir="ltr"
           inputMode="tel"
           placeholder="09xx xxx xxxx"
@@ -345,11 +411,14 @@ function PhoneEdit({
         <span dir="ltr" className="tnum">
           {formatMobile(pending.newPhone)}
         </span>{" "}
-        فرستاده شد ({toPersianDigits(PHONE_CODE_MINUTES)} دقیقه اعتبار). از کاربر بپرس.
+        فرستاده شد ({toPersianDigits(PHONE_CODE_MINUTES)} دقیقه اعتبار). از
+        کاربر بپرس.
       </p>
       <p className="rounded-x-sm border border-dashed border-border p-2 text-text-500">
         پیامک شبیه‌سازی‌شده (فقط در نسخه‌ی نمایشی دیده می‌شه): کد{" "}
-        <span className="tnum font-bold text-text-900">{toPersianDigits(pending.code)}</span>
+        <span className="tnum font-bold text-text-900">
+          {toPersianDigits(pending.code)}
+        </span>
       </p>
       <input
         value={code}
@@ -397,7 +466,8 @@ function ParentEdit({
     return (
       <div className="mb-2 space-y-2 rounded-x-sm bg-surface-2 p-2.5">
         <p className="text-text-700">
-          جدا کردن {link.parentName} از حساب {user.name} (فوری انجام می‌شه و به دانش‌آموز خبر داده می‌شه):
+          جدا کردن {link.parentName} از حساب {user.name} (فوری انجام می‌شه و به
+          دانش‌آموز خبر داده می‌شه):
         </p>
         <Reason value={reason} onChange={(v) => (setReason(v), setError(""))} />
         <Actions
@@ -416,7 +486,8 @@ function ParentEdit({
   if (link?.status === "pending")
     return (
       <p className="mb-2 rounded-x-sm bg-surface-2 p-2.5 text-text-700">
-        درخواست وصل شدن {link.parentName} منتظر تأیید خود {user.name}ه — تا تأیید نکنه، والد به چیزی دسترسی نداره.
+        درخواست وصل شدن {link.parentName} منتظر تأیید خود {user.name}ه — تا
+        تأیید نکنه، والد به چیزی دسترسی نداره.
       </p>
     );
 

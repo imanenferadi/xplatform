@@ -24,6 +24,7 @@ import { BillingApprovals } from "@/components/admin/BillingApprovals";
 import type { ApprovalKind } from "@/lib/billing-store";
 import { InvoiceControl } from "@/components/admin/InvoiceControl";
 import { SubscriptionsLedger } from "@/components/admin/SubscriptionsLedger";
+import { CaseTabs } from "@/components/app/CaseTabs";
 import {
   REFUND_REJECT_REASONS,
   transactions as initialTransactions,
@@ -203,248 +204,285 @@ function AdminPaymentsPage() {
         <div className="mb-1 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Receipt size={18} className="text-blue-600" />
-            <h1 className="text-xl font-bold text-text-900">
-              تراکنش‌ها و بازپرداخت
-            </h1>
+            <h1 className="text-xl font-bold text-text-900">تراکنش‌ها</h1>
           </div>
-          <ExportButton count={filtered.length} onExport={exportTx} />
         </div>
         <p className="mb-5 text-sm text-text-500">
           <span className="tnum">{toPersianDigits(pendingCount)}</span> درخواست
           بازپرداخت در انتظار بررسی
         </p>
 
-        {/* 7-day guarantee refunds: no questions asked, so approving is the
-            default — reject only for obvious abuse. */}
-        {sub && guaranteeRefund && (
-          <Card className="mb-5 border-mint-500/40">
-            <CardContent>
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-text-900">ایمان</span>
-                    <Badge tone="success">
-                      <RotateCcw size={11} /> ضمانت ۷ روزه
-                    </Badge>
-                  </div>
-                  <div className="mt-0.5 text-xs text-text-500">
-                    پلن {sub.planName} ({sub.durationLabel}) —{" "}
-                    <Toman amount={guaranteeRefund.amount} /> · امروز
-                  </div>
-                  {guaranteeRefund.reason && (
-                    <div className="mt-1 text-xs text-text-700">
-                      «{guaranteeRefund.reason}»
-                    </div>
-                  )}
-                </div>
-                {guaranteeRefund.status === "pending" ? (
-                  rejecting !== "guarantee" && (
-                    <Allowed perm="refund.decide">
-                      <div className="flex shrink-0 gap-2">
-                        <Button
-                          size="md"
-                          variant="secondary"
-                          onClick={() => setRejecting("guarantee")}
-                        >
-                          <X size={15} /> رد
-                        </Button>
-                        <Button
-                          size="md"
-                          onClick={() => decideGuarantee("approved")}
-                        >
-                          <Check size={15} /> برگشت وجه
-                        </Button>
-                      </div>
-                    </Allowed>
-                  )
-                ) : (
-                  <Badge tone={statusMeta[guaranteeRefund.status].tone}>
-                    {statusMeta[guaranteeRefund.status].label}
-                  </Badge>
-                )}
-              </div>
-              {rejecting === "guarantee" && (
-                <div className="mt-3">
-                  <ReasonPrompt
-                    title="رد ضمانت — فقط برای سوءاستفاده‌ی آشکار"
-                    reasons={REFUND_REJECT_REASONS}
-                    confirmLabel="رد درخواست"
-                    onConfirm={(reason, note) =>
-                      decideGuarantee(
-                        "rejected",
-                        note ? `${reason} — ${note}` : reason,
-                      )
-                    }
-                    onCancel={() => setRejecting(null)}
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
         <BillingApprovals kinds={APPROVAL_KINDS} />
-        <SubscriptionsLedger />
 
-        <SearchBox
-          value={query}
-          onChange={setQuery}
-          placeholder="جستجو با نام، پلن، کد تراکنش یا مرجع درگاه..."
-        />
-        <div className="mb-4 mt-3 flex flex-wrap items-center gap-2">
-          <FilterSelect
-            label="نوع"
-            value={type}
-            onChange={setType}
-            options={[
-              { value: "purchase", label: "خرید" },
-              { value: "refund_request", label: "درخواست بازپرداخت" },
-            ]}
-          />
-          <FilterSelect
-            label="وضعیت"
-            value={status}
-            onChange={setStatus}
-            options={(Object.keys(statusMeta) as TxStatus[]).map((s) => ({
-              value: s,
-              label: statusMeta[s].label,
-            }))}
-          />
-          <span className="mr-auto text-xs text-text-500">
-            <span className="tnum">{toPersianDigits(filtered.length)}</span>{" "}
-            تراکنش
-          </span>
-        </div>
-
-        <div className="space-y-2">
-          {filtered.map((t) => {
-            const key = `tx:${t.id}`;
-            const actionable =
-              t.type === "refund_request" && t.status === "pending";
-            return (
-              <AdminRow
-                key={t.id}
-                open={openId === t.id}
-                onToggle={() => {
-                  setOpenId(openId === t.id ? null : t.id);
-                  setRejecting(null);
-                }}
-                className={actionable ? "border-orange-500/40" : undefined}
-                summary={
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-sm font-medium text-text-900">
-                          {t.studentName}
-                        </span>
-                        <span className="text-xs text-text-500">
-                          — {typeLabel[t.type]}
-                        </span>
-                        <FollowUpBadges entityKey={key} />
-                      </div>
-                      <div className="mt-0.5 text-xs text-text-500">
-                        {t.planName} — <Toman amount={t.amount} /> · {t.date}
-                      </div>
-                    </div>
-                    <Badge tone={statusMeta[t.status].tone}>
-                      {statusMeta[t.status].label}
-                    </Badge>
-                  </div>
-                }
-              >
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <DetailList
-                      title="جزئیات تراکنش"
-                      rows={[
-                        [
-                          "کد تراکنش",
-                          <span key="c" dir="ltr" className="font-mono text-xs">
-                            {t.code}
-                          </span>,
-                        ],
-                        [
-                          "زمان",
-                          <span key="d">
-                            {t.date}، ساعت{" "}
-                            <span className="tnum">{t.time}</span>
-                          </span>,
-                        ],
-                        ["نوع", typeLabel[t.type]],
-                        ["پلن", t.planName],
-                        ["مبلغ", <Toman key="a" amount={t.amount} />],
-                        [
-                          "روش پرداخت",
-                          <span key="m" className="tnum">
-                            {t.method}
-                          </span>,
-                        ],
-                        ["پرداخت‌کننده", t.payer],
-                        [
-                          "مرجع درگاه",
-                          <span key="g" dir="ltr" className="font-mono text-xs">
-                            {t.gatewayRef}
-                          </span>,
-                        ],
-                        ...(t.reason
-                          ? ([["دلیل دانش‌آموز", `«${t.reason}»`]] as [
-                              string,
-                              React.ReactNode,
-                            ][])
-                          : []),
+        <CaseTabs
+          label="بخش‌های تراکنش‌ها"
+          tabs={[
+            {
+              key: "tx",
+              label: "تراکنش‌ها و بازپرداخت",
+              content: (
+                <div className="pt-5">
+                  {/* 7-day guarantee refunds: no questions asked, so approving is the
+            default — reject only for obvious abuse. */}
+                  {sub && guaranteeRefund && (
+                    <Card className="mb-5 border-mint-500/40">
+                      <CardContent>
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-text-900">
+                                ایمان
+                              </span>
+                              <Badge tone="success">
+                                <RotateCcw size={11} /> ضمانت ۷ روزه
+                              </Badge>
+                            </div>
+                            <div className="mt-0.5 text-xs text-text-500">
+                              پلن {sub.planName} ({sub.durationLabel}) —{" "}
+                              <Toman amount={guaranteeRefund.amount} /> · امروز
+                            </div>
+                            {guaranteeRefund.reason && (
+                              <div className="mt-1 text-xs text-text-700">
+                                «{guaranteeRefund.reason}»
+                              </div>
+                            )}
+                          </div>
+                          {guaranteeRefund.status === "pending" ? (
+                            rejecting !== "guarantee" && (
+                              <Allowed perm="refund.decide">
+                                <div className="flex shrink-0 gap-2">
+                                  <Button
+                                    size="md"
+                                    variant="secondary"
+                                    onClick={() => setRejecting("guarantee")}
+                                  >
+                                    <X size={15} /> رد
+                                  </Button>
+                                  <Button
+                                    size="md"
+                                    onClick={() => decideGuarantee("approved")}
+                                  >
+                                    <Check size={15} /> برگشت وجه
+                                  </Button>
+                                </div>
+                              </Allowed>
+                            )
+                          ) : (
+                            <Badge
+                              tone={statusMeta[guaranteeRefund.status].tone}
+                            >
+                              {statusMeta[guaranteeRefund.status].label}
+                            </Badge>
+                          )}
+                        </div>
+                        {rejecting === "guarantee" && (
+                          <div className="mt-3">
+                            <ReasonPrompt
+                              title="رد ضمانت — فقط برای سوءاستفاده‌ی آشکار"
+                              reasons={REFUND_REJECT_REASONS}
+                              confirmLabel="رد درخواست"
+                              onConfirm={(reason, note) =>
+                                decideGuarantee(
+                                  "rejected",
+                                  note ? `${reason} — ${note}` : reason,
+                                )
+                              }
+                              onCancel={() => setRejecting(null)}
+                            />
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                  <SearchBox
+                    value={query}
+                    onChange={setQuery}
+                    placeholder="جستجو با نام، پلن، کد تراکنش یا مرجع درگاه..."
+                  />
+                  <div className="mb-4 mt-3 flex flex-wrap items-center gap-2">
+                    <FilterSelect
+                      label="نوع"
+                      value={type}
+                      onChange={setType}
+                      options={[
+                        { value: "purchase", label: "خرید" },
+                        { value: "refund_request", label: "درخواست بازپرداخت" },
                       ]}
                     />
-                    {actionable &&
-                      (rejecting === t.id ? (
-                        <ReasonPrompt
-                          title="رد درخواست بازپرداخت"
-                          reasons={REFUND_REJECT_REASONS}
-                          confirmLabel="رد درخواست"
-                          onConfirm={(reason, note) =>
-                            decide(t, "rejected", reason, note)
-                          }
-                          onCancel={() => setRejecting(null)}
-                        />
-                      ) : (
-                        <Allowed perm="refund.decide">
-                          <div className="flex gap-2">
-                            <Button
-                              size="md"
-                              variant="secondary"
-                              onClick={() => setRejecting(t.id)}
-                            >
-                              <X size={15} /> رد
-                            </Button>
-                            <Button
-                              size="md"
-                              onClick={() => decide(t, "approved")}
-                            >
-                              <Check size={15} /> تأیید بازپرداخت
-                            </Button>
-                          </div>
-                        </Allowed>
-                      ))}
-                    {t.type === "purchase" && t.status === "approved" && (
-                      <InvoiceControl
-                        txKey={`ref:${t.gatewayRef}`}
-                        studentName={t.studentName}
-                        description={`اشتراک ${t.planName}`}
-                        amount={t.amount}
-                      />
-                    )}
-                    <EntityActivity match={t.studentName} />
+                    <FilterSelect
+                      label="وضعیت"
+                      value={status}
+                      onChange={setStatus}
+                      options={(Object.keys(statusMeta) as TxStatus[]).map(
+                        (s) => ({
+                          value: s,
+                          label: statusMeta[s].label,
+                        }),
+                      )}
+                    />
+                    <span className="mr-auto text-xs text-text-500">
+                      <span className="tnum">
+                        {toPersianDigits(filtered.length)}
+                      </span>{" "}
+                      تراکنش
+                    </span>
+                    <ExportButton count={filtered.length} onExport={exportTx} />
                   </div>
-                  <EntityFollowUp entityKey={key} />
+
+                  <div className="space-y-2">
+                    {filtered.map((t) => {
+                      const key = `tx:${t.id}`;
+                      const actionable =
+                        t.type === "refund_request" && t.status === "pending";
+                      return (
+                        <AdminRow
+                          key={t.id}
+                          open={openId === t.id}
+                          onToggle={() => {
+                            setOpenId(openId === t.id ? null : t.id);
+                            setRejecting(null);
+                          }}
+                          className={
+                            actionable ? "border-orange-500/40" : undefined
+                          }
+                          summary={
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  <span className="text-sm font-medium text-text-900">
+                                    {t.studentName}
+                                  </span>
+                                  <span className="text-xs text-text-500">
+                                    — {typeLabel[t.type]}
+                                  </span>
+                                  <FollowUpBadges entityKey={key} />
+                                </div>
+                                <div className="mt-0.5 text-xs text-text-500">
+                                  {t.planName} — <Toman amount={t.amount} /> ·{" "}
+                                  {t.date}
+                                </div>
+                              </div>
+                              <Badge tone={statusMeta[t.status].tone}>
+                                {statusMeta[t.status].label}
+                              </Badge>
+                            </div>
+                          }
+                        >
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-4">
+                              <DetailList
+                                title="جزئیات تراکنش"
+                                rows={[
+                                  [
+                                    "کد تراکنش",
+                                    <span
+                                      key="c"
+                                      dir="ltr"
+                                      className="font-mono text-xs"
+                                    >
+                                      {t.code}
+                                    </span>,
+                                  ],
+                                  [
+                                    "زمان",
+                                    <span key="d">
+                                      {t.date}، ساعت{" "}
+                                      <span className="tnum">{t.time}</span>
+                                    </span>,
+                                  ],
+                                  ["نوع", typeLabel[t.type]],
+                                  ["پلن", t.planName],
+                                  ["مبلغ", <Toman key="a" amount={t.amount} />],
+                                  [
+                                    "روش پرداخت",
+                                    <span key="m" className="tnum">
+                                      {t.method}
+                                    </span>,
+                                  ],
+                                  ["پرداخت‌کننده", t.payer],
+                                  [
+                                    "مرجع درگاه",
+                                    <span
+                                      key="g"
+                                      dir="ltr"
+                                      className="font-mono text-xs"
+                                    >
+                                      {t.gatewayRef}
+                                    </span>,
+                                  ],
+                                  ...(t.reason
+                                    ? ([
+                                        ["دلیل دانش‌آموز", `«${t.reason}»`],
+                                      ] as [string, React.ReactNode][])
+                                    : []),
+                                ]}
+                              />
+                              {actionable &&
+                                (rejecting === t.id ? (
+                                  <ReasonPrompt
+                                    title="رد درخواست بازپرداخت"
+                                    reasons={REFUND_REJECT_REASONS}
+                                    confirmLabel="رد درخواست"
+                                    onConfirm={(reason, note) =>
+                                      decide(t, "rejected", reason, note)
+                                    }
+                                    onCancel={() => setRejecting(null)}
+                                  />
+                                ) : (
+                                  <Allowed perm="refund.decide">
+                                    <div className="flex gap-2">
+                                      <Button
+                                        size="md"
+                                        variant="secondary"
+                                        onClick={() => setRejecting(t.id)}
+                                      >
+                                        <X size={15} /> رد
+                                      </Button>
+                                      <Button
+                                        size="md"
+                                        onClick={() => decide(t, "approved")}
+                                      >
+                                        <Check size={15} /> تأیید بازپرداخت
+                                      </Button>
+                                    </div>
+                                  </Allowed>
+                                ))}
+                              {t.type === "purchase" &&
+                                t.status === "approved" && (
+                                  <InvoiceControl
+                                    txKey={`ref:${t.gatewayRef}`}
+                                    studentName={t.studentName}
+                                    description={`اشتراک ${t.planName}`}
+                                    amount={t.amount}
+                                  />
+                                )}
+                              <EntityActivity match={t.studentName} />
+                            </div>
+                            <EntityFollowUp entityKey={key} />
+                          </div>
+                        </AdminRow>
+                      );
+                    })}
+                    {filtered.length === 0 && (
+                      <p className="py-8 text-center text-sm text-text-500">
+                        تراکنشی با این فیلترها پیدا نشد.
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </AdminRow>
-            );
-          })}
-          {filtered.length === 0 && (
-            <p className="py-8 text-center text-sm text-text-500">
-              تراکنشی با این فیلترها پیدا نشد.
-            </p>
-          )}
-        </div>
+              ),
+            },
+            {
+              key: "subs",
+              label: "اشتراک‌ها و اقساط",
+              content: (
+                <div className="pt-5">
+                  <SubscriptionsLedger />
+                </div>
+              ),
+            },
+          ]}
+        />
       </div>
     </>
   );

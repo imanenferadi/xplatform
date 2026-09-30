@@ -39,11 +39,11 @@ export function SubscriptionsLedger() {
   const { subs } = useBilling();
   const [open, setOpen] = useState<string | null>(null);
   return (
-    <Card className="mb-6">
+    <Card>
       <CardContent>
-        <h2 className="mb-3 flex items-center gap-1.5 text-sm font-bold text-text-900">
-          <CreditCard size={15} className="text-blue-600" /> اشتراک‌ها
-        </h2>
+        <p className="mb-2 text-xs text-text-500">
+          روی هر اشتراک بزن تا اقساط و ابزارهاش باز بشه.
+        </p>
         <ul className="divide-y divide-border/60">
           {subs.map((s) => {
             const due = nextDue(s);

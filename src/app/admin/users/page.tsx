@@ -33,7 +33,9 @@ type Status = AdminUser["status"];
 
 // By id, not by name — a support correction to the student's name mustn't lose the mentor.
 function currentMentor(mentorId?: string) {
-  return mentorId ? (mentors.find((m) => m.id === mentorId)?.name ?? "—") : null;
+  return mentorId
+    ? (mentors.find((m) => m.id === mentorId)?.name ?? "—")
+    : null;
 }
 
 // Opened from the global search (Ctrl/⌘+K) with ?q= prefilled.
@@ -50,10 +52,15 @@ export default function AdminUsersPageRoute() {
 function AdminUsersPage() {
   // Seed users with staff corrections applied; suspend state stays page-local as before.
   const edited = useUsers();
-  const [statusOverride, setStatusOverride] = useState<Record<string, Status>>({});
+  const [statusOverride, setStatusOverride] = useState<Record<string, Status>>(
+    {},
+  );
   const users = useMemo(
-    () => edited.map((u) => (statusOverride[u.id] ? { ...u, status: statusOverride[u.id] } : u)),
-    [edited, statusOverride]
+    () =>
+      edited.map((u) =>
+        statusOverride[u.id] ? { ...u, status: statusOverride[u.id] } : u,
+      ),
+    [edited, statusOverride],
   );
   const tickets = useTickets();
   const [query, setQuery] = useState(useSearchParams().get("q") ?? "");
@@ -68,9 +75,10 @@ function AdminUsersPage() {
         (u) =>
           (role === "همه" || u.role === role) &&
           (status === "همه" || u.status === status) &&
-          (!query.trim() || [u.name, u.phone, u.city].some((v) => v.includes(query.trim())))
+          (!query.trim() ||
+            [u.name, u.phone, u.city].some((v) => v.includes(query.trim()))),
       ),
-    [users, query, role, status]
+    [users, query, role, status],
   );
 
   function toggle(id: string) {
@@ -78,7 +86,12 @@ function AdminUsersPage() {
     setPrompt(null);
   }
 
-  function setUserStatus(u: AdminUser, next: Status, reason: string, note: string) {
+  function setUserStatus(
+    u: AdminUser,
+    next: Status,
+    reason: string,
+    note: string,
+  ) {
     setStatusOverride((o) => ({ ...o, [u.id]: next }));
     setPrompt(null);
     const suspending = next === "suspended";
@@ -102,7 +115,17 @@ function AdminUsersPage() {
     downloadCsv(
       "x-platform-users.csv",
       toCsv(
-        ["نام", "نقش", "موبایل", "شهر", "پلن", "جمع پرداختی", "عضو از", "آخرین ورود", "وضعیت"],
+        [
+          "نام",
+          "نقش",
+          "موبایل",
+          "شهر",
+          "پلن",
+          "جمع پرداختی",
+          "عضو از",
+          "آخرین ورود",
+          "وضعیت",
+        ],
         filtered.map((u) => [
           u.name,
           u.role,
@@ -113,8 +136,8 @@ function AdminUsersPage() {
           u.joinedAt,
           u.lastLogin,
           u.status === "active" ? "فعال" : "مسدود",
-        ])
-      )
+        ]),
+      ),
     );
   }
 
@@ -129,11 +152,21 @@ function AdminUsersPage() {
           <ExportButton count={filtered.length} onExport={exportUsers} />
         </div>
         <p className="mb-4 text-sm text-text-500">
-          <span className="tnum">{toPersianDigits(users.length)}</span> کاربر ثبت‌شده ·{" "}
-          <span className="tnum">{toPersianDigits(users.filter((u) => u.status === "suspended").length)}</span> مسدود
+          <span className="tnum">{toPersianDigits(users.length)}</span> کاربر
+          ثبت‌شده ·{" "}
+          <span className="tnum">
+            {toPersianDigits(
+              users.filter((u) => u.status === "suspended").length,
+            )}
+          </span>{" "}
+          مسدود
         </p>
 
-        <SearchBox value={query} onChange={setQuery} placeholder="جستجو با نام، شماره تماس یا شهر..." />
+        <SearchBox
+          value={query}
+          onChange={setQuery}
+          placeholder="جستجو با نام، شماره تماس یا شهر..."
+        />
         <div className="mb-4 mt-3 flex flex-wrap items-center gap-2">
           <FilterSelect
             label="نقش"
@@ -154,15 +187,19 @@ function AdminUsersPage() {
             ]}
           />
           <span className="mr-auto text-xs text-text-500">
-            <span className="tnum">{toPersianDigits(filtered.length)}</span> کاربر
+            <span className="tnum">{toPersianDigits(filtered.length)}</span>{" "}
+            کاربر
           </span>
         </div>
 
         <div className="space-y-2">
           {filtered.map((u) => {
             const key = `user:${u.id}`;
-            const mentor = u.role === "دانش‌آموز" ? currentMentor(u.mentorId) : null;
-            const userTickets = tickets.filter((t) => t.requester.name === u.name);
+            const mentor =
+              u.role === "دانش‌آموز" ? currentMentor(u.mentorId) : null;
+            const userTickets = tickets.filter(
+              (t) => t.requester.name === u.name,
+            );
             return (
               <AdminRow
                 key={u.id}
@@ -172,7 +209,9 @@ function AdminUsersPage() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-sm font-medium text-text-900">{u.name}</span>
+                        <span className="text-sm font-medium text-text-900">
+                          {u.name}
+                        </span>
                         <Badge tone="neutral">{u.role}</Badge>
                         <FollowUpBadges entityKey={key} />
                       </div>
@@ -186,95 +225,127 @@ function AdminUsersPage() {
                   </div>
                 }
               >
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <DetailList
-                      title="مشخصات"
-                      rows={[
-                        [
-                          "موبایل",
-                          <span key="p" dir="ltr" className="tnum">
-                            {u.phone}
-                          </span>,
-                        ],
-                        ["شهر", u.city],
-                        ...(u.grade
-                          ? ([["پایه و رشته", `${u.grade} — ${u.group}`]] as [string, React.ReactNode][])
-                          : []),
-                        [
-                          "عضو از",
-                          <span key="j" className="tnum">
-                            {u.joinedAt}
-                          </span>,
-                        ],
-                        ["پلن", u.plan],
-                        ...(mentor ? ([["مشاور فعلی", mentor]] as [string, React.ReactNode][]) : []),
-                        ["جمع پرداختی", u.totalPaid ? <Toman key="t" amount={u.totalPaid} /> : "—"],
-                        ["آخرین ورود", `${u.lastLogin} · ${u.device}`],
-                        [
-                          "تیکت‌ها",
-                          userTickets.length ? (
-                            <Link
-                              key="tk"
-                              href="/admin/tickets"
-                              className="flex items-center gap-1 text-blue-600 hover:underline"
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-4">
+                      <UserEditPanel user={u} users={users} />
+                      {prompt === u.id ? (
+                        <ReasonPrompt
+                          title={
+                            u.status === "active"
+                              ? `مسدود کردن ${u.name}`
+                              : `رفع مسدودیت ${u.name}`
+                          }
+                          reasons={
+                            u.status === "active" ? SUSPEND_REASONS : undefined
+                          }
+                          noteRequired={u.status !== "active"}
+                          notePlaceholder={
+                            u.status === "active"
+                              ? "توضیح بیشتر (اختیاری)"
+                              : "چرا رفع مسدودیت؟ (اجباری)"
+                          }
+                          confirmLabel={
+                            u.status === "active" ? "مسدود کن" : "فعال کن"
+                          }
+                          onConfirm={(reason, note) =>
+                            setUserStatus(
+                              u,
+                              u.status === "active" ? "suspended" : "active",
+                              reason,
+                              note,
+                            )
+                          }
+                          onCancel={() => setPrompt(null)}
+                        />
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          <Allowed perm="users.suspend">
+                            <Button
+                              size="md"
+                              variant="secondary"
+                              onClick={() => setPrompt(u.id)}
                             >
-                              <LifeBuoy size={11} /> {toPersianDigits(userTickets.length)} تیکت
-                              {userTickets.some((t) => t.status !== "closed") && " (باز)"}
+                              {u.status === "active" ? (
+                                <>
+                                  <Ban size={14} /> مسدود کن
+                                </>
+                              ) : (
+                                <>
+                                  <RotateCcw size={14} /> فعال کن
+                                </>
+                              )}
+                            </Button>
+                          </Allowed>
+                          {mentor && (
+                            <Link
+                              href={`/admin/reassign?student=${u.id}`}
+                              className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                            >
+                              <ArrowLeftRight size={12} /> تعویض مشاور
                             </Link>
-                          ) : (
-                            "ندارد"
-                          ),
-                        ],
-                      ]}
-                    />
-                    {prompt === u.id ? (
-                      <ReasonPrompt
-                        title={u.status === "active" ? `مسدود کردن ${u.name}` : `رفع مسدودیت ${u.name}`}
-                        reasons={u.status === "active" ? SUSPEND_REASONS : undefined}
-                        noteRequired={u.status !== "active"}
-                        notePlaceholder={u.status === "active" ? "توضیح بیشتر (اختیاری)" : "چرا رفع مسدودیت؟ (اجباری)"}
-                        confirmLabel={u.status === "active" ? "مسدود کن" : "فعال کن"}
-                        onConfirm={(reason, note) =>
-                          setUserStatus(u, u.status === "active" ? "suspended" : "active", reason, note)
-                        }
-                        onCancel={() => setPrompt(null)}
-                      />
-                    ) : (
-                      <div className="flex flex-wrap gap-2">
-                        <Allowed perm="users.suspend">
-                          <Button size="md" variant="secondary" onClick={() => setPrompt(u.id)}>
-                            {u.status === "active" ? (
-                              <>
-                                <Ban size={14} /> مسدود کن
-                              </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-4">
+                      <DetailList
+                        title="حساب"
+                        rows={[
+                          [
+                            "عضو از",
+                            <span key="j" className="tnum">
+                              {u.joinedAt}
+                            </span>,
+                          ],
+                          ["پلن", u.plan],
+                          ...(mentor
+                            ? ([["مشاور فعلی", mentor]] as [
+                                string,
+                                React.ReactNode,
+                              ][])
+                            : []),
+                          [
+                            "جمع پرداختی",
+                            u.totalPaid ? (
+                              <Toman key="t" amount={u.totalPaid} />
                             ) : (
-                              <>
-                                <RotateCcw size={14} /> فعال کن
-                              </>
-                            )}
-                          </Button>
-                        </Allowed>
-                        {mentor && (
-                          <Link
-                            href={`/admin/reassign?student=${u.id}`}
-                            className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                          >
-                            <ArrowLeftRight size={12} /> تعویض مشاور
-                          </Link>
-                        )}
-                      </div>
-                    )}
-                    <UserEditPanel user={u} users={users} />
-                    <EntityActivity match={u.name} />
+                              "—"
+                            ),
+                          ],
+                          ["آخرین ورود", `${u.lastLogin} · ${u.device}`],
+                          [
+                            "تیکت‌ها",
+                            userTickets.length ? (
+                              <Link
+                                key="tk"
+                                href="/admin/tickets"
+                                className="flex items-center gap-1 text-blue-600 hover:underline"
+                              >
+                                <LifeBuoy size={11} />{" "}
+                                {toPersianDigits(userTickets.length)} تیکت
+                                {userTickets.some(
+                                  (t) => t.status !== "closed",
+                                ) && " (باز)"}
+                              </Link>
+                            ) : (
+                              "ندارد"
+                            ),
+                          ],
+                        ]}
+                      />
+                      <EntityFollowUp entityKey={key} />
+                    </div>
                   </div>
-                  <EntityFollowUp entityKey={key} />
+                  <EntityActivity match={u.name} />
                 </div>
               </AdminRow>
             );
           })}
           {filtered.length === 0 && (
-            <p className="py-8 text-center text-sm text-text-500">کاربری با این مشخصات پیدا نشد.</p>
+            <p className="py-8 text-center text-sm text-text-500">
+              کاربری با این مشخصات پیدا نشد.
+            </p>
           )}
         </div>
       </div>
