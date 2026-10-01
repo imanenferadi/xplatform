@@ -66,23 +66,9 @@ function Plan() {
         view === "week" ? "max-w-5xl" : "max-w-2xl",
       )}
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-text-900">برنامه</h1>
-          <p className="mt-1 text-sm text-text-500">
-            {plan ? (
-              <>
-                نوشته‌ی {mentor.name} · ارسال: {plan.sentAt} · جمعاً{" "}
-                <span className="tnum">
-                  {formatHours(weekHours(plan.days))}
-                </span>{" "}
-                ساعت
-              </>
-            ) : (
-              PLAN_WEEK_LABELS[week]
-            )}
-          </p>
-        </div>
+      {/* Title and the day/week switch share one row; the line under it is one short sentence. */}
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl font-bold text-text-900">برنامه</h1>
         <div
           role="tablist"
           aria-label="نمای برنامه"
@@ -107,6 +93,18 @@ function Plan() {
           ))}
         </div>
       </div>
+      <p className="mt-1 text-sm text-text-500">
+        {plan ? (
+          <>
+            نوشته‌ی {mentor.name} · جمعاً{" "}
+            <span className="tnum">{formatHours(weekHours(plan.days))}</span>{" "}
+            ساعت
+            <span className="hidden sm:inline"> · ارسال: {plan.sentAt}</span>
+          </>
+        ) : (
+          PLAN_WEEK_LABELS[week]
+        )}
+      </p>
 
       {view === "week" ? (
         <div className="mt-5">
@@ -114,7 +112,7 @@ function Plan() {
         </div>
       ) : (
         <>
-          <div className="mb-4 mt-4 flex gap-1.5">
+          <div className="mb-3 mt-3 flex gap-1.5">
             {(["this", "next"] as PlanWeek[]).map((w) => (
               <button
                 key={w}

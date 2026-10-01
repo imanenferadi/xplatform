@@ -27,6 +27,7 @@ import { FixedSessionCard } from "@/components/app/FixedSession";
 import { CopyWeeklyReport } from "@/components/app/CopyWeeklyReport";
 import { KarnamehFiles } from "@/components/app/KarnamehFiles";
 import { CaseTabs } from "@/components/app/CaseTabs";
+import { PlacementGate } from "@/components/app/PlacementGate";
 import { SupervisorNotesForMentor } from "@/components/app/Supervisor";
 import { toPersianDigits } from "@/lib/utils";
 
@@ -111,22 +112,34 @@ export default async function StudentCaseFilePage({
                     <PeriodComparison history={student.weeklyHistory} />
                   </Section>
 
-                  {/* Level profile snapshot */}
-                  <Section title="نیمرخ سطح">
-                    <div className="space-y-3">
-                      {levelProfile.subjects.map((s) => (
-                        <div key={s.name}>
-                          <div className="mb-1 flex items-center justify-between text-sm">
-                            <span className="text-text-700">{s.name}</span>
-                            <span className="tnum text-text-500">
-                              {toPersianDigits(s.value)}٪
-                            </span>
+                  {/* Level profile snapshot — placement is optional, so it can be missing */}
+                  <PlacementGate
+                    studentId={student.id}
+                    empty={
+                      <Section title="نیمرخ سطح">
+                        <p className="text-sm text-text-500">
+                          {student.name} هنوز آزمون تعیین سطح نداده (اختیاریه).
+                          تا وقتی نداده، از کارنامه‌ها و غلط‌هاش استفاده کن.
+                        </p>
+                      </Section>
+                    }
+                  >
+                    <Section title="نیمرخ سطح">
+                      <div className="space-y-3">
+                        {levelProfile.subjects.map((s) => (
+                          <div key={s.name}>
+                            <div className="mb-1 flex items-center justify-between text-sm">
+                              <span className="text-text-700">{s.name}</span>
+                              <span className="tnum text-text-500">
+                                {toPersianDigits(s.value)}٪
+                              </span>
+                            </div>
+                            <ProgressBar value={s.value} />
                           </div>
-                          <ProgressBar value={s.value} />
-                        </div>
-                      ))}
-                    </div>
-                  </Section>
+                        ))}
+                      </div>
+                    </Section>
+                  </PlacementGate>
 
                   {/* Root-cause analysis ("مستر هوشمند") — mentor-only. Never surface
                 this reasoning on a student-facing page; the student only sees

@@ -11,10 +11,9 @@ import {
   Check,
   Plus,
   Trash2,
-  CheckCircle2,
-  Circle,
 } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
+import { CaseTabs } from "@/components/app/CaseTabs";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import {
@@ -56,6 +55,11 @@ const chip = (on: boolean) =>
       : "border-border bg-surface text-text-700 hover:border-blue-300",
   );
 
+const tabLabel = (steps: ReturnType<typeof setupSteps>, key: string) => {
+  const st = steps.find((x) => x.key === key);
+  return `${st?.done ? "✓ " : ""}${st?.label ?? key}`;
+};
+
 // «اطلاعات شروع»: everything the mentor needs to know before planning —
 // one page, three short sections, no new tab in the menu.
 export default function SetupPage() {
@@ -70,35 +74,33 @@ export default function SetupPage() {
           <ClipboardCheck size={18} className="text-blue-600" />
           <h1 className="text-xl font-bold text-text-900">اطلاعات شروع</h1>
         </div>
-        <p className="mb-4 text-sm text-text-500">
+        <p className="text-sm text-text-500">
           سه بخش کوتاه که مشاورت قبل از نوشتن برنامه لازم داره. هر وقت هم چیزی
           عوض شد، همین‌جا به‌روزش کن.
         </p>
 
-        <div className="mb-6 flex flex-wrap gap-2">
-          {steps.map((s) => (
-            <a
-              key={s.key}
-              href={`#${s.key}`}
-              className={cn(
-                "flex items-center gap-1.5 rounded-x-pill border px-3 py-1.5 text-xs",
-                s.done
-                  ? "border-mint-500/40 bg-mint-500/10 text-mint-500"
-                  : "border-border bg-surface text-text-700",
-              )}
-            >
-              {s.done ? <CheckCircle2 size={13} /> : <Circle size={13} />}{" "}
-              {s.label}
-            </a>
-          ))}
-          <span className="mr-auto self-center text-xs text-text-500">
-            <span className="tnum">{toPersianDigits(done)}</span> از ۳
-          </span>
-        </div>
-
-        <IntakeSection saved={setup.intake} />
-        <ScheduleSection schedule={setup.schedule} />
-        <BooksSection books={setup.books} />
+        {/* One section at a time. Tab keys are the step keys, so «#schedule»
+            links from elsewhere (the calendar) open the right tab. */}
+        <CaseTabs
+          label="بخش‌های اطلاعات شروع"
+          tabs={[
+            {
+              key: "intake",
+              label: tabLabel(steps, "intake"),
+              content: <IntakeSection saved={setup.intake} />,
+            },
+            {
+              key: "schedule",
+              label: tabLabel(steps, "schedule"),
+              content: <ScheduleSection schedule={setup.schedule} />,
+            },
+            {
+              key: "books",
+              label: tabLabel(steps, "books"),
+              content: <BooksSection books={setup.books} />,
+            },
+          ]}
+        />
 
         {done === 3 && (
           <Link

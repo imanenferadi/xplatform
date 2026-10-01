@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { BarChart3, LineChart, Moon, ArrowLeft } from "lucide-react";
+import { BarChart3, LineChart } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
+import { usePlacementDone } from "@/lib/placement-store";
 import { WeeklySummary } from "@/components/app/WeeklySummary";
 import { CopyWeeklyReport } from "@/components/app/CopyWeeklyReport";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -30,6 +30,7 @@ export default function WeeklyPage() {
   const checkIns = useMyCheckIns();
   const plan = usePublishedWeek("me", "this");
   const progress = planProgress(plan, useDoneIds(), CURRENT_DAY_NAME);
+  const placementDone = usePlacementDone();
   const thisWeek = aggregateWeek(checkIns, "this");
   const lastWeek = aggregateWeek(checkIns, "last");
   const lastPoint = studentWeeklyHistory[studentWeeklyHistory.length - 1];
@@ -70,12 +71,14 @@ export default function WeeklyPage() {
         <Card className="mt-4">
           <CardContent>
             <WeeklySummary checkIns={checkIns} audience="student" />
-            <div className="mt-4 border-t border-border pt-3">
-              <p className="mb-2 text-xs text-text-500">
-                می‌خوای برای خانواده بفرستی؟ متن آماده‌ی واتساپ و بله:
-              </p>
-              <CopyWeeklyReport studentId="me" name="ایمان" includeSleep />
-            </div>
+            <details className="mt-4 border-t border-border pt-3">
+              <summary className="cursor-pointer text-xs font-medium text-blue-600">
+                برای خانواده بفرست (متن آماده‌ی واتساپ و بله)
+              </summary>
+              <div className="mt-3">
+                <CopyWeeklyReport studentId="me" name="ایمان" includeSleep />
+              </div>
+            </details>
           </CardContent>
         </Card>
 
@@ -96,46 +99,37 @@ export default function WeeklyPage() {
           </CardContent>
         </Card>
 
-        <Card className="mt-4">
-          <CardContent>
-            <h2 className="mb-4 text-sm font-bold text-text-900">
-              تسلط بر مباحث (از تعیین سطح)
-            </h2>
-            <div className="space-y-4">
-              {levelProfile.subjects.map((s) => (
-                <div key={s.name}>
-                  <div className="mb-1.5 flex items-center justify-between text-sm">
-                    <span className="text-text-700">{s.name}</span>
-                    <span className="tnum text-text-500">
-                      {toPersianDigits(s.value)}٪
-                    </span>
+        {placementDone && (
+          <Card className="mt-4">
+            <CardContent>
+              <h2 className="mb-4 text-sm font-bold text-text-900">
+                تسلط بر مباحث (از تعیین سطح)
+              </h2>
+              <div className="space-y-4">
+                {levelProfile.subjects.map((s) => (
+                  <div key={s.name}>
+                    <div className="mb-1.5 flex items-center justify-between text-sm">
+                      <span className="text-text-700">{s.name}</span>
+                      <span className="tnum text-text-500">
+                        {toPersianDigits(s.value)}٪
+                      </span>
+                    </div>
+                    <ProgressBar
+                      value={s.value}
+                      tone={
+                        s.value >= 75
+                          ? "success"
+                          : s.value >= 55
+                            ? "brand"
+                            : "warning"
+                      }
+                    />
                   </div>
-                  <ProgressBar
-                    value={s.value}
-                    tone={
-                      s.value >= 75
-                        ? "success"
-                        : s.value >= 55
-                          ? "brand"
-                          : "warning"
-                    }
-                  />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Link
-          href="/dashboard/report"
-          className="mt-4 flex items-center gap-3 rounded-x-lg border border-border bg-surface p-4 text-sm transition-colors hover:bg-surface-2"
-        >
-          <Moon size={16} className="text-blue-600" />
-          <span className="flex-1 text-text-900">
-            گزارش کار امشب رو فرستادی؟
-          </span>
-          <ArrowLeft size={16} className="text-text-500" />
-        </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </StudentShell>
   );

@@ -165,11 +165,10 @@ function MistakesPage() {
           <NotesPanel />
         ) : (
           <>
-            <p className="mb-5 text-sm text-text-500">
+            <p className="mb-4 text-sm text-text-500">
               هر تستی که غلط زدی رو با{" "}
-              <span className="font-medium text-text-700">دلیلش</span> ثبت کن.
-              مهم‌تر از تعداد غلط، اینه که بدونی چرا غلط می‌زنی — مشاورت هم همین
-              الگو رو می‌بینه.
+              <span className="font-medium text-text-700">دلیلش</span> ثبت کن؛
+              مشاورت هم الگوی غلط‌هات رو می‌بینه.
             </p>
 
             {reviewing ? (
@@ -198,23 +197,27 @@ function MistakesPage() {
               )
             )}
 
-            <Card>
-              <CardContent>
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-sm font-bold text-text-900">
-                    چرا غلط می‌زنم؟
-                  </h2>
-                  <span className="text-xs text-text-500">
-                    <span className="tnum">{toPersianDigits(open.length)}</span>{" "}
-                    غلط حل‌نشده از{" "}
-                    <span className="tnum">
-                      {toPersianDigits(mistakes.length)}
-                    </span>
+            {/* The pattern analysis is for when you want it — the list is the work. */}
+            <details className="group rounded-x-lg border border-border bg-surface">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
+                <span className="text-sm font-bold text-text-900">
+                  چرا غلط می‌زنم؟
+                </span>
+                <span className="text-xs text-text-500">
+                  <span className="tnum">{toPersianDigits(open.length)}</span>{" "}
+                  غلط حل‌نشده از{" "}
+                  <span className="tnum">
+                    {toPersianDigits(mistakes.length)}
                   </span>
-                </div>
+                  <span className="mr-2 inline-block transition-transform group-open:rotate-180">
+                    ▾
+                  </span>
+                </span>
+              </summary>
+              <div className="px-4 pb-4">
                 <MistakePattern entries={mistakes} audience="student" />
-              </CardContent>
-            </Card>
+              </div>
+            </details>
 
             {formOpen ? (
               <Card className="mt-4">

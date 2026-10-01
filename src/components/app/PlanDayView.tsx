@@ -110,6 +110,12 @@ export function PlanDayView({
           {week === "this" && dayIndex === todayIndex && (
             <span className="font-normal text-text-500"> · امروز</span>
           )}
+          {tasks.length > 0 && (
+            <span className="tnum font-normal text-text-500">
+              {" "}
+              — {formatHours(dayHours(tasks))} ساعت
+            </span>
+          )}
         </h2>
         {tasks.length > 0 && week === "this" && !preview && (
           <span className="tnum text-xs text-text-500">
@@ -125,29 +131,12 @@ export function PlanDayView({
         </p>
       ) : (
         <>
-          <p className="mb-3 text-sm text-text-700">
-            {tasks.map((t, i) => (
-              <span key={t.id}>
-                {i > 0 && " · "}
-                {t.subject}{" "}
-                <span className="tnum font-medium text-text-900">
-                  {formatHours(t.hours)}
-                </span>
-              </span>
-            ))}
-            <span className="text-text-500">
-              {" "}
-              (جمعاً{" "}
-              <span className="tnum">{formatHours(dayHours(tasks))}</span> ساعت)
-            </span>
-          </p>
-
           <div className="space-y-2">
             {tasks.map((t) => {
               const isDone = doneIds.has(t.id);
               return (
                 <Card key={t.id}>
-                  <CardContent className="py-3.5">
+                  <CardContent className="py-3">
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
