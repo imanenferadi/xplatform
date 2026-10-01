@@ -3,18 +3,32 @@
 import { useEffect, useRef, useState } from "react";
 import { Send, CheckCheck, Check, Flag } from "lucide-react";
 import { VoiceBubble, VoiceRecordButton } from "@/components/app/Voice";
-import { markRead, persistVoice, sendMessage, useReadMark, useThread, type Side } from "@/lib/chat-store";
+import {
+  markRead,
+  persistVoice,
+  sendMessage,
+  useReadMark,
+  useThread,
+  type Side,
+} from "@/lib/chat-store";
 import type { VoiceClip } from "@/lib/use-voice-recorder";
 import { useViewAsTab } from "@/lib/viewas-store";
 import { createTicket } from "@/lib/ticket-store";
 import { mentorStudents, type ChatMessage } from "@/lib/mock-data";
 
-const studentName = (id: string) => mentorStudents.find((s) => s.id === id)?.name ?? "";
+const studentName = (id: string) =>
+  mentorStudents.find((s) => s.id === id)?.name ?? "";
 import { cn } from "@/lib/utils";
 
 // The same thread from either side: mine on the left-hand bubble colour,
 // theirs on the other, «خوانده شد» once the other side has opened it.
-export function ChatThread({ studentId, side }: { studentId: string; side: Side }) {
+export function ChatThread({
+  studentId,
+  side,
+}: {
+  studentId: string;
+  side: Side;
+}) {
   // Support «view as user» never shows the mentor conversation.
   if (useViewAsTab())
     return (
@@ -27,7 +41,10 @@ export function ChatThread({ studentId, side }: { studentId: string; side: Side 
 
 function Thread({ studentId, side }: { studentId: string; side: Side }) {
   const thread = useThread(studentId);
-  const theirMark = useReadMark(studentId, side === "mentor" ? "student" : "mentor");
+  const theirMark = useReadMark(
+    studentId,
+    side === "mentor" ? "student" : "mentor",
+  );
   const [input, setInput] = useState("");
   const [voiceNote, setVoiceNote] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
@@ -37,7 +54,10 @@ function Thread({ studentId, side }: { studentId: string; side: Side }) {
   // Staff never read chats; a reported message reaches support as a ticket
   // quoting only that one message, sent by the person who reported it.
   function report(m: ChatMessage) {
-    const other = side === "student" ? "سارا محمدی (مشاور)" : `${studentName(studentId)} (دانش‌آموز)`;
+    const other =
+      side === "student"
+        ? "سارا محمدی (مشاور)"
+        : `${studentName(studentId)} (دانش‌آموز)`;
     const id = createTicket({
       subject: "گزارش یک پیام در گفتگو",
       category: "سایر",
@@ -66,31 +86,52 @@ function Thread({ studentId, side }: { studentId: string; side: Side }) {
   async function sendVoice(clip: VoiceClip) {
     const stored = await persistVoice(clip).catch(() => clip);
     sendMessage(studentId, side, "", stored);
-    setVoiceNote(stored.url.startsWith("blob:") ? "این پیام صوتی بزرگ بود و فقط روی همین صفحه پخش می‌شه." : "");
+    setVoiceNote(
+      stored.url.startsWith("blob:")
+        ? "این پیام صوتی بزرگ بود و فقط روی همین صفحه پخش می‌شه."
+        : "",
+    );
   }
 
   return (
     <>
       <div className="flex-1 space-y-3 overflow-y-auto">
-        {thread.length === 0 && <p className="py-8 text-center text-sm text-text-500">هنوز پیامی رد و بدل نشده.</p>}
+        {thread.length === 0 && (
+          <p className="py-8 text-center text-sm text-text-500">
+            هنوز پیامی رد و بدل نشده.
+          </p>
+        )}
         {thread.map((m) => {
           const mine = m.from === side;
           return (
-            <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
+            <div
+              key={m.id}
+              className={cn("flex", mine ? "justify-end" : "justify-start")}
+            >
               <div
                 className={cn(
                   "max-w-[80%] rounded-x-lg px-4 py-2.5 text-sm leading-[1.7]",
-                  mine ? "bg-navy-900 text-white" : "border border-border bg-surface-2 text-text-700"
+                  mine
+                    ? "bg-navy-900 text-white"
+                    : "border border-border bg-surface-2 text-text-700",
                 )}
               >
                 {m.broadcast && (
-                  <div className={cn("mb-1 text-xs font-medium", mine ? "text-white/70" : "text-blue-600")}>
+                  <div
+                    className={cn(
+                      "mb-1 text-xs font-medium",
+                      mine ? "text-white/70" : "text-blue-600",
+                    )}
+                  >
                     📣 پیام گروهی
                   </div>
                 )}
                 {m.voice ? <VoiceBubble clip={m.voice} mine={mine} /> : m.text}
                 <div
-                  className={cn("tnum mt-1 flex items-center gap-1 text-xs", mine ? "text-white/60" : "text-text-500")}
+                  className={cn(
+                    "tnum mt-1 flex items-center gap-1 text-xs",
+                    mine ? "text-white/60" : "text-text-500",
+                  )}
                 >
                   {m.time}
                   {mine &&
@@ -104,7 +145,9 @@ function Thread({ studentId, side }: { studentId: string; side: Side }) {
                     ))}
                   {!mine &&
                     (reported[m.id] ? (
-                      <span className="text-orange-500">گزارش شد ({reported[m.id]})</span>
+                      <span className="text-orange-500">
+                        گزارش شد ({reported[m.id]})
+                      </span>
                     ) : confirming === m.id ? (
                       <span className="flex items-center gap-1.5">
                         برای پشتیبانی بفرستم؟
@@ -115,7 +158,11 @@ function Thread({ studentId, side }: { studentId: string; side: Side }) {
                         >
                           بفرست
                         </button>
-                        <button type="button" onClick={() => setConfirming(null)} className="hover:underline">
+                        <button
+                          type="button"
+                          onClick={() => setConfirming(null)}
+                          className="hover:underline"
+                        >
                           نه
                         </button>
                       </span>

@@ -32,7 +32,10 @@ export function ViewAsControl({ ticket: t }: { ticket: Ticket }) {
   if (!TECH_CATEGORIES.includes(t.category)) return null;
 
   function ask() {
-    if (!reason.trim()) return setError("دلیلش رو بنویس — به کاربر نشون داده می‌شه و در لاگ می‌مونه.");
+    if (!reason.trim())
+      return setError(
+        "دلیلش رو بنویس — به کاربر نشون داده می‌شه و در لاگ می‌مونه.",
+      );
     requestViewAs(t.id, userId!, t.requester.name, reason.trim());
     setReason("");
     setError("");
@@ -49,28 +52,43 @@ export function ViewAsControl({ ticket: t }: { ticket: Ticket }) {
         <Eye size={13} /> مشاهده‌ی حساب کاربر
       </div>
       {!userId ? (
-        <p className="text-text-500">برای این کاربر در نسخه‌ی نمایشی پنلی وجود نداره.</p>
+        <p className="text-text-500">
+          برای این کاربر در نسخه‌ی نمایشی پنلی وجود نداره.
+        </p>
       ) : latest?.status === "pending" ? (
         <p className="text-orange-500">منتظر اجازه‌ی {t.requester.name}…</p>
       ) : latest?.status === "approved" ? (
         <div className="space-y-2">
           <p className="text-mint-500">{t.requester.name} اجازه داد.</p>
           <Button size="md" onClick={start}>
-            <ExternalLink size={13} /> شروع مشاهده ({toPersianDigits(VIEW_AS_MINUTES)} دقیقه، فقط‌خواندنی)
+            <ExternalLink size={13} /> شروع مشاهده (
+            {toPersianDigits(VIEW_AS_MINUTES)} دقیقه، فقط‌خواندنی)
           </Button>
         </div>
       ) : latest && isLive(latest, now) ? (
         <div className="space-y-2">
-          <p className="text-text-700">در حال مشاهده تا ساعت {clockOf(latest.expiresAtMs!)}</p>
+          <p className="text-text-700">
+            در حال مشاهده تا ساعت {clockOf(latest.expiresAtMs!)}
+          </p>
           <div className="flex gap-2">
             <Button
               size="md"
               variant="secondary"
-              onClick={() => window.open(`/dashboard?support-view=${latest.id}`, "_blank", "noopener")}
+              onClick={() =>
+                window.open(
+                  `/dashboard?support-view=${latest.id}`,
+                  "_blank",
+                  "noopener",
+                )
+              }
             >
               باز کردن تب
             </Button>
-            <Button size="md" variant="secondary" onClick={() => endViewAs(latest.id, "support")}>
+            <Button
+              size="md"
+              variant="secondary"
+              onClick={() => endViewAs(latest.id, "support")}
+            >
               پایان
             </Button>
           </div>
@@ -79,12 +97,17 @@ export function ViewAsControl({ ticket: t }: { ticket: Ticket }) {
         <div className="space-y-2">
           {latest && (
             <p className="text-text-500">
-              درخواست قبلی: {latest.status === "declined" ? "کاربر رد کرد" : `تموم شد (${latest.endedBy})`}
-              {latest.pages.length > 0 && ` · دیده شد: ${latest.pages.join("، ")}`}
+              درخواست قبلی:{" "}
+              {latest.status === "declined"
+                ? "کاربر رد کرد"
+                : `تموم شد (${latest.endedBy})`}
+              {latest.pages.length > 0 &&
+                ` · دیده شد: ${latest.pages.join("، ")}`}
             </p>
           )}
           <p className="text-text-500">
-            فقط با اجازه‌ی کاربر، {toPersianDigits(VIEW_AS_MINUTES)} دقیقه و فقط‌خواندنی. گفتگو با مشاور دیده نمی‌شه.
+            فقط با اجازه‌ی کاربر، {toPersianDigits(VIEW_AS_MINUTES)} دقیقه و
+            فقط‌خواندنی. گفتگو با مشاور دیده نمی‌شه.
           </p>
           <input
             value={reason}

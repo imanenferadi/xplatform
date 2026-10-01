@@ -8,20 +8,26 @@ import { toast } from "@/components/ui/Toaster";
 import type { Ticket, TicketReferral } from "@/lib/mock-data";
 import { REFERRAL_TARGETS, ROLE_META, type StaffRole } from "@/lib/permissions";
 import { useCan, useMe } from "@/lib/staff-store";
-import { answerReferral, cancelReferral, referTicket } from "@/lib/ticket-store";
+import {
+  answerReferral,
+  cancelReferral,
+  referTicket,
+} from "@/lib/ticket-store";
 import { cn } from "@/lib/utils";
 
 const fieldClass =
   "w-full rounded-x-sm border border-border bg-surface px-3 py-2 text-xs text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600";
 const roleLabel = (r: string) => ROLE_META[r as StaffRole].label;
 
-const STATUS: Record<TicketReferral["status"], { label: string; tone: "warning" | "success" | "neutral" | "danger" }> =
-  {
-    open: { label: "منتظر", tone: "warning" },
-    done: { label: "انجام شد", tone: "success" },
-    returned: { label: "برگشت خورد", tone: "danger" },
-    cancelled: { label: "لغو شد", tone: "neutral" },
-  };
+const STATUS: Record<
+  TicketReferral["status"],
+  { label: string; tone: "warning" | "success" | "neutral" | "danger" }
+> = {
+  open: { label: "منتظر", tone: "warning" },
+  done: { label: "انجام شد", tone: "success" },
+  returned: { label: "برگشت خورد", tone: "danger" },
+  cancelled: { label: "لغو شد", tone: "neutral" },
+};
 
 // Hand a ticket to the role that can actually do the work, and bring the
 // answer back — so nothing stalls between two teams.
@@ -55,7 +61,13 @@ export function ReferralPanel({ ticket: t }: { ticket: Ticket }) {
       {referrals.length > 0 && (
         <ul className="mb-2 space-y-2">
           {referrals.map((r) => (
-            <ReferralItem key={r.id} ticketId={t.id} r={r} myRole={me.role} canAct={canAct} />
+            <ReferralItem
+              key={r.id}
+              ticketId={t.id}
+              r={r}
+              myRole={me.role}
+              canAct={canAct}
+            />
           ))}
         </ul>
       )}
@@ -100,7 +112,11 @@ export function ReferralPanel({ ticket: t }: { ticket: Ticket }) {
             <Button size="md" onClick={send}>
               ارجاع
             </Button>
-            <button type="button" onClick={() => setOpen(false)} className="text-text-500">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="text-text-500"
+            >
               انصراف
             </button>
           </div>
@@ -145,7 +161,12 @@ function ReferralItem({
   }
 
   return (
-    <li className={cn("rounded-x-sm p-2.5", forMe ? "bg-orange-500/10" : "bg-surface-2")}>
+    <li
+      className={cn(
+        "rounded-x-sm p-2.5",
+        forMe ? "bg-orange-500/10" : "bg-surface-2",
+      )}
+    >
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="font-medium text-text-900">
           {roleLabel(r.fromRole)} ← {roleLabel(r.toRole)}
@@ -173,8 +194,14 @@ function ReferralItem({
                 setError("");
               }}
               rows={2}
-              aria-label={mode === "done" ? "چه کاری انجام شد" : "دلیل برگردوندن"}
-              placeholder={mode === "done" ? "چی انجام دادی؟" : "چرا برمی‌گردونی؟ مثلاً اطلاعات کافی نیست"}
+              aria-label={
+                mode === "done" ? "چه کاری انجام شد" : "دلیل برگردوندن"
+              }
+              placeholder={
+                mode === "done"
+                  ? "چی انجام دادی؟"
+                  : "چرا برمی‌گردونی؟ مثلاً اطلاعات کافی نیست"
+              }
               className={fieldClass}
             />
             {error && (
@@ -186,7 +213,11 @@ function ReferralItem({
               <Button size="md" onClick={submit}>
                 ثبت
               </Button>
-              <button type="button" onClick={() => setMode(null)} className="text-text-500">
+              <button
+                type="button"
+                onClick={() => setMode(null)}
+                className="text-text-500"
+              >
                 انصراف
               </button>
             </div>
@@ -196,7 +227,11 @@ function ReferralItem({
             <Button size="md" onClick={() => setMode("done")}>
               <Check size={13} /> انجام شد
             </Button>
-            <Button size="md" variant="secondary" onClick={() => setMode("returned")}>
+            <Button
+              size="md"
+              variant="secondary"
+              onClick={() => setMode("returned")}
+            >
               <Undo2 size={13} /> برگردون
             </Button>
           </div>

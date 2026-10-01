@@ -64,7 +64,7 @@ function HeroMentorStack() {
   return (
     <div className="relative mx-auto w-full max-w-sm rotate-1 rounded-x-xl border border-border bg-surface p-5 shadow-x-lg md:rotate-2">
       <div className="mb-3 text-sm font-medium text-text-500">
-        چند نفر از مشاورهای X
+        چند نفر از مشاورهای ماتریس
       </div>
       <ul className="space-y-2.5">
         {top.map((m) => (

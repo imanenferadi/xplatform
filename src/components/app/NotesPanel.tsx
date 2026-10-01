@@ -17,7 +17,8 @@ export function NotesPanel() {
 
   function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim() && !body.trim()) return setError("یه عنوان یا متن بنویس.");
+    if (!title.trim() && !body.trim())
+      return setError("یه عنوان یا متن بنویس.");
     addNote(title.trim(), body.trim());
     setTitle("");
     setBody("");
@@ -31,7 +32,11 @@ export function NotesPanel() {
         <CardContent>
           <form onSubmit={add} noValidate className="space-y-3">
             <Field label="عنوان" optional>
-              <input value={title} onChange={(e) => setTitle(e.target.value.slice(0, 60))} className={fieldClass} />
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value.slice(0, 60))}
+                className={fieldClass}
+              />
             </Field>
             <Field label="متن" error={error}>
               <textarea
@@ -59,8 +64,12 @@ export function NotesPanel() {
           <Card key={n.id}>
             <CardContent className="flex items-start justify-between gap-3 py-3.5">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-text-900">{n.title}</div>
-                {n.body && <p className="mt-1 text-sm text-text-700">{n.body}</p>}
+                <div className="text-sm font-medium text-text-900">
+                  {n.title}
+                </div>
+                {n.body && (
+                  <p className="mt-1 text-sm text-text-700">{n.body}</p>
+                )}
                 <div className="mt-1 text-xs text-text-500">{n.date}</div>
               </div>
               <button
@@ -76,7 +85,8 @@ export function NotesPanel() {
         ))}
         {notes.length === 0 && (
           <p className="py-8 text-center text-sm text-text-500">
-            هنوز یادداشتی ننوشتی — فرمول‌ها، نکته‌های کنکوری یا هر چیزی که نمی‌خوای یادت بره.
+            هنوز یادداشتی ننوشتی — فرمول‌ها، نکته‌های کنکوری یا هر چیزی که
+            نمی‌خوای یادت بره.
           </p>
         )}
       </div>

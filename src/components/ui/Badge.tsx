@@ -1,7 +1,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-type Tone = "neutral" | "excellent" | "success" | "warning" | "danger" | "info" | "brand";
+type Tone =
+  "neutral" | "excellent" | "success" | "warning" | "danger" | "info" | "brand";
 
 const tones: Record<Tone, string> = {
   neutral: "bg-surface-2 text-text-700",
@@ -24,7 +25,7 @@ export function Badge({
       className={cn(
         "inline-flex items-center gap-1 rounded-x-pill px-3 py-1 text-xs font-medium",
         tones[tone],
-        className
+        className,
       )}
       {...props}
     />

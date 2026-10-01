@@ -10,7 +10,11 @@ import { toPersianDigits, cn } from "@/lib/utils";
  * product's "گزارش‌دهی ۳۶۰ درجه" page does: مشاور خودش دو بازه رو انتخاب
  * می‌کنه (مثلاً «قبل و بعد از شروع همکاری»), نه فقط ۳ هفته‌ی ثابت.
  */
-export function PeriodComparison({ history }: { history: WeeklyHistoryPoint[] }) {
+export function PeriodComparison({
+  history,
+}: {
+  history: WeeklyHistoryPoint[];
+}) {
   const [pastIdx, setPastIdx] = useState(0);
   const [currentIdx, setCurrentIdx] = useState(history.length - 1);
 
@@ -38,7 +42,9 @@ export function PeriodComparison({ history }: { history: WeeklyHistoryPoint[] })
     <div>
       <div className="mb-4 grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-xs text-text-500">بازه‌ی گذشته</label>
+          <label className="mb-1 block text-xs text-text-500">
+            بازه‌ی گذشته
+          </label>
           <select
             value={pastIdx}
             onChange={(e) => setPastIdx(Number(e.target.value))}
@@ -52,7 +58,9 @@ export function PeriodComparison({ history }: { history: WeeklyHistoryPoint[] })
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs text-text-500">بازه‌ی فعلی</label>
+          <label className="mb-1 block text-xs text-text-500">
+            بازه‌ی فعلی
+          </label>
           <select
             value={currentIdx}
             onChange={(e) => setCurrentIdx(Number(e.target.value))}
@@ -83,7 +91,10 @@ export function PeriodComparison({ history }: { history: WeeklyHistoryPoint[] })
               const improved = r.higherIsBetter ? delta > 0 : delta < 0;
               const unchanged = delta === 0;
               return (
-                <tr key={r.label} className="border-b border-border last:border-0">
+                <tr
+                  key={r.label}
+                  className="border-b border-border last:border-0"
+                >
                   <td className="py-2.5 text-text-900">{r.label}</td>
                   <td className="tnum py-2.5 text-center text-text-500">
                     {toPersianDigits(r.past)}
@@ -101,7 +112,7 @@ export function PeriodComparison({ history }: { history: WeeklyHistoryPoint[] })
                           ? "bg-surface-2 text-text-500"
                           : improved
                             ? "bg-mint-500/15 text-mint-500"
-                            : "bg-orange-500/15 text-orange-500"
+                            : "bg-orange-500/15 text-orange-500",
                       )}
                     >
                       {/* Signed number LTR so the sign stays in front; a word unit

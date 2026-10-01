@@ -14,7 +14,9 @@ function subscribe(callback: () => void) {
 function getSnapshot(): Theme {
   const stored = localStorage.getItem("x-theme");
   if (stored === "dark" || stored === "light") return stored;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
 // During SSR / before hydration we have no access to localStorage or the
@@ -40,7 +42,9 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggle}
-      aria-label={theme === "light" ? "فعال‌سازی حالت تاریک" : "فعال‌سازی حالت روشن"}
+      aria-label={
+        theme === "light" ? "فعال‌سازی حالت تاریک" : "فعال‌سازی حالت روشن"
+      }
     >
       {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
     </Button>

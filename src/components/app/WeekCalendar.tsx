@@ -1,9 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { Video, Phone, FileText, ArrowLeft, Check, Moon, Upload, School, AlertTriangle } from "lucide-react";
+import {
+  Video,
+  Phone,
+  FileText,
+  ArrowLeft,
+  Check,
+  Moon,
+  Upload,
+  School,
+  AlertTriangle,
+} from "lucide-react";
 import { Card } from "@/components/ui/Card";
-import { CURRENT_DAY_NAME, WEEK_DAYS, mentors, weekExams, type PlanTask, type SessionMode } from "@/lib/mock-data";
+import {
+  CURRENT_DAY_NAME,
+  WEEK_DAYS,
+  mentors,
+  weekExams,
+  type PlanTask,
+  type SessionMode,
+} from "@/lib/mock-data";
 import { cn, toPersianDigits } from "@/lib/utils";
 import { useMySetup } from "@/lib/setup-store";
 import { freeHours } from "@/lib/schedule";
@@ -15,7 +32,12 @@ import type { Commitment } from "@/lib/mock-data";
 type CalendarDay = {
   dayName: string;
   tasks: PlanTask[];
-  session?: { time: string; mode: SessionMode; cancelled?: boolean; movedFrom?: string };
+  session?: {
+    time: string;
+    mode: SessionMode;
+    cancelled?: boolean;
+    movedFrom?: string;
+  };
   exam?: { provider: string; name: string };
 };
 
@@ -24,15 +46,28 @@ const todayIndex = WEEK_DAYS.indexOf(CURRENT_DAY_NAME);
 const isPast = (d: CalendarDay) => WEEK_DAYS.indexOf(d.dayName) < todayIndex;
 
 // Nightly/after-exam nudges, same idea as the mentor's «یادآوری‌ها» row.
-const REMINDERS: Record<string, { text: string; href: string; icon: typeof Moon }[]> = {
-  [CURRENT_DAY_NAME]: [{ text: "گزارش کار امشب", href: "/dashboard/report", icon: Moon }],
-  جمعه: [{ text: "کارنامه‌ی آزمون رو آپلود کن", href: "/dashboard/karnameh", icon: Upload }],
+const REMINDERS: Record<
+  string,
+  { text: string; href: string; icon: typeof Moon }[]
+> = {
+  [CURRENT_DAY_NAME]: [
+    { text: "گزارش کار امشب", href: "/dashboard/report", icon: Moon },
+  ],
+  جمعه: [
+    {
+      text: "کارنامه‌ی آزمون رو آپلود کن",
+      href: "/dashboard/karnameh",
+      icon: Upload,
+    },
+  ],
 };
 
 // Same look as the mentor's week table (equal day columns, chips, faded
 // past days), but the rows stay "kinds of commitment", not hours — a
 // student plans in time blocks per subject, not a minute-by-minute grid.
-function buildRows(schedule: Commitment[]): { label: string; render: (d: CalendarDay) => React.ReactNode }[] {
+function buildRows(
+  schedule: Commitment[],
+): { label: string; render: (d: CalendarDay) => React.ReactNode }[] {
   return [
     {
       label: "مدرسه و کلاس",
@@ -46,11 +81,17 @@ function buildRows(schedule: Commitment[]): { label: string; render: (d: Calenda
                   key={c.id}
                   className={cn(
                     "rounded-x-md px-2.5 py-1.5",
-                    c.kind === "school" ? "bg-surface-2 text-text-700" : "bg-blue-100 text-blue-600"
+                    c.kind === "school"
+                      ? "bg-surface-2 text-text-700"
+                      : "bg-blue-100 text-blue-600",
                   )}
                 >
-                  <div className="text-sm font-medium leading-snug text-text-900">{c.title}</div>
-                  <div className="tnum text-xs">{toPersianDigits(`${c.start}–${c.end}`)}</div>
+                  <div className="text-sm font-medium leading-snug text-text-900">
+                    {c.title}
+                  </div>
+                  <div className="tnum text-xs">
+                    {toPersianDigits(`${c.start}–${c.end}`)}
+                  </div>
                 </div>
               ))}
             </div>
@@ -72,9 +113,15 @@ function buildRows(schedule: Commitment[]): { label: string; render: (d: Calenda
           );
         const chip = (
           <>
-            <div className="truncate text-sm font-medium text-text-900">{mentor.name}</div>
+            <div className="truncate text-sm font-medium text-text-900">
+              {mentor.name}
+            </div>
             <div className="mt-0.5 flex items-center gap-1 text-xs">
-              {d.session.mode === "video" ? <Video size={12} /> : <Phone size={12} />}
+              {d.session.mode === "video" ? (
+                <Video size={12} />
+              ) : (
+                <Phone size={12} />
+              )}
               <span className="tnum">{d.session.time}</span>
               {isPast(d) && (
                 <span className="flex items-center gap-0.5 text-mint-500">
@@ -82,11 +129,17 @@ function buildRows(schedule: Commitment[]): { label: string; render: (d: Calenda
                 </span>
               )}
             </div>
-            {d.session.movedFrom && <div className="mt-0.5 text-xs">فقط این هفته (به‌جای {d.session.movedFrom})</div>}
+            {d.session.movedFrom && (
+              <div className="mt-0.5 text-xs">
+                فقط این هفته (به‌جای {d.session.movedFrom})
+              </div>
+            )}
           </>
         );
         return isPast(d) || !mentor ? (
-          <div className="rounded-x-md bg-blue-100 px-2.5 py-2 text-blue-600">{chip}</div>
+          <div className="rounded-x-md bg-blue-100 px-2.5 py-2 text-blue-600">
+            {chip}
+          </div>
         ) : (
           <Link
             href={`/session/${mentor.id}`}
@@ -115,8 +168,13 @@ function buildRows(schedule: Commitment[]): { label: string; render: (d: Calenda
         d.tasks.length > 0 && (
           <div className="space-y-1.5">
             {d.tasks.map((t) => (
-              <div key={t.id} className="rounded-x-md bg-surface-2 px-2.5 py-1.5">
-                <div className="text-sm font-medium text-text-900">{t.subject}</div>
+              <div
+                key={t.id}
+                className="rounded-x-md bg-surface-2 px-2.5 py-1.5"
+              >
+                <div className="text-sm font-medium text-text-900">
+                  {t.subject}
+                </div>
                 <div className="text-xs text-text-500">
                   <span className="tnum">{formatHours(t.hours)}</span> ساعت
                 </div>
@@ -137,9 +195,17 @@ function buildRows(schedule: Commitment[]): { label: string; render: (d: Calenda
                 <span className="tnum">{formatHours(dayTotal(d))}</span> ساعت
               </span>
               {schedule.length > 0 && (
-                <div className={cn("mt-0.5 text-xs", over ? "font-medium text-orange-500" : "text-text-500")}>
-                  {over && <AlertTriangle size={11} className="ml-0.5 inline" />}
-                  از ~<span className="tnum">{formatHours(free)}</span> ساعت وقت آزاد
+                <div
+                  className={cn(
+                    "mt-0.5 text-xs",
+                    over ? "font-medium text-orange-500" : "text-text-500",
+                  )}
+                >
+                  {over && (
+                    <AlertTriangle size={11} className="ml-0.5 inline" />
+                  )}
+                  از ~<span className="tnum">{formatHours(free)}</span> ساعت وقت
+                  آزاد
                 </div>
               )}
             </div>
@@ -170,7 +236,11 @@ function buildRows(schedule: Commitment[]): { label: string; render: (d: Calenda
 }
 
 /** The week as a table: school hours, the fixed session, exams, plan hours, reminders. */
-export function WeekCalendar({ onOpenDay }: { onOpenDay: (day: string) => void }) {
+export function WeekCalendar({
+  onOpenDay,
+}: {
+  onOpenDay: (day: string) => void;
+}) {
   const { schedule } = useMySetup();
   const ROWS = buildRows(schedule);
   const plan = usePublishedWeek("me", "this");
@@ -190,16 +260,22 @@ export function WeekCalendar({ onOpenDay }: { onOpenDay: (day: string) => void }
     exam: weekExams[dayName],
   }));
   const overloaded = studentWeekCalendar.filter(
-    (d) => schedule.length > 0 && !isPast(d) && dayTotal(d) > freeHours(schedule, d.dayName)
+    (d) =>
+      schedule.length > 0 &&
+      !isPast(d) &&
+      dayTotal(d) > freeHours(schedule, d.dayName),
   );
   const weekTotal = studentWeekCalendar.reduce((s, d) => s + dayTotal(d), 0);
-  const remaining = studentWeekCalendar.filter((d) => !isPast(d)).reduce((s, d) => s + dayTotal(d), 0);
+  const remaining = studentWeekCalendar
+    .filter((d) => !isPast(d))
+    .reduce((s, d) => s + dayTotal(d), 0);
   const exam = studentWeekCalendar.find((d) => d.exam);
 
   return (
     <div>
       <p className="mb-5 text-sm text-text-500">
-        <span className="tnum">{formatHours(weekTotal)}</span> ساعت برنامه‌ی این هفته ·{" "}
+        <span className="tnum">{formatHours(weekTotal)}</span> ساعت برنامه‌ی این
+        هفته ·{" "}
         <span className="font-medium text-text-900">
           <span className="tnum">{formatHours(remaining)}</span> ساعت
         </span>{" "}
@@ -215,10 +291,14 @@ export function WeekCalendar({ onOpenDay }: { onOpenDay: (day: string) => void }
 
       {overloaded.length > 0 && (
         <div className="mb-4 flex items-start gap-2 rounded-x-md border border-orange-500/30 bg-orange-500/10 p-3 text-xs leading-[1.8] text-text-700">
-          <AlertTriangle size={14} className="mt-0.5 shrink-0 text-orange-500" />
+          <AlertTriangle
+            size={14}
+            className="mt-0.5 shrink-0 text-orange-500"
+          />
           <span>
-            برنامه‌ی {overloaded.map((d) => d.dayName).join(" و ")} از وقت آزادت بیشتره (با توجه به ساعت مدرسه و
-            کلاس‌هات). به مشاورت بگو تا جابه‌جاش کنه.
+            برنامه‌ی {overloaded.map((d) => d.dayName).join(" و ")} از وقت آزادت
+            بیشتره (با توجه به ساعت مدرسه و کلاس‌هات). به مشاورت بگو تا جابه‌جاش
+            کنه.
           </span>
         </div>
       )}
@@ -236,7 +316,11 @@ export function WeekCalendar({ onOpenDay }: { onOpenDay: (day: string) => void }
                       key={d.dayName}
                       className={cn(
                         "border-r border-border/60 p-4 text-sm font-bold",
-                        isToday ? "bg-blue-100 text-blue-600" : isPast(d) ? "text-text-500" : "text-text-900"
+                        isToday
+                          ? "bg-blue-100 text-blue-600"
+                          : isPast(d)
+                            ? "text-text-500"
+                            : "text-text-900",
                       )}
                     >
                       {/* The day name opens that day's full detail (topics, ticks, timer). */}
@@ -248,7 +332,9 @@ export function WeekCalendar({ onOpenDay }: { onOpenDay: (day: string) => void }
                       >
                         {d.dayName}
                       </button>
-                      {isToday && <div className="mt-0.5 text-xs font-normal">امروز</div>}
+                      {isToday && (
+                        <div className="mt-0.5 text-xs font-normal">امروز</div>
+                      )}
                     </th>
                   );
                 })}
@@ -256,7 +342,10 @@ export function WeekCalendar({ onOpenDay }: { onOpenDay: (day: string) => void }
             </thead>
             <tbody>
               {ROWS.map((row) => (
-                <tr key={row.label} className="border-b border-border/60 last:border-0">
+                <tr
+                  key={row.label}
+                  className="border-b border-border/60 last:border-0"
+                >
                   <th
                     scope="row"
                     className="sticky right-0 z-10 whitespace-nowrap bg-surface p-4 align-top text-sm font-medium text-text-700"
@@ -269,7 +358,7 @@ export function WeekCalendar({ onOpenDay }: { onOpenDay: (day: string) => void }
                       className={cn(
                         "h-20 border-r border-border/60 p-2.5 align-top",
                         d.dayName === CURRENT_DAY_NAME && "bg-blue-100/40",
-                        isPast(d) && "opacity-60"
+                        isPast(d) && "opacity-60",
                       )}
                     >
                       {row.render(d) || null}
@@ -284,7 +373,8 @@ export function WeekCalendar({ onOpenDay }: { onOpenDay: (day: string) => void }
 
       <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-text-500">
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-sm bg-blue-100" /> جلسه (کلیک ← ورود به جلسه)
+          <span className="h-3 w-3 rounded-sm bg-blue-100" /> جلسه (کلیک ← ورود
+          به جلسه)
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-sm bg-orange-500/30" /> آزمون
@@ -293,7 +383,8 @@ export function WeekCalendar({ onOpenDay }: { onOpenDay: (day: string) => void }
           <span className="h-3 w-3 rounded-sm bg-surface-2" /> درس و ساعتش
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-sm bg-mint-500/20" /> یادآوری (کلیک ← انجامش بده)
+          <span className="h-3 w-3 rounded-sm bg-mint-500/20" /> یادآوری (کلیک ←
+          انجامش بده)
         </span>
       </div>
 
@@ -302,7 +393,8 @@ export function WeekCalendar({ onOpenDay }: { onOpenDay: (day: string) => void }
         className="mt-4 flex items-center justify-between rounded-x-lg border border-border bg-surface p-4 text-sm font-medium text-text-900 transition-colors hover:bg-surface-2"
       >
         <span className="flex items-center gap-2">
-          <School size={16} className="text-blue-600" /> ویرایش ساعت مدرسه و کلاس‌ها
+          <School size={16} className="text-blue-600" /> ویرایش ساعت مدرسه و
+          کلاس‌ها
         </span>
         <ArrowLeft size={16} className="text-text-500" />
       </Link>

@@ -3,10 +3,26 @@
 import { useState } from "react";
 import { Check, ClipboardCopy, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { CURRENT_DAY_NAME, WEEK_DAYS, WEEK_LABELS, mentors, type NightlyCheckIn, type WeekPlan } from "@/lib/mock-data";
+import {
+  CURRENT_DAY_NAME,
+  WEEK_DAYS,
+  WEEK_LABELS,
+  mentors,
+  type NightlyCheckIn,
+  type WeekPlan,
+} from "@/lib/mock-data";
 import { useStudentReports } from "@/lib/checkin-store";
-import { formatHours, planProgress, useDoneIds, usePublishedWeek } from "@/lib/plan-store";
-import { aggregateWeek, formatClockTime, formatStudyTime } from "@/lib/checkins";
+import {
+  formatHours,
+  planProgress,
+  useDoneIds,
+  usePublishedWeek,
+} from "@/lib/plan-store";
+import {
+  aggregateWeek,
+  formatClockTime,
+  formatStudyTime,
+} from "@/lib/checkins";
 import { useHydrated } from "@/lib/local-store";
 import { toPersianDigits } from "@/lib/utils";
 
@@ -21,24 +37,29 @@ export function weeklyReportText(opts: {
   const w = aggregateWeek(opts.checkIns, "this");
   const progress = planProgress(opts.plan, opts.doneIds, CURRENT_DAY_NAME);
   const nights = WEEK_DAYS.indexOf(CURRENT_DAY_NAME) + 1;
-  const lines = [`📊 گزارش هفته‌ی ${opts.name} — ${WEEK_LABELS.this}`, `⏱ مطالعه: ${formatStudyTime(w.totalMinutes)}`];
+  const lines = [
+    `📊 گزارش هفته‌ی ${opts.name} — ${WEEK_LABELS.this}`,
+    `⏱ مطالعه: ${formatStudyTime(w.totalMinutes)}`,
+  ];
   if (opts.plan)
     lines.push(
-      `✅ اجرای برنامه تا امروز: ${toPersianDigits(progress.percent)}٪ (${formatHours(progress.ticked)} از ${formatHours(progress.planned)} ساعت)`
+      `✅ اجرای برنامه تا امروز: ${toPersianDigits(progress.percent)}٪ (${formatHours(progress.ticked)} از ${formatHours(progress.planned)} ساعت)`,
     );
   lines.push(
     `📝 تست: ${toPersianDigits(w.totalTests)}`,
-    `🌙 گزارش کار: ${toPersianDigits(w.checkedInDays.size)} از ${toPersianDigits(nights)} شب`
+    `🌙 گزارش کار: ${toPersianDigits(w.checkedInDays.size)} از ${toPersianDigits(nights)} شب`,
   );
   if (w.subjects.length) {
     lines.push("", "📚 درس به درس:");
     for (const s of w.subjects)
-      lines.push(`• ${s.subject}: ${formatStudyTime(s.minutes)}${s.tests ? `، ${toPersianDigits(s.tests)} تست` : ""}`);
+      lines.push(
+        `• ${s.subject}: ${formatStudyTime(s.minutes)}${s.tests ? `، ${toPersianDigits(s.tests)} تست` : ""}`,
+      );
   }
   if (opts.includeSleep && w.sleep.nights)
     lines.push(
       "",
-      `😴 میانگین خواب: ${formatStudyTime(w.sleep.avgMinutes)} · بیداری حدود ${formatClockTime(w.sleep.avgWake)}`
+      `😴 میانگین خواب: ${formatStudyTime(w.sleep.avgMinutes)} · بیداری حدود ${formatClockTime(w.sleep.avgWake)}`,
     );
   lines.push("", `مشاور: ${mentors[0].name}`);
   return lines.join("\n");
@@ -60,8 +81,17 @@ export function CopyWeeklyReport({
   const hydrated = useHydrated();
   const [copied, setCopied] = useState(false);
   const [preview, setPreview] = useState(false);
-  const text = weeklyReportText({ name, checkIns, plan, doneIds, includeSleep });
-  const canShare = hydrated && typeof navigator !== "undefined" && typeof navigator.share === "function";
+  const text = weeklyReportText({
+    name,
+    checkIns,
+    plan,
+    doneIds,
+    includeSleep,
+  });
+  const canShare =
+    hydrated &&
+    typeof navigator !== "undefined" &&
+    typeof navigator.share === "function";
 
   async function copy() {
     try {
@@ -79,15 +109,27 @@ export function CopyWeeklyReport({
     <div>
       <div className="flex flex-wrap items-center gap-2">
         <Button size="md" variant="secondary" onClick={copy}>
-          {copied ? <Check size={14} className="text-mint-500" /> : <ClipboardCopy size={14} />}
+          {copied ? (
+            <Check size={14} className="text-mint-500" />
+          ) : (
+            <ClipboardCopy size={14} />
+          )}
           {copied ? "کپی شد" : "کپی گزارش هفته"}
         </Button>
         {canShare && (
-          <Button size="md" variant="secondary" onClick={() => navigator.share({ text }).catch(() => {})}>
+          <Button
+            size="md"
+            variant="secondary"
+            onClick={() => navigator.share({ text }).catch(() => {})}
+          >
             <Share2 size={14} /> اشتراک
           </Button>
         )}
-        <button type="button" onClick={() => setPreview((v) => !v)} className="text-xs text-blue-600 hover:underline">
+        <button
+          type="button"
+          onClick={() => setPreview((v) => !v)}
+          className="text-xs text-blue-600 hover:underline"
+        >
           {preview ? "بستن متن" : "دیدن متن"}
         </button>
       </div>

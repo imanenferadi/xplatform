@@ -5,7 +5,12 @@ import { Moon, Check, BedDouble } from "lucide-react";
 import { WeeklySummary } from "@/components/app/WeeklySummary";
 import { MistakePattern } from "@/components/app/MistakePattern";
 import { Button } from "@/components/ui/Button";
-import { REPORT_REACTIONS, moodLabels, studentMistakes, type ReportReaction } from "@/lib/mock-data";
+import {
+  REPORT_REACTIONS,
+  moodLabels,
+  studentMistakes,
+  type ReportReaction,
+} from "@/lib/mock-data";
 import { useStudentReports } from "@/lib/checkin-store";
 import { useMyMistakes } from "@/lib/mistakes-store";
 import { giveFeedback, useReportFeedback } from "@/lib/feedback-store";
@@ -14,12 +19,17 @@ import { byRecency } from "@/lib/reports";
 import { cn, toPersianDigits } from "@/lib/utils";
 
 export function StudentWeekly({ studentId }: { studentId: string }) {
-  return <WeeklySummary checkIns={useStudentReports(studentId)} audience="mentor" />;
+  return (
+    <WeeklySummary checkIns={useStudentReports(studentId)} audience="mentor" />
+  );
 }
 
 export function StudentMistakes({ studentId }: { studentId: string }) {
   const mine = useMyMistakes();
-  const entries = studentId === "me" ? mine : studentMistakes.filter((m) => m.studentId === studentId);
+  const entries =
+    studentId === "me"
+      ? mine
+      : studentMistakes.filter((m) => m.studentId === studentId);
   return <MistakePattern entries={entries} audience="mentor" />;
 }
 
@@ -36,12 +46,16 @@ export function StudentNightlyReports({
   const reports = byRecency(useStudentReports(studentId)).slice(0, limit);
   const feedback = useReportFeedback();
 
-  if (reports.length === 0) return <p className="text-sm text-text-500">هنوز گزارش کاری ثبت نشده.</p>;
+  if (reports.length === 0)
+    return <p className="text-sm text-text-500">هنوز گزارش کاری ثبت نشده.</p>;
 
   return (
     <div className="space-y-2">
       {reports.map((c) => (
-        <div key={c.id} className="rounded-x-md border border-border bg-surface-2 p-3">
+        <div
+          key={c.id}
+          className="rounded-x-md border border-border bg-surface-2 p-3"
+        >
           <div className="flex items-start gap-3">
             <Moon size={15} className="mt-0.5 shrink-0 text-blue-600" />
             <div className="min-w-0 flex-1">
@@ -52,7 +66,8 @@ export function StudentNightlyReports({
                   <span className="flex items-center gap-1">
                     <BedDouble size={11} />
                     <span className="tnum">
-                      {toPersianDigits(c.sleep.bed)}–{toPersianDigits(c.sleep.wake)}
+                      {toPersianDigits(c.sleep.bed)}–
+                      {toPersianDigits(c.sleep.wake)}
                     </span>{" "}
                     ({formatStudyTime(sleepMinutes(c.sleep))})
                   </span>
@@ -62,13 +77,19 @@ export function StudentNightlyReports({
                 <ul className="mt-1 space-y-0.5 text-xs text-text-700">
                   {c.entries.map((e, i) => (
                     <li key={i}>
-                      <span className="font-medium text-text-900">{e.subject}</span>
-                      {e.topic && ` — ${e.topic}`} · {formatStudyTime(e.minutes)} · {toPersianDigits(e.tests)} تست
+                      <span className="font-medium text-text-900">
+                        {e.subject}
+                      </span>
+                      {e.topic && ` — ${e.topic}`} ·{" "}
+                      {formatStudyTime(e.minutes)} · {toPersianDigits(e.tests)}{" "}
+                      تست
                     </li>
                   ))}
                 </ul>
               )}
-              {c.note && <p className="mt-1 text-sm text-text-900">«{c.note}»</p>}
+              {c.note && (
+                <p className="mt-1 text-sm text-text-900">«{c.note}»</p>
+              )}
             </div>
           </div>
           {readOnly ? (
@@ -94,7 +115,9 @@ function FeedbackBox({
   existing?: { reaction: ReportReaction; comment: string; at: string };
 }) {
   const [editing, setEditing] = useState(false);
-  const [reaction, setReaction] = useState<ReportReaction | null>(existing?.reaction ?? null);
+  const [reaction, setReaction] = useState<ReportReaction | null>(
+    existing?.reaction ?? null,
+  );
   const [comment, setComment] = useState(existing?.comment ?? "");
 
   if (existing && !editing) {
@@ -102,12 +125,18 @@ function FeedbackBox({
       <div className="mt-2 flex items-start gap-2 border-t border-border pt-2 text-xs">
         <Check size={13} className="mt-0.5 shrink-0 text-mint-500" />
         <div className="flex-1 text-text-700">
-          <span className="text-base leading-none">{REPORT_REACTIONS[existing.reaction].emoji}</span>{" "}
+          <span className="text-base leading-none">
+            {REPORT_REACTIONS[existing.reaction].emoji}
+          </span>{" "}
           {REPORT_REACTIONS[existing.reaction].label}
           {existing.comment && <> — «{existing.comment}»</>}
           <span className="text-text-500"> · {existing.at}</span>
         </div>
-        <button type="button" onClick={() => setEditing(true)} className="shrink-0 text-blue-600 hover:underline">
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="shrink-0 text-blue-600 hover:underline"
+        >
           ویرایش
         </button>
       </div>
@@ -125,7 +154,9 @@ function FeedbackBox({
             aria-pressed={reaction === r}
             className={cn(
               "rounded-x-pill border px-2.5 py-1 text-xs transition-colors",
-              reaction === r ? "border-blue-600 bg-blue-100 text-text-900" : "border-border bg-surface text-text-700"
+              reaction === r
+                ? "border-blue-600 bg-blue-100 text-text-900"
+                : "border-border bg-surface text-text-700",
             )}
           >
             {REPORT_REACTIONS[r].emoji} {REPORT_REACTIONS[r].label}

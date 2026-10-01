@@ -18,14 +18,20 @@ export function ProgressBar({
 
   return (
     <div
-      className={cn("h-2 w-full rounded-x-pill bg-surface-2 overflow-hidden", className)}
+      className={cn(
+        "h-2 w-full rounded-x-pill bg-surface-2 overflow-hidden",
+        className,
+      )}
       role="progressbar"
       aria-valuenow={Math.round(value)}
       aria-valuemin={0}
       aria-valuemax={100}
     >
       <div
-        className={cn("h-full rounded-x-pill transition-all duration-500", toneClass)}
+        className={cn(
+          "h-full rounded-x-pill transition-all duration-500",
+          toneClass,
+        )}
         style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
       />
     </div>
@@ -54,10 +60,14 @@ export function ProgressCircle({
 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (Math.min(100, Math.max(0, value)) / 100) * circumference;
+  const offset =
+    circumference - (Math.min(100, Math.max(0, value)) / 100) * circumference;
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div
+      className="relative inline-flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
       <svg width={size} height={size} className="-rotate-90">
         <circle
           cx={size / 2}
@@ -80,7 +90,9 @@ export function ProgressCircle({
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         {children ?? (
-          <span className="tnum text-xl font-extrabold text-text-900">{toPersianDigits(Math.round(value))}٪</span>
+          <span className="tnum text-xl font-extrabold text-text-900">
+            {toPersianDigits(Math.round(value))}٪
+          </span>
         )}
         {label && <span className="text-xs text-text-500">{label}</span>}
       </div>

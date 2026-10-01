@@ -5,7 +5,7 @@ const columns = [
   {
     title: "محصول",
     links: [
-      { label: "چرا X", href: "/#features" },
+      { label: "چرا ماتریس", href: "/#features" },
       { label: "تعرفه‌ها", href: "/#pricing" },
       { label: "مشاوران", href: "/mentors" },
     ],
@@ -62,7 +62,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-border py-5 text-center text-xs text-text-500">
-        © ۱۴۰۵ تمامی حقوق برای X محفوظ است.
+        © ۱۴۰۵ تمامی حقوق برای ماتریس محفوظ است.
       </div>
     </footer>
   );

@@ -147,7 +147,7 @@ function downloadCard() {
   g.fillStyle = "#ffffff";
   g.textAlign = "right";
   g.font = `bold 40px ${font}`;
-  g.fillText("X", W - 60, 90);
+  g.fillText("Matriss", W - 60, 90);
   g.textAlign = "center";
   g.font = `800 180px ${font}`;
   g.fillText(toPersianDigits(levelProfile.score), W / 2, 380);
@@ -181,7 +181,7 @@ function ShareModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="aspect-[4/5] rounded-x-lg bg-navy-900 p-5 text-white">
-          <span className="text-sm font-bold">X</span>
+          <span className="text-sm font-bold">Matriss</span>
           <div className="mt-6 text-center">
             <div className="tnum text-5xl font-extrabold">{toPersianDigits(levelProfile.score)}</div>
             <div className="mt-1 text-sm text-white/70">{levelProfile.label}</div>

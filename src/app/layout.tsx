@@ -13,8 +13,8 @@ const vazirmatn = Vazirmatn({
 
 export const metadata: Metadata = {
   title: {
-    default: "X — همراه هوشمند کنکور",
-    template: "%s | X",
+    default: "Matriss — همراه هوشمند کنکور",
+    template: "%s | Matriss",
   },
   description:
     "اول بفهم کجایی، بعد برس به کسی که این مسیر رو رفته. تعیین سطح هوشمند، تطبیق با مشاور رتبه‌برتر، و ابزارهای مطالعه در یک پلتفرم.",
@@ -42,12 +42,21 @@ const themeInitScript = `
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fa" dir="rtl" className={`${vazirmatn.variable} h-full`} suppressHydrationWarning>
+    <html
+      lang="fa"
+      dir="rtl"
+      className={`${vazirmatn.variable} h-full`}
+      suppressHydrationWarning
+    >
       <body className="min-h-full flex flex-col bg-background text-text-700 antialiased">
         {/* next/script, not a raw <script>: React warns about raw script tags
             rendered on the client; beforeInteractive still runs before
             hydration, so there's no light/dark flash. */}
-        <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: themeInitScript }}
+        />
         <ViewAsBoot />
         {children}
         <Toaster />

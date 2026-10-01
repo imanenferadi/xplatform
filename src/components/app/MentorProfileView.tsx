@@ -2,9 +2,16 @@ import { BadgeCheck, Star, PlayCircle, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { ProgressBar } from "@/components/ui/Progress";
-import { DEFAULT_AVAILABILITY, type Mentor, type SessionFeedback } from "@/lib/mock-data";
+import {
+  DEFAULT_AVAILABILITY,
+  type Mentor,
+  type SessionFeedback,
+} from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
-import { BookOrWaitlist, CapacityNote } from "@/components/app/MentorAvailability";
+import {
+  BookOrWaitlist,
+  CapacityNote,
+} from "@/components/app/MentorAvailability";
 
 // Single source for how a mentor profile looks: the public page, the
 // applicant's own preview while registering, and the admin's review
@@ -19,13 +26,16 @@ export function MentorProfileView({
   preview?: boolean;
 }) {
   const isNew = mentor.reviewCount === 0;
-  const availability = mentor.availability?.length ? mentor.availability : DEFAULT_AVAILABILITY;
+  const availability = mentor.availability?.length
+    ? mentor.availability
+    : DEFAULT_AVAILABILITY;
 
   return (
     <div className="bg-background pb-16">
       {preview && (
         <div className="flex items-center justify-center gap-1.5 bg-blue-100 px-4 py-2 text-xs text-blue-600">
-          <Eye size={13} /> پیش‌نمایش — این پروفایل بعد از تأیید تیم فنی دقیقاً همین‌طور روی سایت دیده می‌شه
+          <Eye size={13} /> پیش‌نمایش — این پروفایل بعد از تأیید تیم فنی دقیقاً
+          همین‌طور روی سایت دیده می‌شه
         </div>
       )}
 
@@ -56,20 +66,25 @@ export function MentorProfileView({
             ) : (
               <>
                 <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                <span className="tnum">{toPersianDigits(mentor.rating)}</span> ({toPersianDigits(mentor.reviewCount)} نظر)
+                <span className="tnum">{toPersianDigits(mentor.rating)}</span> (
+                {toPersianDigits(mentor.reviewCount)} نظر)
               </>
             )}
             {" · "}
             <CapacityNote mentor={mentor} />
           </div>
 
-          {!preview && <BookOrWaitlist mentor={mentor} className="mt-2 w-full max-w-xs" />}
+          {!preview && (
+            <BookOrWaitlist mentor={mentor} className="mt-2 w-full max-w-xs" />
+          )}
         </div>
       </div>
 
       <div className="mx-auto mt-8 max-w-3xl space-y-6 px-4">
         <Section title="درباره من">
-          <p className="whitespace-pre-line text-sm leading-[1.9] text-text-700">{mentor.story}</p>
+          <p className="whitespace-pre-line text-sm leading-[1.9] text-text-700">
+            {mentor.story}
+          </p>
         </Section>
 
         <Section title="ویدیوی معرفی">
@@ -84,7 +99,9 @@ export function MentorProfileView({
               <div key={s.subject}>
                 <div className="mb-1.5 flex items-center justify-between text-sm">
                   <span className="font-medium text-text-700">{s.subject}</span>
-                  <span className="tnum text-text-500">{toPersianDigits(s.score)}٪</span>
+                  <span className="tnum text-text-500">
+                    {toPersianDigits(s.score)}٪
+                  </span>
                 </div>
                 <ProgressBar value={s.score} tone="success" />
               </div>
@@ -96,21 +113,34 @@ export function MentorProfileView({
           <Section title="نظر دانش‌آموزها">
             <div className="space-y-4">
               {reviews.map((r) => (
-                <div key={r.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
+                <div
+                  key={r.id}
+                  className="border-b border-border pb-4 last:border-0 last:pb-0"
+                >
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="text-sm font-medium text-text-900">{r.studentName}</span>
+                    <span className="text-sm font-medium text-text-900">
+                      {r.studentName}
+                    </span>
                     <div className="flex items-center gap-0.5">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
                           size={13}
-                          className={i < r.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}
+                          className={
+                            i < r.rating
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-border"
+                          }
                         />
                       ))}
                     </div>
                   </div>
-                  <p className="text-sm leading-[1.8] text-text-700">{r.comment}</p>
-                  <div className="tnum mt-1 text-xs text-text-500">{r.date}</div>
+                  <p className="text-sm leading-[1.8] text-text-700">
+                    {r.comment}
+                  </p>
+                  <div className="tnum mt-1 text-xs text-text-500">
+                    {r.date}
+                  </div>
                 </div>
               ))}
             </div>
@@ -135,7 +165,10 @@ export function MentorProfileView({
             <p className="text-sm text-text-500">
               قبل از هر تصمیمی، یک جلسه‌ی ۲۰ دقیقه‌ای رایگان با هم داشته باشید.
             </p>
-            <BookOrWaitlist mentor={mentor} className="mx-auto mt-4 w-full max-w-xs" />
+            <BookOrWaitlist
+              mentor={mentor}
+              className="mx-auto mt-4 w-full max-w-xs"
+            />
           </div>
         )}
       </div>
@@ -143,7 +176,13 @@ export function MentorProfileView({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="rounded-x-lg border border-border bg-surface p-5">
       <h2 className="mb-3 text-sm font-bold text-text-900">{title}</h2>

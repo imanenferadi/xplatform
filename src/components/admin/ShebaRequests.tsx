@@ -28,7 +28,9 @@ export const SHEBA_REJECT_REASONS = [
 export function ShebaRequests() {
   const requests = useShebaRequests();
   const pending = requests.filter((r) => r.status === "pending");
-  const recent = requests.filter((r) => r.status === "approved" || r.status === "rejected").slice(0, 3);
+  const recent = requests
+    .filter((r) => r.status === "approved" || r.status === "rejected")
+    .slice(0, 3);
   if (pending.length === 0 && recent.length === 0) return null;
 
   return (
@@ -36,7 +38,11 @@ export function ShebaRequests() {
       <CardContent>
         <h2 className="mb-3 flex items-center gap-1.5 text-sm font-bold text-text-900">
           <Landmark size={15} className="text-blue-600" /> تغییر شبا
-          {pending.length > 0 && <Badge tone="warning">{toPersianDigits(pending.length)} منتظر</Badge>}
+          {pending.length > 0 && (
+            <Badge tone="warning">
+              {toPersianDigits(pending.length)} منتظر
+            </Badge>
+          )}
         </h2>
         <div className="space-y-3">
           {pending.map((r) => (
@@ -45,12 +51,18 @@ export function ShebaRequests() {
         </div>
         {recent.length > 0 && (
           <ul
-            className={cn("space-y-1 text-xs text-text-500", pending.length > 0 && "mt-3 border-t border-border pt-3")}
+            className={cn(
+              "space-y-1 text-xs text-text-500",
+              pending.length > 0 && "mt-3 border-t border-border pt-3",
+            )}
           >
             {recent.map((r) => (
               <li key={r.id}>
                 {r.mentorName}: <span dir="ltr">{maskIban(r.newSheba)}</span> —{" "}
-                {r.status === "approved" ? "تأیید شد" : `رد شد («${r.decisionNote}»)`} · {r.decidedBy} · {r.decidedAt}
+                {r.status === "approved"
+                  ? "تأیید شد"
+                  : `رد شد («${r.decisionNote}»)`}{" "}
+                · {r.decidedBy} · {r.decidedAt}
               </li>
             ))}
           </ul>
@@ -69,14 +81,16 @@ function PendingSheba({ r }: { r: ShebaRequest }) {
   const match = holderMatches(r.holder, r.mentorName);
 
   function decide(approve: boolean) {
-    const text = approve ? note : [reason, note.trim()].filter(Boolean).join(" — ");
+    const text = approve
+      ? note
+      : [reason, note.trim()].filter(Boolean).join(" — ");
     // Date.now() lives in the handler, not in render.
     const err = decideSheba(r.id, approve, text, Date.now());
     if (err) return setError(err);
     toast(
       approve
         ? `شبای ${r.mentorName} تأیید شد — تسویه‌ی بعدی ${toPersianDigits(SHEBA_HOLD_HOURS)} ساعت صبر می‌کنه`
-        : "درخواست رد شد"
+        : "درخواست رد شد",
     );
   }
 
@@ -114,15 +128,31 @@ function PendingSheba({ r }: { r: ShebaRequest }) {
         {mode === null ? (
           <div className="mt-3 space-y-2">
             <label className="flex items-start gap-2 text-xs text-text-700">
-              <input type="checkbox" checked={verified} onChange={(e) => setVerified(e.target.checked)} />
-              مالکیت این حساب رو با استعلام بانکی تأیید کردم (نام صاحب حساب در استعلام = {r.mentorName}).
-              <span className="text-text-500"> در نسخه‌ی نمایشی استعلام دستیه.</span>
+              <input
+                type="checkbox"
+                checked={verified}
+                onChange={(e) => setVerified(e.target.checked)}
+              />
+              مالکیت این حساب رو با استعلام بانکی تأیید کردم (نام صاحب حساب در
+              استعلام = {r.mentorName}).
+              <span className="text-text-500">
+                {" "}
+                در نسخه‌ی نمایشی استعلام دستیه.
+              </span>
             </label>
             <div className="flex flex-wrap gap-2">
-              <Button size="md" disabled={!verified} onClick={() => (match ? decide(true) : setMode("approve"))}>
+              <Button
+                size="md"
+                disabled={!verified}
+                onClick={() => (match ? decide(true) : setMode("approve"))}
+              >
                 <Check size={14} /> تأیید تغییر
               </Button>
-              <Button size="md" variant="secondary" onClick={() => setMode("reject")}>
+              <Button
+                size="md"
+                variant="secondary"
+                onClick={() => setMode("reject")}
+              >
                 <X size={14} /> رد
               </Button>
             </div>
@@ -130,7 +160,8 @@ function PendingSheba({ r }: { r: ShebaRequest }) {
         ) : mode === "approve" ? (
           <div className="mt-3 space-y-2">
             <p className="flex items-center gap-1 text-xs text-red-500">
-              <AlertTriangle size={13} /> اسم صاحب حساب با مشاور یکی نیست — برای تأیید، دلیلش رو بنویس.
+              <AlertTriangle size={13} /> اسم صاحب حساب با مشاور یکی نیست — برای
+              تأیید، دلیلش رو بنویس.
             </p>
             <input
               value={note}
@@ -151,7 +182,11 @@ function PendingSheba({ r }: { r: ShebaRequest }) {
               <Button size="md" onClick={() => decide(true)}>
                 تأیید با این دلیل
               </Button>
-              <button type="button" onClick={() => setMode(null)} className="text-xs text-text-500">
+              <button
+                type="button"
+                onClick={() => setMode(null)}
+                className="text-xs text-text-500"
+              >
                 انصراف
               </button>
             </div>
@@ -170,7 +205,9 @@ function PendingSheba({ r }: { r: ShebaRequest }) {
                   }}
                   className={cn(
                     "rounded-x-pill border px-3 py-1 text-xs",
-                    reason === x ? "border-blue-600 bg-blue-100 text-text-900" : "border-border text-text-700"
+                    reason === x
+                      ? "border-blue-600 bg-blue-100 text-text-900"
+                      : "border-border text-text-700",
                   )}
                 >
                   {x}
@@ -196,7 +233,11 @@ function PendingSheba({ r }: { r: ShebaRequest }) {
               <Button size="md" onClick={() => decide(false)}>
                 رد درخواست
               </Button>
-              <button type="button" onClick={() => setMode(null)} className="text-xs text-text-500">
+              <button
+                type="button"
+                onClick={() => setMode(null)}
+                className="text-xs text-text-500"
+              >
                 انصراف
               </button>
             </div>

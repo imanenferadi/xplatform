@@ -13,7 +13,11 @@ const STATUS_MESSAGE = {
 
 // Sits inside a chat composer (the form must be `relative`). Idle: a mic
 // button. Recording: a bar covering the composer with timer, cancel, send.
-export function VoiceRecordButton({ onRecorded }: { onRecorded: (clip: VoiceClip) => void }) {
+export function VoiceRecordButton({
+  onRecorded,
+}: {
+  onRecorded: (clip: VoiceClip) => void;
+}) {
   const { status, elapsed, start, stop, cancel } = useVoiceRecorder(onRecorded);
 
   if (status === "recording") {
@@ -28,7 +32,9 @@ export function VoiceRecordButton({ onRecorded }: { onRecorded: (clip: VoiceClip
           <Trash2 size={18} />
         </button>
         <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
-        <span className="tnum text-sm text-text-900">{formatClock(elapsed)}</span>
+        <span className="tnum text-sm text-text-900">
+          {formatClock(elapsed)}
+        </span>
         <span className="flex-1 text-xs text-text-500">در حال ضبط...</span>
         <button
           type="button"
@@ -53,13 +59,21 @@ export function VoiceRecordButton({ onRecorded }: { onRecorded: (clip: VoiceClip
         <Mic size={18} />
       </button>
       {(status === "denied" || status === "unsupported") && (
-        <p className="absolute -top-7 right-0 text-xs text-red-500">{STATUS_MESSAGE[status]}</p>
+        <p className="absolute -top-7 right-0 text-xs text-red-500">
+          {STATUS_MESSAGE[status]}
+        </p>
       )}
     </>
   );
 }
 
-export function VoiceBubble({ clip, mine }: { clip: VoiceClip; mine: boolean }) {
+export function VoiceBubble({
+  clip,
+  mine,
+}: {
+  clip: VoiceClip;
+  mine: boolean;
+}) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -68,7 +82,10 @@ export function VoiceBubble({ clip, mine }: { clip: VoiceClip; mine: boolean }) 
     const audio = audioRef.current;
     if (!audio) return;
     if (audio.paused) {
-      audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+      audio
+        .play()
+        .then(() => setPlaying(true))
+        .catch(() => setPlaying(false));
     } else {
       audio.pause();
       setPlaying(false);
@@ -82,19 +99,31 @@ export function VoiceBubble({ clip, mine }: { clip: VoiceClip; mine: boolean }) 
         onClick={toggle}
         className={cn(
           "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-          mine ? "bg-white/15 text-white" : "bg-blue-100 text-blue-600"
+          mine ? "bg-white/15 text-white" : "bg-blue-100 text-blue-600",
         )}
         aria-label={playing ? "توقف" : "پخش پیام صوتی"}
       >
         {playing ? <Pause size={14} /> : <Play size={14} />}
       </button>
-      <div className={cn("h-1 flex-1 overflow-hidden rounded-x-pill", mine ? "bg-white/20" : "bg-border")}>
+      <div
+        className={cn(
+          "h-1 flex-1 overflow-hidden rounded-x-pill",
+          mine ? "bg-white/20" : "bg-border",
+        )}
+      >
         <div
-          className={cn("h-full rounded-x-pill", mine ? "bg-white" : "bg-blue-600")}
+          className={cn(
+            "h-full rounded-x-pill",
+            mine ? "bg-white" : "bg-blue-600",
+          )}
           style={{ width: `${progress * 100}%` }}
         />
       </div>
-      <span className={cn("tnum text-xs", mine ? "text-white/70" : "text-text-500")}>{formatClock(clip.seconds)}</span>
+      <span
+        className={cn("tnum text-xs", mine ? "text-white/70" : "text-text-500")}
+      >
+        {formatClock(clip.seconds)}
+      </span>
       <audio
         ref={audioRef}
         src={clip.url}
@@ -103,7 +132,10 @@ export function VoiceBubble({ clip, mine }: { clip: VoiceClip; mine: boolean }) 
           const a = e.currentTarget;
           // MediaRecorder webm files often report duration=Infinity; fall back
           // to the length we measured while recording.
-          const duration = Number.isFinite(a.duration) && a.duration > 0 ? a.duration : clip.seconds;
+          const duration =
+            Number.isFinite(a.duration) && a.duration > 0
+              ? a.duration
+              : clip.seconds;
           setProgress(Math.min(1, a.currentTime / duration));
         }}
         onEnded={() => {

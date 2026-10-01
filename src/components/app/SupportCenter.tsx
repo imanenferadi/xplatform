@@ -3,7 +3,17 @@
 import { FormActions } from "@/components/ui/Form";
 import { useState } from "react";
 import Link from "next/link";
-import { LifeBuoy, Plus, ArrowRight, Paperclip, Send, Star, CheckCircle2, ChevronLeft, HelpCircle } from "lucide-react";
+import {
+  LifeBuoy,
+  Plus,
+  ArrowRight,
+  Paperclip,
+  Send,
+  Star,
+  CheckCircle2,
+  ChevronLeft,
+  HelpCircle,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -17,10 +27,20 @@ import {
   type TicketStatus,
 } from "@/lib/mock-data";
 import { FAQ } from "@/lib/faq";
-import { adminUpdate, createTicket, markReadByUser, rateTicket, useMyTickets, userReply } from "@/lib/ticket-store";
+import {
+  adminUpdate,
+  createTicket,
+  markReadByUser,
+  rateTicket,
+  useMyTickets,
+  userReply,
+} from "@/lib/ticket-store";
 import { cn, toPersianDigits } from "@/lib/utils";
 
-const STATUS_TONE: Record<TicketStatus, "info" | "warning" | "success" | "neutral"> = {
+const STATUS_TONE: Record<
+  TicketStatus,
+  "info" | "warning" | "success" | "neutral"
+> = {
   new: "info",
   in_progress: "warning",
   answered: "success",
@@ -46,14 +66,22 @@ const TEAM: Record<string, string> = {
 };
 function handledBy(t: Ticket): string | null {
   const open = t.referrals?.filter((r) => r.status === "open") ?? [];
-  return open.length ? `در حال بررسی توسط ${open.map((r) => TEAM[r.toRole]).join(" و ")}` : null;
+  return open.length
+    ? `در حال بررسی توسط ${open.map((r) => TEAM[r.toRole]).join(" و ")}`
+    : null;
 }
 
 // The requester's side of support tickets — same component for student,
 // parent and mentor; only who's asking changes.
-export function SupportCenter({ requester }: { requester: { name: string; role: TicketRole; userId?: string } }) {
+export function SupportCenter({
+  requester,
+}: {
+  requester: { name: string; role: TicketRole; userId?: string };
+}) {
   const tickets = useMyTickets(requester.name);
-  const [view, setView] = useState<{ kind: "list" } | { kind: "new" } | { kind: "ticket"; id: string }>({
+  const [view, setView] = useState<
+    { kind: "list" } | { kind: "new" } | { kind: "ticket"; id: string }
+  >({
     kind: "list",
   });
   const [justCreated, setJustCreated] = useState("");
@@ -63,7 +91,8 @@ export function SupportCenter({ requester }: { requester: { name: string; role: 
     setView({ kind: "ticket", id });
   }
 
-  const current = view.kind === "ticket" ? tickets.find((t) => t.id === view.id) : undefined;
+  const current =
+    view.kind === "ticket" ? tickets.find((t) => t.id === view.id) : undefined;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 md:py-10">
@@ -78,40 +107,65 @@ export function SupportCenter({ requester }: { requester: { name: string; role: 
           </Button>
         )}
       </div>
-      <p className="mb-6 text-sm text-text-500">{INTRO[requester.role]} — اینجا ثبت کن و همین‌جا جواب بگیر.</p>
+      <p className="mb-6 text-sm text-text-500">
+        {INTRO[requester.role]} — اینجا ثبت کن و همین‌جا جواب بگیر.
+      </p>
 
       {view.kind === "list" && (
         <>
           {justCreated && (
             <div className="mb-4 flex items-center gap-2 rounded-x-md border border-mint-500/30 bg-mint-500/10 p-3 text-sm text-text-900">
               <CheckCircle2 size={15} className="text-mint-500" />
-              تیکت <span className="tnum font-medium">{justCreated}</span> ثبت شد. جواب رو همین‌جا می‌بینی.
+              تیکت <span className="tnum font-medium">{justCreated}</span> ثبت
+              شد. جواب رو همین‌جا می‌بینی.
             </div>
           )}
           <div className="space-y-2">
             {tickets.map((t) => (
-              <button key={t.id} type="button" onClick={() => open(t.id)} className="block w-full text-right">
-                <Card interactive className={cn(t.unreadForUser && "border-blue-600/40")}>
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => open(t.id)}
+                className="block w-full text-right"
+              >
+                <Card
+                  interactive
+                  className={cn(t.unreadForUser && "border-blue-600/40")}
+                >
                   <CardContent className="flex items-center gap-3 py-3.5">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-sm font-medium text-text-900">{t.subject}</span>
-                        {t.unreadForUser && <Badge tone="info">پاسخ جدید</Badge>}
+                        <span className="text-sm font-medium text-text-900">
+                          {t.subject}
+                        </span>
+                        {t.unreadForUser && (
+                          <Badge tone="info">پاسخ جدید</Badge>
+                        )}
                       </div>
                       <div className="mt-0.5 text-xs text-text-500">
-                        <span className="tnum">{t.id}</span> · {t.category} · {t.createdAt}
+                        <span className="tnum">{t.id}</span> · {t.category} ·{" "}
+                        {t.createdAt}
                         {handledBy(t) && ` · ${handledBy(t)}`}
                       </div>
                     </div>
-                    <Badge tone={STATUS_TONE[t.status]}>{TICKET_STATUS[t.status].userLabel}</Badge>
+                    <Badge tone={STATUS_TONE[t.status]}>
+                      {TICKET_STATUS[t.status].userLabel}
+                    </Badge>
                     <ChevronLeft size={16} className="shrink-0 text-text-500" />
                   </CardContent>
                 </Card>
               </button>
             ))}
-            {tickets.length === 0 && <p className="py-10 text-center text-sm text-text-500">هنوز تیکتی ثبت نکردی.</p>}
+            {tickets.length === 0 && (
+              <p className="py-10 text-center text-sm text-text-500">
+                هنوز تیکتی ثبت نکردی.
+              </p>
+            )}
           </div>
-          <Link href="/help" className="mt-6 flex items-center gap-2 text-xs text-text-500 hover:text-text-900">
+          <Link
+            href="/help"
+            className="mt-6 flex items-center gap-2 text-xs text-text-500 hover:text-text-900"
+          >
             <HelpCircle size={14} /> قبل از تیکت، راهنما و سؤالات متداول رو ببین
           </Link>
         </>
@@ -129,7 +183,11 @@ export function SupportCenter({ requester }: { requester: { name: string; role: 
       )}
 
       {view.kind === "ticket" && current && (
-        <TicketThread ticket={current} requesterName={requester.name} onBack={() => setView({ kind: "list" })} />
+        <TicketThread
+          ticket={current}
+          requesterName={requester.name}
+          onBack={() => setView({ kind: "list" })}
+        />
       )}
     </div>
   );
@@ -148,17 +206,25 @@ function NewTicket({
   const [subject, setSubject] = useState("");
   const [text, setText] = useState("");
   const [attachment, setAttachment] = useState("");
-  const [errors, setErrors] = useState<{ category?: string; subject?: string; text?: string }>({});
+  const [errors, setErrors] = useState<{
+    category?: string;
+    subject?: string;
+    text?: string;
+  }>({});
 
   const faqSection = category && FAQ_FOR_CATEGORY[category];
-  const suggestions = faqSection ? (FAQ.find((f) => f.title === faqSection)?.items ?? []) : [];
+  const suggestions = faqSection
+    ? (FAQ.find((f) => f.title === faqSection)?.items ?? [])
+    : [];
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const next: typeof errors = {};
     if (!category) next.category = "دسته رو انتخاب کن.";
-    if (subject.trim().length < 5) next.subject = "یه موضوع کوتاه بنویس (حداقل ۵ حرف).";
-    if (text.trim().length < 15) next.text = "مشکل رو کامل‌تر توضیح بده (حداقل ۱۵ حرف) تا سریع‌تر حل بشه.";
+    if (subject.trim().length < 5)
+      next.subject = "یه موضوع کوتاه بنویس (حداقل ۵ حرف).";
+    if (text.trim().length < 15)
+      next.text = "مشکل رو کامل‌تر توضیح بده (حداقل ۱۵ حرف) تا سریع‌تر حل بشه.";
     setErrors(next);
     if (Object.keys(next).length > 0 || !category) return;
     onCreated(
@@ -168,7 +234,7 @@ function NewTicket({
         text: text.trim(),
         attachment: attachment || undefined,
         requester,
-      })
+      }),
     );
   }
 
@@ -184,7 +250,9 @@ function NewTicket({
         </button>
         <form onSubmit={submit} noValidate className="space-y-4">
           <div>
-            <div className="mb-2 text-sm font-medium text-text-700">درباره‌ی چیه؟</div>
+            <div className="mb-2 text-sm font-medium text-text-700">
+              درباره‌ی چیه؟
+            </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {TICKET_CATEGORIES.map((c) => (
                 <button
@@ -198,7 +266,7 @@ function NewTicket({
                     "rounded-x-md border-2 px-3 py-2.5 text-sm transition-colors",
                     category === c
                       ? "border-blue-600 bg-blue-100 text-text-900"
-                      : "border-border bg-surface text-text-700"
+                      : "border-border bg-surface text-text-700",
                   )}
                 >
                   {c}
@@ -214,10 +282,14 @@ function NewTicket({
 
           {suggestions.length > 0 && (
             <div className="rounded-x-md bg-surface-2 p-3">
-              <div className="mb-1.5 text-xs font-medium text-text-900">شاید جوابت اینجا باشه:</div>
+              <div className="mb-1.5 text-xs font-medium text-text-900">
+                شاید جوابت اینجا باشه:
+              </div>
               {suggestions.map((s) => (
                 <details key={s.q} className="py-1 text-xs">
-                  <summary className="cursor-pointer text-blue-600 marker:content-none">{s.q}</summary>
+                  <summary className="cursor-pointer text-blue-600 marker:content-none">
+                    {s.q}
+                  </summary>
                   <p className="mt-1 leading-[1.8] text-text-700">{s.a}</p>
                 </details>
               ))}
@@ -225,7 +297,10 @@ function NewTicket({
           )}
 
           <div>
-            <label htmlFor="ticket-subject" className="mb-1.5 block text-sm font-medium text-text-700">
+            <label
+              htmlFor="ticket-subject"
+              className="mb-1.5 block text-sm font-medium text-text-700"
+            >
               موضوع
             </label>
             <input
@@ -246,7 +321,10 @@ function NewTicket({
           </div>
 
           <div>
-            <label htmlFor="ticket-text" className="mb-1.5 block text-sm font-medium text-text-700">
+            <label
+              htmlFor="ticket-text"
+              className="mb-1.5 block text-sm font-medium text-text-700"
+            >
               توضیح
             </label>
             <textarea
@@ -269,7 +347,9 @@ function NewTicket({
 
           <label className="flex cursor-pointer items-center gap-2 text-xs text-text-500 hover:text-text-900">
             <Paperclip size={14} />
-            {attachment ? `پیوست: ${attachment}` : "پیوست عکس یا فایل (اختیاری)"}
+            {attachment
+              ? `پیوست: ${attachment}`
+              : "پیوست عکس یا فایل (اختیاری)"}
             <input
               type="file"
               className="hidden"
@@ -282,7 +362,12 @@ function NewTicket({
             <Button type="submit" size="md">
               <Send size={14} /> ثبت تیکت
             </Button>
-            <Button type="button" size="md" variant="secondary" onClick={onCancel}>
+            <Button
+              type="button"
+              size="md"
+              variant="secondary"
+              onClick={onCancel}
+            >
               انصراف
             </Button>
           </FormActions>
@@ -319,24 +404,42 @@ function TicketThread({
           <div>
             <h2 className="font-bold text-text-900">{t.subject}</h2>
             <div className="mt-0.5 text-xs text-text-500">
-              <span className="tnum">{t.id}</span> · {t.category} · {t.createdAt}
+              <span className="tnum">{t.id}</span> · {t.category} ·{" "}
+              {t.createdAt}
             </div>
-            {handledBy(t) && <div className="mt-1 text-xs font-medium text-blue-600">{handledBy(t)}</div>}
+            {handledBy(t) && (
+              <div className="mt-1 text-xs font-medium text-blue-600">
+                {handledBy(t)}
+              </div>
+            )}
           </div>
-          <Badge tone={STATUS_TONE[t.status]}>{TICKET_STATUS[t.status].userLabel}</Badge>
+          <Badge tone={STATUS_TONE[t.status]}>
+            {TICKET_STATUS[t.status].userLabel}
+          </Badge>
         </div>
 
         <div className="space-y-3">
           {visible.map((m) => (
-            <div key={m.id} className={cn("flex", m.from === "user" ? "justify-start" : "justify-end")}>
+            <div
+              key={m.id}
+              className={cn(
+                "flex",
+                m.from === "user" ? "justify-start" : "justify-end",
+              )}
+            >
               <div
                 className={cn(
                   "max-w-[85%] rounded-x-lg px-4 py-2.5 text-sm leading-[1.8]",
-                  m.from === "user" ? "bg-navy-900 text-white" : "border border-border bg-surface-2 text-text-700"
+                  m.from === "user"
+                    ? "bg-navy-900 text-white"
+                    : "border border-border bg-surface-2 text-text-700",
                 )}
               >
                 <div
-                  className={cn("mb-0.5 text-xs font-medium", m.from === "user" ? "text-white/70" : "text-blue-600")}
+                  className={cn(
+                    "mb-0.5 text-xs font-medium",
+                    m.from === "user" ? "text-white/70" : "text-blue-600",
+                  )}
                 >
                   {m.from === "user" ? "شما" : `${m.author} — پشتیبانی`}
                 </div>
@@ -345,13 +448,18 @@ function TicketThread({
                   <div
                     className={cn(
                       "mt-1 flex items-center gap-1 text-xs",
-                      m.from === "user" ? "text-white/70" : "text-text-500"
+                      m.from === "user" ? "text-white/70" : "text-text-500",
                     )}
                   >
                     <Paperclip size={11} /> {m.attachment}
                   </div>
                 )}
-                <div className={cn("tnum mt-1 text-xs", m.from === "user" ? "text-white/60" : "text-text-500")}>
+                <div
+                  className={cn(
+                    "tnum mt-1 text-xs",
+                    m.from === "user" ? "text-white/60" : "text-text-500",
+                  )}
+                >
                   {m.time}
                 </div>
               </div>
@@ -364,15 +472,27 @@ function TicketThread({
             <p className="text-sm text-text-700">این تیکت بسته شده.</p>
             {t.rating ? (
               <p className="mt-1 text-xs text-text-500">
-                امتیازت: <span className="tnum">{toPersianDigits(t.rating)}</span> از ۵ — ممنون!
+                امتیازت:{" "}
+                <span className="tnum">{toPersianDigits(t.rating)}</span> از ۵ —
+                ممنون!
               </p>
             ) : (
               <div className="mt-2">
-                <p className="text-xs text-text-500">از پاسخ پشتیبانی راضی بودی؟</p>
+                <p className="text-xs text-text-500">
+                  از پاسخ پشتیبانی راضی بودی؟
+                </p>
                 <div className="mt-1.5 flex justify-center gap-1">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <button key={n} type="button" onClick={() => rateTicket(t.id, n)} aria-label={`${n} ستاره`}>
-                      <Star size={24} className="text-border hover:fill-yellow-400 hover:text-yellow-400" />
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => rateTicket(t.id, n)}
+                      aria-label={`${n} ستاره`}
+                    >
+                      <Star
+                        size={24}
+                        className="text-border hover:fill-yellow-400 hover:text-yellow-400"
+                      />
                     </button>
                   ))}
                 </div>
@@ -402,7 +522,9 @@ function TicketThread({
               </Button>
               <button
                 type="button"
-                onClick={() => adminUpdate(t.id, { status: "closed" }, requesterName)}
+                onClick={() =>
+                  adminUpdate(t.id, { status: "closed" }, requesterName)
+                }
                 className="text-xs text-text-500 hover:text-text-900"
               >
                 مشکلم حل شد، تیکت رو ببند

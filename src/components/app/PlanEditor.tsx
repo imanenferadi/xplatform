@@ -68,11 +68,22 @@ const fieldClass =
 // The mentor writes the whole week by hand — no system suggestions. The
 // editor only does arithmetic: hours per day vs the student's real free
 // time, the week's total, and which books the student has per subject.
-export function PlanEditor({ studentId, studentName }: { studentId: string; studentName: string }) {
+export function PlanEditor({
+  studentId,
+  studentName,
+}: {
+  studentId: string;
+  studentName: string;
+}) {
   const plans = useStudentPlans(studentId);
-  const [week, setWeek] = useState<PlanWeek>(plans.next.published ? "this" : "next");
+  const [week, setWeek] = useState<PlanWeek>(
+    plans.next.published ? "this" : "next",
+  );
   const [editing, setEditing] = useState<Editing>(null);
-  const [pendingReplace, setPendingReplace] = useState<{ label: string; days: PlanDays } | null>(null);
+  const [pendingReplace, setPendingReplace] = useState<{
+    label: string;
+    days: PlanDays;
+  } | null>(null);
   const [tplName, setTplName] = useState<string | null>(null);
   const [tplError, setTplError] = useState("");
   const [sent, setSent] = useState<PlanWeek | null>(null);
@@ -90,8 +101,14 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
   const changes = draftChanges(p);
   const total = weekHours(copy.days);
   const hasSchedule = schedule.length > 0;
-  const over = WEEK_DAYS.filter((d) => hasSchedule && dayHours(copy.days[d] ?? []) > freeHours(schedule, d));
-  const sessionSlot = session ? (week === "next" ? (session.nextSlot ?? session.slot) : session.slot) : null;
+  const over = WEEK_DAYS.filter(
+    (d) => hasSchedule && dayHours(copy.days[d] ?? []) > freeHours(schedule, d),
+  );
+  const sessionSlot = session
+    ? week === "next"
+      ? (session.nextSlot ?? session.slot)
+      : session.slot
+    : null;
 
   function switchWeek(w: PlanWeek) {
     setWeek(w);
@@ -110,7 +127,8 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
   function saveAsTemplate() {
     const name = (tplName ?? "").trim();
     if (!name) return setTplError("یه اسم براش بنویس.");
-    if (templates.some((t) => t.name === name)) return setTplError("قالبی با همین اسم داری.");
+    if (templates.some((t) => t.name === name))
+      return setTplError("قالبی با همین اسم داری.");
     if (total === 0) return setTplError("برنامه‌ی خالی رو نمی‌شه قالب کرد.");
     saveTemplate(name, copy.days);
     setTplName(null);
@@ -140,7 +158,9 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
               onClick={() => switchWeek(w)}
               className={cn(
                 "flex items-center gap-1.5 rounded-x-pill border px-3.5 py-1.5 text-xs font-medium transition-colors",
-                week === w ? "border-blue-600 bg-blue-100 text-text-900" : "border-border bg-surface text-text-700"
+                week === w
+                  ? "border-blue-600 bg-blue-100 text-text-900"
+                  : "border-border bg-surface text-text-700",
               )}
             >
               {w === "this" ? "این هفته" : "هفته‌ی بعد"}
@@ -149,7 +169,9 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
               ) : wp.published ? (
                 <Check size={12} className="text-mint-500" />
               ) : (
-                <span className="text-xs font-normal text-orange-500">نوشته نشده</span>
+                <span className="text-xs font-normal text-orange-500">
+                  نوشته نشده
+                </span>
               )}
             </button>
           );
@@ -163,25 +185,39 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
             {studentName} نسخه‌ی ارسال‌شده‌ی {p.published.sentAt} رو داره
           </>
         ) : week === "next" ? (
-          <span className="text-orange-500">مهلت ارسال: {PLAN_DEADLINE_DAY} شب</span>
+          <span className="text-orange-500">
+            مهلت ارسال: {PLAN_DEADLINE_DAY} شب
+          </span>
         ) : (
           "هنوز ارسال نشده"
         )}
         {changes > 0 && (
-          <span className="font-medium text-orange-500"> · {toPersianDigits(changes)} تغییر ارسال‌نشده</span>
+          <span className="font-medium text-orange-500">
+            {" "}
+            · {toPersianDigits(changes)} تغییر ارسال‌نشده
+          </span>
         )}
       </p>
 
       {/* Tools */}
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <Button size="md" variant="secondary" onClick={() => setPreviewing(true)}>
+        <Button
+          size="md"
+          variant="secondary"
+          onClick={() => setPreviewing(true)}
+        >
           <Smartphone size={14} /> دانش‌آموز چی می‌بینه؟
         </Button>
         {week === "next" && plans.this.published && (
           <Button
             size="md"
             variant="secondary"
-            onClick={() => setPendingReplace({ label: "کپی از این هفته", days: plans.this.published!.days })}
+            onClick={() =>
+              setPendingReplace({
+                label: "کپی از این هفته",
+                days: plans.this.published!.days,
+              })
+            }
           >
             <Copy size={14} /> کپی از این هفته
           </Button>
@@ -193,7 +229,11 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
               value=""
               onChange={(e) => {
                 const t = templates.find((x) => x.id === e.target.value);
-                if (t) setPendingReplace({ label: `قالب «${t.name}»`, days: t.days });
+                if (t)
+                  setPendingReplace({
+                    label: `قالب «${t.name}»`,
+                    days: t.days,
+                  });
               }}
               aria-label="اعمال قالب"
               className={cn(fieldClass, "text-xs")}
@@ -240,7 +280,9 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
             >
               انصراف
             </button>
-            {tplError && <span className="text-xs text-red-500">{tplError}</span>}
+            {tplError && (
+              <span className="text-xs text-red-500">{tplError}</span>
+            )}
           </span>
         )}
       </div>
@@ -263,7 +305,11 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
           >
             انجام بده
           </Button>
-          <button type="button" onClick={() => setPendingReplace(null)} className="text-text-500">
+          <button
+            type="button"
+            onClick={() => setPendingReplace(null)}
+            className="text-text-500"
+          >
             انصراف
           </button>
         </div>
@@ -272,10 +318,16 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
       {/* Checks — arithmetic only */}
       <div className="mb-3 flex flex-wrap gap-2 text-xs">
         <span className="rounded-x-pill bg-surface-2 px-3 py-1 text-text-700">
-          جمع هفته: <span className="tnum font-bold text-text-900">{formatHours(total)}</span> ساعت
+          جمع هفته:{" "}
+          <span className="tnum font-bold text-text-900">
+            {formatHours(total)}
+          </span>{" "}
+          ساعت
         </span>
         {!hasSchedule && (
-          <span className="rounded-x-pill bg-surface-2 px-3 py-1 text-text-500">ساعت مدرسه‌اش ثبت نشده</span>
+          <span className="rounded-x-pill bg-surface-2 px-3 py-1 text-text-500">
+            ساعت مدرسه‌اش ثبت نشده
+          </span>
         )}
         {over.length > 0 && (
           <span className="flex items-center gap-1 rounded-x-pill bg-orange-500/10 px-3 py-1 text-orange-500">
@@ -295,9 +347,13 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
           return (
             <div
               key={d}
-              className={cn("p-3 transition-colors", dragOver === d && "bg-blue-100/60")}
+              className={cn(
+                "p-3 transition-colors",
+                dragOver === d && "bg-blue-100/60",
+              )}
               onDragOver={(e) => {
-                if (!e.dataTransfer.types.includes("application/x-plan-task")) return;
+                if (!e.dataTransfer.types.includes("application/x-plan-task"))
+                  return;
                 e.preventDefault();
                 setDragOver(d);
               }}
@@ -306,13 +362,23 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
                 const raw = e.dataTransfer.getData("application/x-plan-task");
                 setDragOver(null);
                 if (!raw) return;
-                const { day, id } = JSON.parse(raw) as { day: string; id: string };
+                const { day, id } = JSON.parse(raw) as {
+                  day: string;
+                  id: string;
+                };
                 moveTask(studentId, week, day, d, id);
               }}
             >
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                <span className="w-16 text-sm font-bold text-text-900">{d}</span>
-                <span className={cn("tnum text-xs", isOver ? "font-medium text-orange-500" : "text-text-500")}>
+                <span className="w-16 text-sm font-bold text-text-900">
+                  {d}
+                </span>
+                <span
+                  className={cn(
+                    "tnum text-xs",
+                    isOver ? "font-medium text-orange-500" : "text-text-500",
+                  )}
+                >
                   {formatHours(hours)} ساعت
                   {hasSchedule && <> از ~{formatHours(free)} آزاد</>}
                 </span>
@@ -342,7 +408,9 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
 
               {copyFrom === d && (
                 <div className="mb-2 rounded-x-sm border border-blue-600/30 bg-blue-100/50 p-2.5 text-xs">
-                  <div className="mb-1.5 text-text-700">درس‌های {d} به انتهای این روزها اضافه بشه:</div>
+                  <div className="mb-1.5 text-text-700">
+                    درس‌های {d} به انتهای این روزها اضافه بشه:
+                  </div>
                   <div className="flex flex-wrap gap-1.5">
                     {WEEK_DAYS.filter((x) => x !== d).map((x) => (
                       <label
@@ -352,7 +420,13 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
                         <input
                           type="checkbox"
                           checked={copyTo.includes(x)}
-                          onChange={(e) => setCopyTo((c) => (e.target.checked ? [...c, x] : c.filter((y) => y !== x)))}
+                          onChange={(e) =>
+                            setCopyTo((c) =>
+                              e.target.checked
+                                ? [...c, x]
+                                : c.filter((y) => y !== x),
+                            )
+                          }
                         />
                         {x}
                       </label>
@@ -369,7 +443,11 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
                     >
                       کپی
                     </Button>
-                    <button type="button" onClick={() => setCopyFrom(null)} className="text-text-500">
+                    <button
+                      type="button"
+                      onClick={() => setCopyFrom(null)}
+                      className="text-text-500"
+                    >
                       انصراف
                     </button>
                   </div>
@@ -386,7 +464,8 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
                       onCancel={() => setEditing(null)}
                       onSave={(task, toDay) => {
                         updateTask(studentId, week, d, t.id, task);
-                        if (toDay && toDay !== d) moveTask(studentId, week, d, toDay, t.id);
+                        if (toDay && toDay !== d)
+                          moveTask(studentId, week, d, toDay, t.id);
                         setEditing(null);
                       }}
                     />
@@ -395,19 +474,30 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
                       key={t.id}
                       draggable
                       onDragStart={(e) => {
-                        e.dataTransfer.setData("application/x-plan-task", JSON.stringify({ day: d, id: t.id }));
+                        e.dataTransfer.setData(
+                          "application/x-plan-task",
+                          JSON.stringify({ day: d, id: t.id }),
+                        );
                         e.dataTransfer.effectAllowed = "move";
                       }}
                       onDragEnd={() => setDragOver(null)}
                       className="flex cursor-grab items-start gap-1.5 rounded-x-sm bg-surface-2 px-2 py-2 text-sm active:cursor-grabbing"
                     >
-                      <GripVertical size={14} className="mt-0.5 shrink-0 text-text-500/60" aria-hidden />
+                      <GripVertical
+                        size={14}
+                        className="mt-0.5 shrink-0 text-text-500/60"
+                        aria-hidden
+                      />
                       <div className="min-w-0 flex-1">
-                        <span className="font-medium text-text-900">{t.subject}</span>{" "}
+                        <span className="font-medium text-text-900">
+                          {t.subject}
+                        </span>{" "}
                         <span className="tnum rounded-x-sm bg-surface px-1.5 py-0.5 text-xs font-medium text-text-700">
                           {formatHours(t.hours)} ساعت
                         </span>
-                        {t.topic && <span className="text-text-500"> — {t.topic}</span>}
+                        {t.topic && (
+                          <span className="text-text-500"> — {t.topic}</span>
+                        )}
                         {t.chapter && (
                           <div className="mt-0.5 text-xs text-text-500">
                             {t.chapter}
@@ -426,14 +516,19 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
                       </button>
                       <button
                         type="button"
-                        onClick={() => toast(`${t.subject} ${d} حذف شد`, removeTask(studentId, week, d, t.id))}
+                        onClick={() =>
+                          toast(
+                            `${t.subject} ${d} حذف شد`,
+                            removeTask(studentId, week, d, t.id),
+                          )
+                        }
                         aria-label={`حذف ${t.subject} ${d}`}
                         className="p-1 text-text-500 hover:text-red-500"
                       >
                         <Trash2 size={13} />
                       </button>
                     </div>
-                  )
+                  ),
                 )}
                 {editing?.day === d && editing.id === null ? (
                   <TaskForm
@@ -459,10 +554,14 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
       </div>
 
       <label className="mt-3 block">
-        <span className="mb-1 block text-xs text-text-700">یادداشت این هفته برای {studentName} (اختیاری)</span>
+        <span className="mb-1 block text-xs text-text-700">
+          یادداشت این هفته برای {studentName} (اختیاری)
+        </span>
         <textarea
           value={copy.note}
-          onChange={(e) => setPlanNote(studentId, week, e.target.value.slice(0, 300))}
+          onChange={(e) =>
+            setPlanNote(studentId, week, e.target.value.slice(0, 300))
+          }
           rows={2}
           placeholder="مثلاً: این هفته تمرکز روی تعادله. جمعه آزمون داری، پنجشنبه زود بخواب."
           className="w-full rounded-x-md border border-border bg-surface p-2.5 text-sm text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600"
@@ -471,23 +570,30 @@ export function PlanEditor({ studentId, studentName }: { studentId: string; stud
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button size="md" onClick={send} disabled={changes === 0}>
-          <Send size={14} /> {p.published ? "ارسال تغییرات" : "ارسال"} برای {studentName}
+          <Send size={14} /> {p.published ? "ارسال تغییرات" : "ارسال"} برای{" "}
+          {studentName}
         </Button>
         {changes > 0 && (
-          <Button size="md" variant="secondary" onClick={() => discardDraft(studentId, week)}>
+          <Button
+            size="md"
+            variant="secondary"
+            onClick={() => discardDraft(studentId, week)}
+          >
             <Undo2 size={14} /> لغو تغییرات
           </Button>
         )}
         {sendError && <span className="text-xs text-red-500">{sendError}</span>}
         {sent === week && changes === 0 && !sendError && (
           <span className="flex items-center gap-1 text-xs text-mint-500">
-            <Check size={13} /> ارسال شد — {studentName} الان توی برنامه و تقویمش می‌بینه.
+            <Check size={13} /> ارسال شد — {studentName} الان توی برنامه و
+            تقویمش می‌بینه.
           </span>
         )}
       </div>
       {week === "this" && changes > 0 && (
         <p className="mt-2 text-xs text-text-500">
-          تغییر برنامه‌ی وسط هفته: تیک‌هایی که {studentName} زده برای درس‌هایی که عوض نکردی می‌مونن.
+          تغییر برنامه‌ی وسط هفته: تیک‌هایی که {studentName} زده برای درس‌هایی
+          که عوض نکردی می‌مونن.
         </p>
       )}
     </div>
@@ -518,20 +624,27 @@ function TaskForm({
     e.preventDefault();
     if (!subject) return setError("درس رو انتخاب کن.");
     if (!hours) return setError("ساعتش رو انتخاب کن.");
-    if (subtopic.trim() && !chapter.trim()) return setError("اول فصل رو بنویس، بعد ریز مبحث.");
+    if (subtopic.trim() && !chapter.trim())
+      return setError("اول فصل رو بنویس، بعد ریز مبحث.");
     onSave(
       {
         subject,
         topic: topic.trim(),
         hours,
-        ...(chapter.trim() ? { chapter: chapter.trim(), subtopic: subtopic.trim() || undefined } : {}),
+        ...(chapter.trim()
+          ? { chapter: chapter.trim(), subtopic: subtopic.trim() || undefined }
+          : {}),
       },
-      toDay || undefined
+      toDay || undefined,
     );
   }
 
   return (
-    <form onSubmit={submit} className="rounded-x-sm border border-blue-600/30 bg-blue-100/50 p-2.5" noValidate>
+    <form
+      onSubmit={submit}
+      className="rounded-x-sm border border-blue-600/30 bg-blue-100/50 p-2.5"
+      noValidate
+    >
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_2fr_1fr]">
         <select
           value={subject}
@@ -597,7 +710,11 @@ function TaskForm({
           />
         </div>
       ) : (
-        <button type="button" onClick={() => setMore(true)} className="mt-1.5 text-xs text-blue-600 hover:underline">
+        <button
+          type="button"
+          onClick={() => setMore(true)}
+          className="mt-1.5 text-xs text-blue-600 hover:underline"
+        >
           + فصل و ریز مبحث
         </button>
       )}
@@ -623,7 +740,11 @@ function TaskForm({
         <Button type="submit" size="md">
           {initial ? "ذخیره" : "افزودن"}
         </Button>
-        <button type="button" onClick={onCancel} className="text-xs text-text-500">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-xs text-text-500"
+        >
           انصراف
         </button>
       </div>
@@ -645,7 +766,9 @@ function PlanPreview({
   unsent: boolean;
   onClose: () => void;
 }) {
-  const [selected, setSelected] = useState(week === "this" ? CURRENT_DAY_NAME : WEEK_DAYS[0]);
+  const [selected, setSelected] = useState(
+    week === "this" ? CURRENT_DAY_NAME : WEEK_DAYS[0],
+  );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -654,7 +777,10 @@ function PlanPreview({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
       <div
         role="dialog"
         aria-modal="true"
@@ -664,7 +790,9 @@ function PlanPreview({
       >
         <div className="flex items-center gap-2 border-b border-border bg-surface px-4 py-3">
           <Smartphone size={16} className="text-blue-600" />
-          <span className="flex-1 text-sm font-bold text-text-900">صفحه‌ی «برنامه»ی {studentName}</span>
+          <span className="flex-1 text-sm font-bold text-text-900">
+            صفحه‌ی «برنامه»ی {studentName}
+          </span>
           <button
             type="button"
             onClick={onClose}
@@ -676,11 +804,18 @@ function PlanPreview({
         </div>
         {unsent && (
           <p className="bg-orange-500/10 px-4 py-2 text-xs text-orange-500">
-            این پیش‌نویسه — تا «ارسال» رو نزنی، {studentName} نسخه‌ی قبلی رو می‌بینه.
+            این پیش‌نویسه — تا «ارسال» رو نزنی، {studentName} نسخه‌ی قبلی رو
+            می‌بینه.
           </p>
         )}
         <div className="overflow-y-auto p-4">
-          <PlanDayView plan={draft} week={week} selected={selected} onSelect={setSelected} preview />
+          <PlanDayView
+            plan={draft}
+            week={week}
+            selected={selected}
+            onSelect={setSelected}
+            preview
+          />
         </div>
       </div>
     </div>

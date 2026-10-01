@@ -16,7 +16,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/80 backdrop-blur">
       <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-3 md:px-8">
-        <Link href="/" aria-label="صفحه اصلی X">
+        <Link href="/" aria-label="صفحه اصلی ماتریس">
           <Logo />
         </Link>
 

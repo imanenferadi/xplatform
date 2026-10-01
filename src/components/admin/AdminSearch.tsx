@@ -3,7 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, CornerDownLeft } from "lucide-react";
-import { adminUsers, mentorApplications, mentors, transactions } from "@/lib/mock-data";
+import {
+  adminUsers,
+  mentorApplications,
+  mentors,
+  transactions,
+} from "@/lib/mock-data";
 import { useTickets } from "@/lib/ticket-store";
 import { useStoredApplications } from "@/lib/mentor-applications-store";
 import { useDiscountCodes } from "@/lib/discount-store";
@@ -12,7 +17,13 @@ import { PAGE_PERM, can, seesLogCategory, seesTicket } from "@/lib/permissions";
 import { useMe } from "@/lib/staff-store";
 import { cn, toLatinDigits, toPersianDigits } from "@/lib/utils";
 
-type Hit = { group: string; title: string; sub: string; href: string; haystack: string };
+type Hit = {
+  group: string;
+  title: string;
+  sub: string;
+  href: string;
+  haystack: string;
+};
 
 /** Arabic/Persian letter variants, digits and spacing all compare equal. */
 export function normalize(s: string): string {
@@ -41,8 +52,14 @@ export function AdminSearch() {
   const tickets_ = useTickets();
   const logs_ = useLogs();
   // Search only what this role may open.
-  const logs = useMemo(() => logs_.filter((l) => seesLogCategory(me.role, l.category)), [logs_, me]);
-  const tickets = useMemo(() => tickets_.filter((t) => seesTicket(me.role, t)), [tickets_, me]);
+  const logs = useMemo(
+    () => logs_.filter((l) => seesLogCategory(me.role, l.category)),
+    [logs_, me],
+  );
+  const tickets = useMemo(
+    () => tickets_.filter((t) => seesTicket(me.role, t)),
+    [tickets_, me],
+  );
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -79,12 +96,25 @@ export function AdminSearch() {
           haystack: `${m.name} ${m.id} ${m.major}`,
         })),
       ...[
-        ...mentorApplications.map((a) => ({ id: a.id, name: a.name, status: a.status })),
-        ...stored.map((a) => ({ id: a.id, name: a.mentor.name, status: a.status })),
+        ...mentorApplications.map((a) => ({
+          id: a.id,
+          name: a.name,
+          status: a.status,
+        })),
+        ...stored.map((a) => ({
+          id: a.id,
+          name: a.mentor.name,
+          status: a.status,
+        })),
       ].map((a) => ({
         group: "درخواست همکاری",
         title: a.name,
-        sub: a.status === "pending" ? "در انتظار بررسی" : a.status === "approved" ? "تأییدشده" : "ردشده",
+        sub:
+          a.status === "pending"
+            ? "در انتظار بررسی"
+            : a.status === "approved"
+              ? "تأییدشده"
+              : "ردشده",
         href: `/admin/mentors?q=${q(a.name)}`,
         haystack: `${a.name} ${a.id}`,
       })),
@@ -205,12 +235,16 @@ export function AdminSearch() {
                   ↑↓ برای جابه‌جایی، Enter برای باز کردن، Esc برای بستن
                 </p>
               ) : results.length === 0 ? (
-                <p className="p-4 text-center text-sm text-text-500">چیزی پیدا نشد.</p>
+                <p className="p-4 text-center text-sm text-text-500">
+                  چیزی پیدا نشد.
+                </p>
               ) : (
                 results.map((h, i) => (
                   <div key={`${h.group}-${h.href}-${h.title}`}>
                     {(i === 0 || results[i - 1].group !== h.group) && (
-                      <div className="px-3 pb-1 pt-2 text-xs font-medium text-text-500">{h.group}</div>
+                      <div className="px-3 pb-1 pt-2 text-xs font-medium text-text-500">
+                        {h.group}
+                      </div>
                     )}
                     <button
                       type="button"
@@ -218,14 +252,23 @@ export function AdminSearch() {
                       onClick={() => go(h)}
                       className={cn(
                         "flex w-full items-center gap-2 rounded-x-sm px-3 py-2 text-right",
-                        i === active ? "bg-blue-100" : "hover:bg-surface-2"
+                        i === active ? "bg-blue-100" : "hover:bg-surface-2",
                       )}
                     >
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm text-text-900">{h.title}</span>
-                        <span className="block truncate text-xs text-text-500">{h.sub}</span>
+                        <span className="block truncate text-sm text-text-900">
+                          {h.title}
+                        </span>
+                        <span className="block truncate text-xs text-text-500">
+                          {h.sub}
+                        </span>
                       </span>
-                      {i === active && <CornerDownLeft size={14} className="shrink-0 text-text-500" />}
+                      {i === active && (
+                        <CornerDownLeft
+                          size={14}
+                          className="shrink-0 text-text-500"
+                        />
+                      )}
                     </button>
                   </div>
                 ))

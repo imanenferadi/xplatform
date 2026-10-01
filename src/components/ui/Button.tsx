@@ -4,8 +4,7 @@ import { cn } from "@/lib/utils";
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "link";
 type Size = "md" | "lg" | "icon";
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
 }
@@ -45,7 +44,12 @@ export function buttonVariants({
   size?: Size;
   className?: string;
 } = {}) {
-  return cn(base, variant !== "link" && sizes[size], variants[variant], className);
+  return cn(
+    base,
+    variant !== "link" && sizes[size],
+    variants[variant],
+    className,
+  );
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -57,6 +61,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       />
     );
-  }
+  },
 );
 Button.displayName = "Button";

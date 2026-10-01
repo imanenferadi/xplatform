@@ -22,7 +22,7 @@ export function Avatar({
       className={cn(
         "flex shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-text-900",
         sizes[size],
-        className
+        className,
       )}
     >
       {name.slice(0, 1)}

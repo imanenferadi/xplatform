@@ -16,22 +16,32 @@ export function BroadcastComposer() {
   const sentList = useBroadcasts();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
-  const [selected, setSelected] = useState<string[]>(() => mentorStudents.map((s) => s.id));
+  const [selected, setSelected] = useState<string[]>(() =>
+    mentorStudents.map((s) => s.id),
+  );
   const [error, setError] = useState("");
   const [justSent, setJustSent] = useState(false);
 
   const everyone = selected.length === mentorStudents.length;
 
   function toggle(id: string) {
-    setSelected((sel) => (sel.includes(id) ? sel.filter((x) => x !== id) : [...sel, id]));
+    setSelected((sel) =>
+      sel.includes(id) ? sel.filter((x) => x !== id) : [...sel, id],
+    );
     setError("");
   }
 
   function send(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim()) return setError("متن پیام رو بنویس.");
-    if (selected.length === 0) return setError("حداقل یه دانش‌آموز رو انتخاب کن.");
-    sendBroadcast({ id: Date.now(), text: text.trim(), time: "الان", recipients: everyone ? "all" : selected });
+    if (selected.length === 0)
+      return setError("حداقل یه دانش‌آموز رو انتخاب کن.");
+    sendBroadcast({
+      id: Date.now(),
+      text: text.trim(),
+      time: "الان",
+      recipients: everyone ? "all" : selected,
+    });
     setText("");
     setJustSent(true);
   }
@@ -46,13 +56,22 @@ export function BroadcastComposer() {
           aria-expanded={open}
         >
           <Megaphone size={16} className="text-blue-600" />
-          <span className="flex-1 text-sm font-bold text-text-900">پیام گروهی</span>
+          <span className="flex-1 text-sm font-bold text-text-900">
+            پیام گروهی
+          </span>
           {sentList.length > 0 && (
             <span className="text-xs text-text-500">
-              <span className="tnum">{toPersianDigits(sentList.length)}</span> پیام فرستادی
+              <span className="tnum">{toPersianDigits(sentList.length)}</span>{" "}
+              پیام فرستادی
             </span>
           )}
-          <ChevronDown size={16} className={cn("text-text-500 transition-transform", open && "rotate-180")} />
+          <ChevronDown
+            size={16}
+            className={cn(
+              "text-text-500 transition-transform",
+              open && "rotate-180",
+            )}
+          />
         </button>
 
         {open && (
@@ -74,7 +93,9 @@ export function BroadcastComposer() {
                 <span className="text-text-700">گیرنده‌ها</span>
                 <button
                   type="button"
-                  onClick={() => setSelected(everyone ? [] : mentorStudents.map((s) => s.id))}
+                  onClick={() =>
+                    setSelected(everyone ? [] : mentorStudents.map((s) => s.id))
+                  }
                   className="text-blue-600 hover:underline"
                 >
                   {everyone ? "هیچ‌کس" : "همه"}
@@ -102,12 +123,16 @@ export function BroadcastComposer() {
 
             {error && <p className="text-xs text-red-500">{error}</p>}
             {justSent && (
-              <p className="text-xs text-mint-500">فرستاده شد — توی گفتگوی هر نفر با برچسب «پیام گروهی» هست.</p>
+              <p className="text-xs text-mint-500">
+                فرستاده شد — توی گفتگوی هر نفر با برچسب «پیام گروهی» هست.
+              </p>
             )}
 
             <Button type="submit" size="md">
               <Send size={14} />
-              {everyone ? "ارسال به همه" : `ارسال به ${toPersianDigits(selected.length)} نفر`}
+              {everyone
+                ? "ارسال به همه"
+                : `ارسال به ${toPersianDigits(selected.length)} نفر`}
             </Button>
           </form>
         )}

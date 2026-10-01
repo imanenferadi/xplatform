@@ -14,7 +14,7 @@ const withX = [
   "معلم هوشمند ۲۴ ساعته برای لحظه‌ای که گیر می‌کنی",
 ];
 
-/** «چرا X» — the old «AI ابزار مشاوره» section folded in as one closing line. */
+/** «چرا ماتریس» — the old «AI ابزار مشاوره» section folded in as one closing line. */
 export function WhySection() {
   return (
     <section
@@ -24,7 +24,7 @@ export function WhySection() {
       <div className="mx-auto max-w-[1200px] px-4 md:px-8">
         <div className="mb-6 max-w-2xl md:mb-10">
           <h2 className="text-2xl font-bold text-text-900 md:text-[32px]">
-            چرا X؟
+            چرا ماتریس؟
           </h2>
           <p className="mt-3 text-text-500">
             یک آدم واقعی در مرکز، و ابزارهایی که کار رو براش راحت‌تر می‌کنن.
@@ -50,7 +50,9 @@ export function WhySection() {
           </div>
 
           <div className="rounded-x-lg border border-blue-600/30 bg-blue-100 p-6">
-            <h3 className="mb-4 text-sm font-semibold text-text-900">با X</h3>
+            <h3 className="mb-4 text-sm font-semibold text-text-900">
+              با ماتریس
+            </h3>
             <ul className="space-y-4">
               {withX.map((t) => (
                 <li

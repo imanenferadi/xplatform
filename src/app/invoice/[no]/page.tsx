@@ -55,7 +55,7 @@ export default function InvoicePage({
         <section className="mb-4 rounded-x-sm border border-border p-3 text-xs leading-[1.9]">
           <h2 className="mb-1 font-bold text-text-900">فروشنده</h2>
           <p className="text-text-700">
-            پلتفرم مشاوره‌ی X — شناسه‌ی ملی و کد اقتصادی در نسخه‌ی واقعی درج
+            پلتفرم مشاوره‌ی ماتریس — شناسه‌ی ملی و کد اقتصادی در نسخه‌ی واقعی درج
             می‌شه.
           </p>
         </section>

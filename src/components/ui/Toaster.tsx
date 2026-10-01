@@ -31,7 +31,7 @@ export function Toaster() {
   const t = useSyncExternalStore(
     subscribe,
     () => current,
-    () => null
+    () => null,
   );
 
   useEffect(() => {
@@ -61,7 +61,12 @@ export function Toaster() {
               <Undo2 size={13} /> برگردون
             </button>
           )}
-          <button type="button" onClick={dismiss} aria-label="بستن پیام" className="rounded-full p-1 hover:bg-white/15">
+          <button
+            type="button"
+            onClick={dismiss}
+            aria-label="بستن پیام"
+            className="rounded-full p-1 hover:bg-white/15"
+          >
             <X size={14} />
           </button>
         </div>

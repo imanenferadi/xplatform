@@ -19,7 +19,10 @@ import {
 import { useCallRequests } from "@/lib/call-store";
 import { cn } from "@/lib/utils";
 
-const MODE_LABEL: Record<SessionMode, string> = { video: "تصویری", audio: "صوتی" };
+const MODE_LABEL: Record<SessionMode, string> = {
+  video: "تصویری",
+  audio: "صوتی",
+};
 
 // The one weekly session, picked once from the mentor's free hours. Same
 // card for the student (calendar) and the mentor (case file).
@@ -55,32 +58,47 @@ export function FixedSessionCard({
   }
 
   return (
-    <div className={cn("rounded-x-lg border border-border bg-surface p-4", className)}>
+    <div
+      className={cn(
+        "rounded-x-lg border border-border bg-surface p-4",
+        className,
+      )}
+    >
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
           <CalendarClock size={18} className="text-blue-600" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-xs text-text-500">
-            {by === "student" ? `جلسه‌ی ثابت هفتگی با ${mentor.name}` : "وقت ثابت"}
+            {by === "student"
+              ? `جلسه‌ی ثابت هفتگی با ${mentor.name}`
+              : "وقت ثابت"}
           </div>
           {session ? (
             <div className="text-sm font-medium text-text-900">
-              {slotDay(session.slot)}‌ها ساعت {slotTime(session.slot)} · {MODE_LABEL[session.mode]}
+              {slotDay(session.slot)}‌ها ساعت {slotTime(session.slot)} ·{" "}
+              {MODE_LABEL[session.mode]}
             </div>
           ) : (
-            <div className="text-sm font-medium text-orange-500">هنوز وقت ثابت انتخاب نشده</div>
+            <div className="text-sm font-medium text-orange-500">
+              هنوز وقت ثابت انتخاب نشده
+            </div>
           )}
           {session?.nextSlot && (
             <div className="mt-0.5 text-xs text-blue-600">
-              از هفته‌ی بعد: {slotDay(session.nextSlot)}‌ها ساعت {slotTime(session.nextSlot)}
+              از هفته‌ی بعد: {slotDay(session.nextSlot)}‌ها ساعت{" "}
+              {slotTime(session.nextSlot)}
             </div>
           )}
         </div>
         {!open && !oneOff && (
           <div className="flex flex-wrap gap-2">
             {session && !ov && (
-              <Button size="md" variant="secondary" onClick={() => setOneOff(true)}>
+              <Button
+                size="md"
+                variant="secondary"
+                onClick={() => setOneOff(true)}
+              >
                 فقط جلسه‌ی بعدی…
               </Button>
             )}
@@ -102,11 +120,14 @@ export function FixedSessionCard({
         <div
           className={cn(
             "mt-3 flex flex-wrap items-center gap-2 rounded-x-md p-2.5 text-xs",
-            ov.cancelled ? "bg-red-500/10 text-text-700" : "bg-orange-500/10 text-text-700"
+            ov.cancelled
+              ? "bg-red-500/10 text-text-700"
+              : "bg-orange-500/10 text-text-700",
           )}
         >
           <span className="flex-1">
-            جلسه‌ی {upcoming.week === "this" ? "این هفته" : "هفته‌ی بعد"} ({upcoming.slot}){" "}
+            جلسه‌ی {upcoming.week === "this" ? "این هفته" : "هفته‌ی بعد"} (
+            {upcoming.slot}){" "}
             {ov.cancelled ? (
               <strong className="text-red-500">لغو شد</strong>
             ) : (
@@ -115,9 +136,13 @@ export function FixedSessionCard({
               </>
             )}
             {" — "}
-            {ov.by === by ? "به درخواست خودت" : `به درخواست ${ov.by === "mentor" ? mentor.name : "دانش‌آموز"}`}
+            {ov.by === by
+              ? "به درخواست خودت"
+              : `به درخواست ${ov.by === "mentor" ? mentor.name : "دانش‌آموز"}`}
             {ov.reason && ` · «${ov.reason}»`}
-            {ov.by === "student" && by === "student" && !ov.seen && <span className="text-text-500"> · {otherSide} هنوز ندیده</span>}
+            {ov.by === "student" && by === "student" && !ov.seen && (
+              <span className="text-text-500"> · {otherSide} هنوز ندیده</span>
+            )}
           </span>
           {ov.by === by && (
             <button
@@ -132,7 +157,12 @@ export function FixedSessionCard({
       )}
 
       {oneOff && upcoming && (
-        <OneOffPanel studentId={studentId} by={by} upcoming={upcoming} onClose={() => setOneOff(false)} />
+        <OneOffPanel
+          studentId={studentId}
+          by={by}
+          upcoming={upcoming}
+          onClose={() => setOneOff(false)}
+        />
       )}
 
       {saved && !open && (
@@ -147,7 +177,8 @@ export function FixedSessionCard({
       {open && (
         <div className="mt-3 border-t border-border pt-3">
           <p className="mb-2 text-xs text-text-500">
-            وقت‌های آزاد {by === "mentor" ? "تو" : mentor.name} که کس دیگه‌ای نگرفته:
+            وقت‌های آزاد {by === "mentor" ? "تو" : mentor.name} که کس دیگه‌ای
+            نگرفته:
           </p>
           {slots.length === 0 ? (
             <p className="text-xs text-orange-500">
@@ -157,7 +188,9 @@ export function FixedSessionCard({
             </p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
-              {WEEK_DAYS.flatMap((d) => slots.filter((s) => slotDay(s) === d)).map((s) => (
+              {WEEK_DAYS.flatMap((d) =>
+                slots.filter((s) => slotDay(s) === d),
+              ).map((s) => (
                 <button
                   key={s}
                   type="button"
@@ -166,7 +199,7 @@ export function FixedSessionCard({
                     "tnum rounded-x-pill border px-3 py-1.5 text-xs transition-colors",
                     slot === s
                       ? "border-blue-600 bg-blue-100 font-medium text-text-900"
-                      : "border-border bg-surface text-text-700 hover:border-blue-300"
+                      : "border-border bg-surface text-text-700 hover:border-blue-300",
                   )}
                 >
                   {s}
@@ -184,10 +217,13 @@ export function FixedSessionCard({
                 onClick={() => setMode(m)}
                 className={cn(
                   "flex items-center gap-1 rounded-x-pill border px-3 py-1 text-xs",
-                  mode === m ? "border-blue-600 bg-blue-100 text-text-900" : "border-border text-text-700"
+                  mode === m
+                    ? "border-blue-600 bg-blue-100 text-text-900"
+                    : "border-border text-text-700",
                 )}
               >
-                {m === "video" ? <Video size={12} /> : <Phone size={12} />} {MODE_LABEL[m]}
+                {m === "video" ? <Video size={12} /> : <Phone size={12} />}{" "}
+                {MODE_LABEL[m]}
               </button>
             ))}
           </div>
@@ -199,10 +235,18 @@ export function FixedSessionCard({
           )}
 
           <div className="mt-3 flex gap-2">
-            <Button size="md" onClick={save} disabled={!slot && (!session || mode === session.mode)}>
+            <Button
+              size="md"
+              onClick={save}
+              disabled={!slot && (!session || mode === session.mode)}
+            >
               ذخیره
             </Button>
-            <button type="button" onClick={() => setOpen(false)} className="text-xs text-text-500">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="text-xs text-text-500"
+            >
               انصراف
             </button>
           </div>
@@ -234,7 +278,8 @@ function OneOffPanel({
 
   function save() {
     if (action === "move" && !slot) return setError("یه وقت جدید انتخاب کن.");
-    if (action === "cancel" && !reason.trim()) return setError("برای لغو یه دلیل کوتاه بنویس.");
+    if (action === "cancel" && !reason.trim())
+      return setError("برای لغو یه دلیل کوتاه بنویس.");
     setOverride({
       studentId,
       week: upcoming.week,
@@ -249,7 +294,8 @@ function OneOffPanel({
   return (
     <div className="mt-3 border-t border-border pt-3">
       <p className="mb-2 text-xs text-text-500">
-        فقط جلسه‌ی {upcoming.week === "this" ? "این هفته" : "هفته‌ی بعد"} ({upcoming.slot}) — وقت ثابت عوض نمی‌شه.
+        فقط جلسه‌ی {upcoming.week === "this" ? "این هفته" : "هفته‌ی بعد"} (
+        {upcoming.slot}) — وقت ثابت عوض نمی‌شه.
       </p>
       <div className="mb-3 flex gap-1.5">
         {(["move", "cancel"] as const).map((a) => (
@@ -262,7 +308,9 @@ function OneOffPanel({
             }}
             className={cn(
               "rounded-x-pill border px-3 py-1 text-xs",
-              action === a ? "border-blue-600 bg-blue-100 text-text-900" : "border-border text-text-700"
+              action === a
+                ? "border-blue-600 bg-blue-100 text-text-900"
+                : "border-border text-text-700",
             )}
           >
             {a === "move" ? "جابه‌جا کن" : "لغو کن"}
@@ -271,7 +319,9 @@ function OneOffPanel({
       </div>
       {action === "move" &&
         (slots.length === 0 ? (
-          <p className="text-xs text-orange-500">توی این هفته وقت آزاد دیگه‌ای نمونده — می‌تونی لغوش کنی.</p>
+          <p className="text-xs text-orange-500">
+            توی این هفته وقت آزاد دیگه‌ای نمونده — می‌تونی لغوش کنی.
+          </p>
         ) : (
           <div className="flex flex-wrap gap-1.5">
             {slots.map((x) => (
@@ -286,7 +336,7 @@ function OneOffPanel({
                   "tnum rounded-x-pill border px-3 py-1.5 text-xs transition-colors",
                   slot === x
                     ? "border-blue-600 bg-blue-100 font-medium text-text-900"
-                    : "border-border bg-surface text-text-700 hover:border-blue-300"
+                    : "border-border bg-surface text-text-700 hover:border-blue-300",
                 )}
               >
                 {x}
@@ -300,7 +350,11 @@ function OneOffPanel({
           setReason(e.target.value.slice(0, 120));
           setError("");
         }}
-        placeholder={action === "cancel" ? "دلیل (اجباری) — مثلاً امتحان مدرسه" : "دلیل (اختیاری)"}
+        placeholder={
+          action === "cancel"
+            ? "دلیل (اجباری) — مثلاً امتحان مدرسه"
+            : "دلیل (اختیاری)"
+        }
         aria-label="دلیل"
         className="mt-3 h-9 w-full rounded-x-sm border border-border bg-surface px-3 text-xs text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600"
       />
@@ -309,7 +363,11 @@ function OneOffPanel({
         <Button size="md" onClick={save}>
           {action === "move" ? "جابه‌جا کن" : "لغو جلسه"}
         </Button>
-        <button type="button" onClick={onClose} className="text-xs text-text-500">
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-xs text-text-500"
+        >
           انصراف
         </button>
       </div>

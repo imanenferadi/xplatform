@@ -116,7 +116,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             href={ROLE_HOME[me.role]}
             className="text-sm font-bold text-white"
           >
-            X · ادمین
+            Matriss · ادمین
           </Link>
           <ThemeToggle />
         </div>

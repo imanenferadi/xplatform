@@ -167,7 +167,7 @@ export default function MentorApplyPage() {
           </span>
         </div>
 
-        <h1 className="text-2xl font-bold text-text-900">مشاور X شو</h1>
+        <h1 className="text-2xl font-bold text-text-900">مشاور ماتریس شو</h1>
         <p className="mb-5 mt-1 text-sm text-text-500">
           رتبه‌ی برتر یکی دو سال اخیری؟ پروفایلت رو خودت بساز؛ بعد از تأیید تیم فنی روی سایت منتشر می‌شه.
         </p>

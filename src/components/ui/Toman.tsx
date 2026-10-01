@@ -5,7 +5,10 @@ import { toPersianDigits } from "@/lib/utils";
 export function Toman({ amount }: { amount: number }) {
   return (
     <>
-      <span className="tnum">{toPersianDigits(amount.toLocaleString("en-US"))}</span> تومان
+      <span className="tnum">
+        {toPersianDigits(amount.toLocaleString("en-US"))}
+      </span>{" "}
+      تومان
     </>
   );
 }

@@ -38,16 +38,22 @@ export function Field({
     ? cloneElement(children, {
         id: children.props.id ?? id,
         "aria-invalid": error ? true : undefined,
-        "aria-describedby": [hintId, errorId].filter(Boolean).join(" ") || undefined,
+        "aria-describedby":
+          [hintId, errorId].filter(Boolean).join(" ") || undefined,
         className: cn(children.props.className, error && "border-red-500"),
       })
     : children;
 
   return (
     <div className={className}>
-      <label htmlFor={children.props.id ?? id} className="mb-1.5 block text-sm font-medium text-text-700">
+      <label
+        htmlFor={children.props.id ?? id}
+        className="mb-1.5 block text-sm font-medium text-text-700"
+      >
         {label}
-        {optional && <span className="font-normal text-text-500"> (اختیاری)</span>}
+        {optional && (
+          <span className="font-normal text-text-500"> (اختیاری)</span>
+        )}
       </label>
       {hint && (
         <p id={hintId} className="mb-1.5 text-xs text-text-500">
@@ -65,7 +71,13 @@ export function Field({
 }
 
 /** Main action(s) at the bottom; the primary button spans the width on phones. */
-export function FormActions({ children, status }: { children: React.ReactNode; status?: React.ReactNode }) {
+export function FormActions({
+  children,
+  status,
+}: {
+  children: React.ReactNode;
+  status?: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center [&>button:first-child]:w-full sm:[&>button:first-child]:w-auto">
       {children}
@@ -75,7 +87,13 @@ export function FormActions({ children, status }: { children: React.ReactNode; s
 }
 
 /** «ذخیره شد ✓» — always beside the form's main button. */
-export function SaveStatus({ show, text = "ذخیره شد" }: { show: boolean; text?: string }) {
+export function SaveStatus({
+  show,
+  text = "ذخیره شد",
+}: {
+  show: boolean;
+  text?: string;
+}) {
   return (
     <span aria-live="polite" className="min-h-5 text-sm text-mint-500">
       {show && (

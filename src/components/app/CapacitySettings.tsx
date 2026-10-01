@@ -5,7 +5,11 @@ import { Users, Hourglass, BellRing } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import type { Mentor } from "@/lib/mock-data";
-import { leaveWaitlist, setCapacity, useMentorCapacity } from "@/lib/capacity-store";
+import {
+  leaveWaitlist,
+  setCapacity,
+  useMentorCapacity,
+} from "@/lib/capacity-store";
 import { cn, toLatinDigits, toPersianDigits } from "@/lib/utils";
 
 const MAX_CAPACITY = 40;
@@ -23,7 +27,7 @@ export function CapacitySettings({ mentor }: { mentor: Mentor }) {
     const n = Number(toLatinDigits(draft.trim()));
     if (!Number.isInteger(n) || n < cap.active || n > MAX_CAPACITY) {
       setError(
-        `یه عدد بین ${toPersianDigits(cap.active)} (دانش‌آموزهای فعلی‌ات) و ${toPersianDigits(MAX_CAPACITY)} وارد کن.`
+        `یه عدد بین ${toPersianDigits(cap.active)} (دانش‌آموزهای فعلی‌ات) و ${toPersianDigits(MAX_CAPACITY)} وارد کن.`,
       );
       return;
     }
@@ -51,8 +55,15 @@ export function CapacitySettings({ mentor }: { mentor: Mentor }) {
           <Stat label="جای خالی" value={cap.remaining} highlight={cap.full} />
         </div>
 
-        <form onSubmit={saveTotal} noValidate className="mt-4 flex items-center gap-2">
-          <label htmlFor="capacity-total" className="shrink-0 text-sm text-text-700">
+        <form
+          onSubmit={saveTotal}
+          noValidate
+          className="mt-4 flex items-center gap-2"
+        >
+          <label
+            htmlFor="capacity-total"
+            className="shrink-0 text-sm text-text-700"
+          >
             ظرفیت کل:
           </label>
           <input
@@ -66,7 +77,13 @@ export function CapacitySettings({ mentor }: { mentor: Mentor }) {
             placeholder={toPersianDigits(cap.capacityTotal)}
             className="tnum h-9 w-20 rounded-x-md border border-border bg-surface px-3 text-center text-sm text-text-900 outline-none focus:border-blue-600"
           />
-          <Button type="submit" size="md" variant="secondary" className="h-9" disabled={!draft.trim()}>
+          <Button
+            type="submit"
+            size="md"
+            variant="secondary"
+            className="h-9"
+            disabled={!draft.trim()}
+          >
             ذخیره
           </Button>
         </form>
@@ -74,7 +91,9 @@ export function CapacitySettings({ mentor }: { mentor: Mentor }) {
 
         <label className="mt-4 flex items-center justify-between gap-3 rounded-x-md bg-surface-2 p-3">
           <span>
-            <span className="block text-sm font-medium text-text-900">پذیرش دانش‌آموز جدید</span>
+            <span className="block text-sm font-medium text-text-900">
+              پذیرش دانش‌آموز جدید
+            </span>
             <span className="block text-xs text-text-500">
               {cap.accepting
                 ? "روشنه — تا وقتی جای خالی داری، دانش‌آموزها می‌تونن رزرو کنن."
@@ -86,7 +105,12 @@ export function CapacitySettings({ mentor }: { mentor: Mentor }) {
             role="switch"
             aria-label="پذیرش دانش‌آموز جدید"
             checked={cap.accepting}
-            onChange={(e) => setCapacity(mentor.id, { capacityTotal: cap.capacityTotal, accepting: e.target.checked })}
+            onChange={(e) =>
+              setCapacity(mentor.id, {
+                capacityTotal: cap.capacityTotal,
+                accepting: e.target.checked,
+              })
+            }
             className="h-5 w-5 shrink-0 accent-blue-600"
           />
         </label>
@@ -95,7 +119,9 @@ export function CapacitySettings({ mentor }: { mentor: Mentor }) {
           <div className="mb-2 flex items-center gap-1.5 text-sm font-medium text-text-900">
             <Hourglass size={14} className="text-blue-600" />
             لیست انتظار
-            <span className="tnum text-xs font-normal text-text-500">({toPersianDigits(cap.waitlist.length)} نفر)</span>
+            <span className="tnum text-xs font-normal text-text-500">
+              ({toPersianDigits(cap.waitlist.length)} نفر)
+            </span>
           </div>
           {cap.waitlist.length === 0 ? (
             <p className="text-xs text-text-500">کسی توی لیست انتظارت نیست.</p>
@@ -106,7 +132,9 @@ export function CapacitySettings({ mentor }: { mentor: Mentor }) {
                   key={w.studentId}
                   className="flex items-center gap-2 rounded-x-md border border-border bg-surface px-3 py-2 text-sm"
                 >
-                  <span className="tnum w-5 text-text-500">{toPersianDigits(i + 1)}</span>
+                  <span className="tnum w-5 text-text-500">
+                    {toPersianDigits(i + 1)}
+                  </span>
                   <span className="flex-1 text-text-900">{w.name}</span>
                   <span className="text-xs text-text-500">{w.joinedAt}</span>
                   <button
@@ -129,10 +157,23 @@ export function CapacitySettings({ mentor }: { mentor: Mentor }) {
   );
 }
 
-function Stat({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+function Stat({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: number;
+  highlight?: boolean;
+}) {
   return (
     <div className="rounded-x-md bg-surface-2 p-2.5">
-      <div className={cn("tnum text-lg font-bold", highlight ? "text-orange-500" : "text-text-900")}>
+      <div
+        className={cn(
+          "tnum text-lg font-bold",
+          highlight ? "text-orange-500" : "text-text-900",
+        )}
+      >
         {toPersianDigits(value)}
       </div>
       <div className="text-xs text-text-500">{label}</div>

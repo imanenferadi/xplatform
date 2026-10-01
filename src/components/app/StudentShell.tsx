@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, MessageCircle, BarChart3, Wrench, Home } from "lucide-react";
+import {
+  CalendarDays,
+  MessageCircle,
+  BarChart3,
+  Wrench,
+  Home,
+} from "lucide-react";
 import { cn, toPersianDigits } from "@/lib/utils";
 import { Logo } from "@/components/brand/Logo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -12,13 +18,21 @@ import { useUnread } from "@/lib/chat-store";
 import { SupportViewFrame } from "@/components/app/SupportView";
 
 type NavSection = { href: string; label: string };
-type NavGroup = { label: string; icon: React.ComponentType<{ size?: number }>; sections: NavSection[] };
+type NavGroup = {
+  label: string;
+  icon: React.ComponentType<{ size?: number }>;
+  sections: NavSection[];
+};
 
 // Five top-level tabs instead of a 15-item sidebar. Each group's sections
 // keep their own URLs (so no existing link breaks); the shell just renders
 // them as sub-tabs above the page.
 const navGroups: NavGroup[] = [
-  { label: "امروز", icon: Home, sections: [{ href: "/dashboard", label: "امروز" }] },
+  {
+    label: "امروز",
+    icon: Home,
+    sections: [{ href: "/dashboard", label: "امروز" }],
+  },
   {
     label: "برنامه",
     icon: CalendarDays,
@@ -37,7 +51,11 @@ const navGroups: NavGroup[] = [
       { href: "/dashboard/karnameh", label: "کارنامه" },
     ],
   },
-  { label: "مشاور من", icon: MessageCircle, sections: [{ href: "/chat", label: "پیام‌ها" }] },
+  {
+    label: "مشاور من",
+    icon: MessageCircle,
+    sections: [{ href: "/chat", label: "پیام‌ها" }],
+  },
   {
     label: "ابزارها",
     icon: Wrench,
@@ -62,7 +80,9 @@ const accountGroup: NavGroup = {
 };
 
 function findGroup(pathname: string): NavGroup | undefined {
-  return [...navGroups, accountGroup].find((g) => g.sections.some((s) => s.href === pathname));
+  return [...navGroups, accountGroup].find((g) =>
+    g.sections.some((s) => s.href === pathname),
+  );
 }
 
 export function StudentShell({ children }: { children: React.ReactNode }) {
@@ -96,7 +116,9 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                   href={g.sections[0].href}
                   className={cn(
                     "flex items-center gap-3 rounded-x-md px-3 py-2.5 text-sm font-medium transition-colors",
-                    active ? "bg-blue-100 text-blue-600" : "text-text-700 hover:bg-surface-2"
+                    active
+                      ? "bg-blue-100 text-blue-600"
+                      : "text-text-700 hover:bg-surface-2",
                   )}
                 >
                   <span className="relative">
@@ -114,7 +136,9 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
               href="/profile"
               className={cn(
                 "flex items-center gap-3 rounded-x-md p-1.5 transition-colors",
-                activeGroup === accountGroup ? "bg-blue-100" : "hover:bg-surface-2"
+                activeGroup === accountGroup
+                  ? "bg-blue-100"
+                  : "hover:bg-surface-2",
               )}
             >
               <span className="relative">
@@ -122,9 +146,13 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                 {unreadSupport > 0 && <UnreadDot />}
               </span>
               <div className="min-w-0">
-                <div className="truncate text-sm font-medium text-text-900">ایمان</div>
+                <div className="truncate text-sm font-medium text-text-900">
+                  ایمان
+                </div>
                 <div className="truncate text-xs text-text-500">
-                  {unreadSupport > 0 ? "پاسخ جدید از پشتیبانی" : "پروفایل، دعوت و پشتیبانی"}
+                  {unreadSupport > 0
+                    ? "پاسخ جدید از پشتیبانی"
+                    : "پروفایل، دعوت و پشتیبانی"}
                 </div>
               </div>
             </Link>
@@ -143,7 +171,11 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <main id="main" tabIndex={-1} className="min-w-0 flex-1 pb-24 pt-16 md:pb-0 md:pt-0">
+        <main
+          id="main"
+          tabIndex={-1}
+          className="min-w-0 flex-1 pb-24 pt-16 md:pb-0 md:pt-0"
+        >
           {showSubTabs && (
             // Fixed height (h-14) on purpose: full-height pages like the AI chat
             // subtract it in their calc() so the composer stays on screen.
@@ -156,7 +188,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                     "shrink-0 rounded-x-pill border px-3.5 py-1.5 text-xs font-medium transition-colors",
                     s.href === pathname
                       ? "border-blue-600 bg-blue-100 text-text-900"
-                      : "border-border bg-surface text-text-700 hover:border-blue-300"
+                      : "border-border bg-surface text-text-700 hover:border-blue-300",
                   )}
                 >
                   {s.label}
@@ -183,7 +215,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                 href={g.sections[0].href}
                 className={cn(
                   "flex min-w-[56px] flex-col items-center gap-1 rounded-x-md px-2 py-1.5 text-xs",
-                  active ? "text-blue-600" : "text-text-500"
+                  active ? "text-blue-600" : "text-text-500",
                 )}
               >
                 <span className="relative">
@@ -201,5 +233,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
 }
 
 function UnreadDot() {
-  return <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-surface bg-red-500" />;
+  return (
+    <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-surface bg-red-500" />
+  );
 }

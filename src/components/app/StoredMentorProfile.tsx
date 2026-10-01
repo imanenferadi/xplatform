@@ -11,8 +11,13 @@ export function StoredMentorProfile({ id }: { id: string }) {
   if (!mentor) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
-        <p className="text-text-500">این پروفایل پیدا نشد یا هنوز توسط تیم فنی تأیید نشده.</p>
-        <Link href="/mentors" className={buttonVariants({ size: "lg", className: "mt-4" })}>
+        <p className="text-text-500">
+          این پروفایل پیدا نشد یا هنوز توسط تیم فنی تأیید نشده.
+        </p>
+        <Link
+          href="/mentors"
+          className={buttonVariants({ size: "lg", className: "mt-4" })}
+        >
           فهرست مشاوران
         </Link>
       </div>

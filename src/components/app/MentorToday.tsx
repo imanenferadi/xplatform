@@ -36,7 +36,13 @@ import { useMyCheckIns } from "@/lib/checkin-store";
 import { useReportFeedback } from "@/lib/feedback-store";
 import { byRecency } from "@/lib/reports";
 import { draftChanges, usePlans } from "@/lib/plan-store";
-import { acknowledgeOverride, slotDay, useAvailability, useOverrides, useWeekSessions } from "@/lib/session-store";
+import {
+  acknowledgeOverride,
+  slotDay,
+  useAvailability,
+  useOverrides,
+  useWeekSessions,
+} from "@/lib/session-store";
 import { createLocalStore } from "@/lib/local-store";
 import { useMentorUnreadCounts } from "@/lib/chat-store";
 import { useAllKarnamehs } from "@/lib/karnameh-store";
@@ -84,7 +90,8 @@ export function MentorToday() {
   const supervisorNotes = useSupervisorNotes();
   const shebaDecisions = useMyShebaRequests(mentors[0].id);
   const accountNotices = useNotices(`mentor:${mentors[0].id}`);
-  const nameOf = (id: string) => mentorStudents.find((s) => s.id === id)?.name ?? "";
+  const nameOf = (id: string) =>
+    mentorStudents.find((s) => s.id === id)?.name ?? "";
 
   const tasks: Task[] = [];
 
@@ -121,7 +128,10 @@ export function MentorToday() {
       key: `sh-${r.id}`,
       tone: r.status === "approved" ? "today" : "urgent",
       icon: Landmark,
-      title: r.status === "approved" ? "شبای جدیدت تأیید شد" : "درخواست تغییر شبا رد شد",
+      title:
+        r.status === "approved"
+          ? "شبای جدیدت تأیید شد"
+          : "درخواست تغییر شبا رد شد",
       detail:
         r.status === "approved"
           ? `${maskIban(r.newSheba)} — اگه این تغییر کار تو نبوده، همین الان به پشتیبانی خبر بده`
@@ -170,7 +180,9 @@ export function MentorToday() {
       ),
     });
 
-  for (const s of sessions.filter((x) => x.day === CURRENT_DAY_NAME && !x.cancelled))
+  for (const s of sessions.filter(
+    (x) => x.day === CURRENT_DAY_NAME && !x.cancelled,
+  ))
     tasks.push({
       key: `session-${s.studentId}`,
       tone: "today",
@@ -182,7 +194,9 @@ export function MentorToday() {
       action: meeting.url ? "ورود به جلسه" : "تقویم",
     });
 
-  for (const c of calls.filter((x) => x.status === "confirmed" && slotDay(x.slot) === CURRENT_DAY_NAME))
+  for (const c of calls.filter(
+    (x) => x.status === "confirmed" && slotDay(x.slot) === CURRENT_DAY_NAME,
+  ))
     tasks.push({
       key: `callnow-${c.id}`,
       tone: "today",
@@ -206,7 +220,9 @@ export function MentorToday() {
         href: `/mentor/students/${s.id}#plan`,
         action: "نوشتن",
       });
-    const unsent = sp ? draftChanges(sp.this) + (sp.next.published ? draftChanges(sp.next) : 0) : 0;
+    const unsent = sp
+      ? draftChanges(sp.this) + (sp.next.published ? draftChanges(sp.next) : 0)
+      : 0;
     if (unsent > 0)
       tasks.push({
         key: `draft-${s.id}`,
@@ -277,7 +293,11 @@ export function MentorToday() {
           <h2 className="flex items-center gap-1.5 text-sm font-bold text-text-900">
             <ListChecks size={16} className="text-blue-600" /> کارهای امروز
           </h2>
-          {tasks.length > 0 && <span className="tnum text-xs text-text-500">{toPersianDigits(tasks.length)} کار</span>}
+          {tasks.length > 0 && (
+            <span className="tnum text-xs text-text-500">
+              {toPersianDigits(tasks.length)} کار
+            </span>
+          )}
         </div>
         {tasks.length === 0 ? (
           <p className="flex items-center gap-2 rounded-x-md bg-mint-500/10 p-3 text-sm text-mint-500">
@@ -288,12 +308,23 @@ export function MentorToday() {
             {tasks.map((t) => (
               <li key={t.key} className="py-2.5">
                 <div className="flex items-center gap-3">
-                  <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full", TONE[t.tone])}>
+                  <span
+                    className={cn(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                      TONE[t.tone],
+                    )}
+                  >
                     <t.icon size={15} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-text-900">{t.title}</div>
-                    {t.detail && <div className="truncate text-xs text-text-500">{t.detail}</div>}
+                    <div className="text-sm font-medium text-text-900">
+                      {t.title}
+                    </div>
+                    {t.detail && (
+                      <div className="truncate text-xs text-text-500">
+                        {t.detail}
+                      </div>
+                    )}
                   </div>
                   {t.href &&
                     (t.external ? (
@@ -330,7 +361,10 @@ export function MentorToday() {
 // «شروع کار» — a new mentor's first steps, each checked from real data.
 // ---------------------------------------------------------------------
 type OnboardingState = { guideRead: boolean; hidden: boolean };
-const onboarding = createLocalStore<OnboardingState>("x-mentor-onboarding", { guideRead: false, hidden: false });
+const onboarding = createLocalStore<OnboardingState>("x-mentor-onboarding", {
+  guideRead: false,
+  hidden: false,
+});
 
 export const useOnboarding = onboarding.useValue;
 export function markGuideRead() {
@@ -345,12 +379,26 @@ export function MentorOnboarding() {
   const capacitySet = useCapacitySet(mentors[0].id);
   const slots = useAvailability();
   const plans = usePlans();
-  const anyPlanSent = Object.values(plans).some((p) => p.this.published || p.next.published);
+  const anyPlanSent = Object.values(plans).some(
+    (p) => p.this.published || p.next.published,
+  );
 
   const steps = [
-    { label: "راهنمای ۵ دقیقه‌ای رو بخون", done: state.guideRead, href: "/mentor/guide" },
-    { label: "لینک اتاق جلسه (گوگل میت یا اسکای‌روم)", done: Boolean(meeting.url), href: "/mentor/profile#meeting" },
-    { label: "ظرفیت پذیرشت رو مشخص کن", done: capacitySet, href: "/mentor/profile#capacity" },
+    {
+      label: "راهنمای ۵ دقیقه‌ای رو بخون",
+      done: state.guideRead,
+      href: "/mentor/guide",
+    },
+    {
+      label: "لینک اتاق جلسه (گوگل میت یا اسکای‌روم)",
+      done: Boolean(meeting.url),
+      href: "/mentor/profile#meeting",
+    },
+    {
+      label: "ظرفیت پذیرشت رو مشخص کن",
+      done: capacitySet,
+      href: "/mentor/profile#capacity",
+    },
     {
       label: `حداقل ${toPersianDigits(MIN_WEEKLY_SLOTS)} ساعت آزاد در هفته برای جلسه`,
       done: slots.length >= MIN_WEEKLY_SLOTS,
@@ -370,7 +418,8 @@ export function MentorOnboarding() {
       <CardContent>
         <div className="mb-1 flex items-center justify-between">
           <h2 className="flex items-center gap-1.5 text-sm font-bold text-text-900">
-            <GraduationCap size={16} className="text-blue-600" /> شروع کار در X
+            <GraduationCap size={16} className="text-blue-600" /> شروع کار در
+            ماتریس
           </h2>
           <button
             type="button"
@@ -383,11 +432,18 @@ export function MentorOnboarding() {
         </div>
         <p className="mb-3 text-xs text-text-500">
           <span className="tnum">{toPersianDigits(doneCount)}</span> از{" "}
-          <span className="tnum">{toPersianDigits(steps.length)}</span> قدم — هر قدم با انجام دادنش خودش تیک می‌خوره.
+          <span className="tnum">{toPersianDigits(steps.length)}</span> قدم — هر
+          قدم با انجام دادنش خودش تیک می‌خوره.
         </p>
         <div className="mb-3 flex gap-1">
           {steps.map((s) => (
-            <div key={s.label} className={cn("h-1.5 flex-1 rounded-x-pill", s.done ? "bg-mint-500" : "bg-surface-2")} />
+            <div
+              key={s.label}
+              className={cn(
+                "h-1.5 flex-1 rounded-x-pill",
+                s.done ? "bg-mint-500" : "bg-surface-2",
+              )}
+            />
           ))}
         </div>
         <ul className="space-y-1.5">
@@ -397,13 +453,15 @@ export function MentorOnboarding() {
                 href={s.href}
                 className={cn(
                   "flex items-center gap-2 rounded-x-sm px-2 py-1.5 text-sm transition-colors hover:bg-surface-2",
-                  s.done ? "text-text-500 line-through" : "text-text-900"
+                  s.done ? "text-text-500 line-through" : "text-text-900",
                 )}
               >
                 <span
                   className={cn(
                     "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2",
-                    s.done ? "border-mint-500 bg-mint-500 text-white" : "border-border"
+                    s.done
+                      ? "border-mint-500 bg-mint-500 text-white"
+                      : "border-border",
                   )}
                 >
                   {s.done && <Check size={11} />}

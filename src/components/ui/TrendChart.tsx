@@ -33,8 +33,11 @@ export function TrendChart({
     return { x, y, ...p };
   });
 
-  const path = coords.map((c, i) => `${i === 0 ? "M" : "L"} ${c.x} ${c.y}`).join(" ");
-  const isUp = points.length >= 2 && points[points.length - 1].value >= points[0].value;
+  const path = coords
+    .map((c, i) => `${i === 0 ? "M" : "L"} ${c.x} ${c.y}`)
+    .join(" ");
+  const isUp =
+    points.length >= 2 && points[points.length - 1].value >= points[0].value;
 
   return (
     <div>
@@ -44,8 +47,20 @@ export function TrendChart({
           same direction to stay aligned with the points. The Persian
           summary line below stays in the page's normal (RTL) flow. */}
       <div dir="ltr">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height: 100 }} preserveAspectRatio="none">
-          <path d={path} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="w-full"
+          style={{ height: 100 }}
+          preserveAspectRatio="none"
+        >
+          <path
+            d={path}
+            fill="none"
+            stroke={color}
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
           {coords.map((c, i) => (
             <circle key={i} cx={c.x} cy={c.y} r={2.5} fill={color} />
           ))}
@@ -70,9 +85,13 @@ export function TrendChart({
           </span>
         </span>
         {lowerIsBetter ? (
-          <span className={isUp ? "text-orange-500" : "text-mint-500"}>{isUp ? "↑ بدتر شده" : "↓ بهتر شده"}</span>
+          <span className={isUp ? "text-orange-500" : "text-mint-500"}>
+            {isUp ? "↑ بدتر شده" : "↓ بهتر شده"}
+          </span>
         ) : (
-          <span className={isUp ? "text-mint-500" : "text-orange-500"}>{isUp ? "↑ رو به رشد" : "↓ رو به افت"}</span>
+          <span className={isUp ? "text-mint-500" : "text-orange-500"}>
+            {isUp ? "↑ رو به رشد" : "↓ رو به افت"}
+          </span>
         )}
       </div>
     </div>

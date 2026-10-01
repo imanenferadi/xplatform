@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { Check, MessageSquareQuote, Timer } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
-import { CURRENT_DAY_NAME, WEEK_DAYS, mentors, type PlanDays, type PlanWeek } from "@/lib/mock-data";
+import {
+  CURRENT_DAY_NAME,
+  WEEK_DAYS,
+  mentors,
+  type PlanDays,
+  type PlanWeek,
+} from "@/lib/mock-data";
 import { dayHours, formatHours, setTaskDone } from "@/lib/plan-store";
 import { cn, toPersianDigits } from "@/lib/utils";
 
@@ -43,7 +49,10 @@ export function PlanDayView({
     <>
       {plan.note && (
         <div className="mb-4 flex items-start gap-2 rounded-x-md border border-border bg-surface p-3 text-sm leading-[1.8] text-text-700">
-          <MessageSquareQuote size={16} className="mt-0.5 shrink-0 text-blue-600" />
+          <MessageSquareQuote
+            size={16}
+            className="mt-0.5 shrink-0 text-blue-600"
+          />
           <span>
             <span className="font-medium text-text-900">{mentor.name}: </span>
             {plan.note}
@@ -64,11 +73,20 @@ export function PlanDayView({
               onClick={() => setSelected(d)}
               className={cn(
                 "flex flex-col items-center rounded-x-md border-2 px-1 py-2 transition-colors",
-                active ? "border-blue-600 bg-blue-100" : "border-border bg-surface hover:border-blue-300",
-                week === "this" && i < todayIndex && !active && "opacity-70"
+                active
+                  ? "border-blue-600 bg-blue-100"
+                  : "border-border bg-surface hover:border-blue-300",
+                week === "this" && i < todayIndex && !active && "opacity-70",
               )}
             >
-              <span className={cn("text-xs", active || isToday ? "font-bold text-blue-600" : "text-text-700")}>
+              <span
+                className={cn(
+                  "text-xs",
+                  active || isToday
+                    ? "font-bold text-blue-600"
+                    : "text-text-700",
+                )}
+              >
                 {isToday ? (
                   "امروز"
                 ) : (
@@ -78,7 +96,9 @@ export function PlanDayView({
                   </>
                 )}
               </span>
-              <span className="tnum text-xs text-text-500">{hours ? `${formatHours(hours)} س` : "—"}</span>
+              <span className="tnum text-xs text-text-500">
+                {hours ? `${formatHours(hours)} س` : "—"}
+              </span>
             </button>
           );
         })}
@@ -87,11 +107,14 @@ export function PlanDayView({
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-sm font-bold text-text-900">
           {selected}
-          {week === "this" && dayIndex === todayIndex && <span className="font-normal text-text-500"> · امروز</span>}
+          {week === "this" && dayIndex === todayIndex && (
+            <span className="font-normal text-text-500"> · امروز</span>
+          )}
         </h2>
         {tasks.length > 0 && week === "this" && !preview && (
           <span className="tnum text-xs text-text-500">
-            {toPersianDigits(doneCount)} از {toPersianDigits(tasks.length)} انجام‌شده
+            {toPersianDigits(doneCount)} از {toPersianDigits(tasks.length)}{" "}
+            انجام‌شده
           </span>
         )}
       </div>
@@ -106,12 +129,16 @@ export function PlanDayView({
             {tasks.map((t, i) => (
               <span key={t.id}>
                 {i > 0 && " · "}
-                {t.subject} <span className="tnum font-medium text-text-900">{formatHours(t.hours)}</span>
+                {t.subject}{" "}
+                <span className="tnum font-medium text-text-900">
+                  {formatHours(t.hours)}
+                </span>
               </span>
             ))}
             <span className="text-text-500">
               {" "}
-              (جمعاً <span className="tnum">{formatHours(dayHours(tasks))}</span> ساعت)
+              (جمعاً{" "}
+              <span className="tnum">{formatHours(dayHours(tasks))}</span> ساعت)
             </span>
           </p>
 
@@ -126,11 +153,19 @@ export function PlanDayView({
                         type="button"
                         disabled={!tickable}
                         onClick={() => setTaskDone(t.id, !isDone)}
-                        aria-label={isDone ? `برداشتن تیک ${t.subject}` : `انجام شد: ${t.subject}`}
+                        aria-label={
+                          isDone
+                            ? `برداشتن تیک ${t.subject}`
+                            : `انجام شد: ${t.subject}`
+                        }
                         className={cn(
                           "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-                          isDone ? "border-mint-500 bg-mint-500 text-white" : "border-border",
-                          tickable ? "hover:border-mint-500" : "cursor-default opacity-60"
+                          isDone
+                            ? "border-mint-500 bg-mint-500 text-white"
+                            : "border-border",
+                          tickable
+                            ? "hover:border-mint-500"
+                            : "cursor-default opacity-60",
                         )}
                       >
                         {isDone && <Check size={13} />}
@@ -140,7 +175,9 @@ export function PlanDayView({
                           <span
                             className={cn(
                               "text-sm font-medium",
-                              isDone ? "text-text-500 line-through" : "text-text-900"
+                              isDone
+                                ? "text-text-500 line-through"
+                                : "text-text-900",
                             )}
                           >
                             {t.subject}
@@ -149,17 +186,22 @@ export function PlanDayView({
                             {formatHours(t.hours)} ساعت
                           </span>
                         </div>
-                        {t.topic && <div className="text-xs text-text-500">{t.topic}</div>}
+                        {t.topic && (
+                          <div className="text-xs text-text-500">{t.topic}</div>
+                        )}
                       </div>
-                      {!preview && week === "this" && dayIndex === todayIndex && !isDone && (
-                        <Link
-                          href={`/dashboard/focustimer?task=${t.id}`}
-                          aria-label={`تایمر ${t.subject}`}
-                          className="flex h-8 w-8 items-center justify-center rounded-full text-text-500 hover:bg-surface-2 hover:text-blue-600"
-                        >
-                          <Timer size={16} />
-                        </Link>
-                      )}
+                      {!preview &&
+                        week === "this" &&
+                        dayIndex === todayIndex &&
+                        !isDone && (
+                          <Link
+                            href={`/dashboard/focustimer?task=${t.id}`}
+                            aria-label={`تایمر ${t.subject}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-full text-text-500 hover:bg-surface-2 hover:text-blue-600"
+                          >
+                            <Timer size={16} />
+                          </Link>
+                        )}
                     </div>
 
                     {t.chapter && (

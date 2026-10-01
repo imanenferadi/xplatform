@@ -20,22 +20,35 @@ import {
 import { toPersianDigits } from "@/lib/utils";
 
 /** «حساب تسویه» — the mentor sees where payouts go and asks to change it. */
-export function PayoutAccountCard({ mentorId, mentorName }: { mentorId: string; mentorName: string }) {
+export function PayoutAccountCard({
+  mentorId,
+  mentorName,
+}: {
+  mentorId: string;
+  mentorName: string;
+}) {
   const account = usePayoutAccounts()[mentorId];
   const requests = useMyShebaRequests(mentorId);
   const pending = requests.find((r) => r.status === "pending");
-  const lastDecided = requests.find((r) => r.status === "approved" || r.status === "rejected");
+  const lastDecided = requests.find(
+    (r) => r.status === "approved" || r.status === "rejected",
+  );
   const [open, setOpen] = useState(false);
   const [sheba, setSheba] = useState("");
   const [holder, setHolder] = useState(mentorName);
   const [note, setNote] = useState("");
-  const [errors, setErrors] = useState<{ sheba?: string; holder?: string; form?: string }>({});
+  const [errors, setErrors] = useState<{
+    sheba?: string;
+    holder?: string;
+    form?: string;
+  }>({});
 
   // Seeing this card is how a decision reaches the mentor; clear «کارهای امروز».
   useEffect(() => markShebaDecisionSeen(mentorId), [mentorId, lastDecided?.id]);
 
   const check = sheba.trim() ? checkIban(sheba) : null;
-  const nameMismatch = holder.trim() !== "" && !holderMatches(holder, mentorName);
+  const nameMismatch =
+    holder.trim() !== "" && !holderMatches(holder, mentorName);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,7 +57,12 @@ export function PayoutAccountCard({ mentorId, mentorName }: { mentorId: string; 
     if (!c.ok) next.sheba = c.error;
     if (!holder.trim()) next.holder = "اسم صاحب حساب رو بنویس.";
     if (next.sheba || next.holder) return setErrors(next);
-    const err = requestShebaChange(mentorId, (c as { iban: string }).iban, holder, note);
+    const err = requestShebaChange(
+      mentorId,
+      (c as { iban: string }).iban,
+      holder,
+      note,
+    );
     if (err) return setErrors({ form: err });
     toast("درخواست تغییر شبا برای تیم مالی فرستاده شد");
     setOpen(false);
@@ -62,32 +80,43 @@ export function PayoutAccountCard({ mentorId, mentorName }: { mentorId: string; 
 
         {account ? (
           <div className="rounded-x-md bg-surface-2 p-3 text-sm">
-            <div dir="ltr" className="tnum text-right font-medium text-text-900">
+            <div
+              dir="ltr"
+              className="tnum text-right font-medium text-text-900"
+            >
               {maskIban(account.sheba)}
             </div>
             <div className="mt-0.5 text-xs text-text-500">
-              بانک {bankOf(account.sheba)} · به نام {account.holder} · از {account.since}
+              بانک {bankOf(account.sheba)} · به نام {account.holder} · از{" "}
+              {account.since}
             </div>
           </div>
         ) : (
-          <p className="text-sm text-orange-500">هنوز شبایی ثبت نکردی — تسویه بدون شبا انجام نمی‌شه.</p>
+          <p className="text-sm text-orange-500">
+            هنوز شبایی ثبت نکردی — تسویه بدون شبا انجام نمی‌شه.
+          </p>
         )}
 
         {lastDecided && !pending && (
           <p
             className={`mt-3 rounded-x-md p-3 text-xs leading-[1.8] ${
-              lastDecided.status === "approved" ? "bg-mint-500/10 text-text-700" : "bg-red-500/10 text-text-700"
+              lastDecided.status === "approved"
+                ? "bg-mint-500/10 text-text-700"
+                : "bg-red-500/10 text-text-700"
             }`}
           >
             {lastDecided.status === "approved" ? (
               <>
-                ✓ شبای جدیدت ({maskIban(lastDecided.newSheba)}) تأیید شد ({lastDecided.decidedAt}). برای امنیت، اولین
-                تسویه به این حساب تا {toPersianDigits(SHEBA_HOLD_HOURS)} ساعت بعد از تأیید انجام نمی‌شه. اگه این تغییر
-                کار تو نبوده، همین الان به پشتیبانی خبر بده.
+                ✓ شبای جدیدت ({maskIban(lastDecided.newSheba)}) تأیید شد (
+                {lastDecided.decidedAt}). برای امنیت، اولین تسویه به این حساب تا{" "}
+                {toPersianDigits(SHEBA_HOLD_HOURS)} ساعت بعد از تأیید انجام
+                نمی‌شه. اگه این تغییر کار تو نبوده، همین الان به پشتیبانی خبر
+                بده.
               </>
             ) : (
               <>
-                درخواست تغییر شبا ({maskIban(lastDecided.newSheba)}) رد شد: «{lastDecided.decisionNote}»
+                درخواست تغییر شبا ({maskIban(lastDecided.newSheba)}) رد شد: «
+                {lastDecided.decisionNote}»
               </>
             )}
           </p>
@@ -97,8 +126,9 @@ export function PayoutAccountCard({ mentorId, mentorName }: { mentorId: string; 
           <div className="mt-3 flex flex-wrap items-center gap-2 rounded-x-md border border-orange-500/30 bg-orange-500/10 p-3 text-xs">
             <Badge tone="warning">منتظر بررسی مالی</Badge>
             <span className="flex-1 text-text-700">
-              درخواست تغییر به <span dir="ltr">{maskIban(pending.newSheba)}</span> ({bankOf(pending.newSheba)}) ·{" "}
-              {pending.requestedAt}
+              درخواست تغییر به{" "}
+              <span dir="ltr">{maskIban(pending.newSheba)}</span> (
+              {bankOf(pending.newSheba)}) · {pending.requestedAt}
             </span>
             <button
               type="button"
@@ -131,7 +161,11 @@ export function PayoutAccountCard({ mentorId, mentorName }: { mentorId: string; 
                 className={`${fieldClass} tnum text-left`}
               />
             </Field>
-            {check?.ok && <p className="-mt-1 text-xs text-mint-500">✓ معتبر — بانک {check.bank}</p>}
+            {check?.ok && (
+              <p className="-mt-1 text-xs text-mint-500">
+                ✓ معتبر — بانک {check.bank}
+              </p>
+            )}
             <Field label="اسم صاحب حساب" error={errors.holder}>
               <input
                 value={holder}
@@ -144,7 +178,8 @@ export function PayoutAccountCard({ mentorId, mentorName }: { mentorId: string; 
             </Field>
             {nameMismatch && (
               <p className="-mt-1 text-xs text-orange-500">
-                حساب باید به نام خودت ({mentorName}) باشه؛ حساب به نام کس دیگه معمولاً رد می‌شه.
+                حساب باید به نام خودت ({mentorName}) باشه؛ حساب به نام کس دیگه
+                معمولاً رد می‌شه.
               </p>
             )}
             <Field label="توضیح برای تیم مالی" optional>
@@ -161,22 +196,36 @@ export function PayoutAccountCard({ mentorId, mentorName }: { mentorId: string; 
               </p>
             )}
             <p className="flex items-start gap-1.5 text-xs leading-[1.8] text-text-500">
-              <ShieldCheck size={14} className="mt-0.5 shrink-0 text-blue-600" />
-              تیم مالی مالکیت حساب رو استعلام می‌کنه. بعد از تأیید، اولین تسویه به حساب جدید{" "}
-              {toPersianDigits(SHEBA_HOLD_HOURS)} ساعت صبر می‌کنه — برای اینکه اگه کسی به‌جای تو این کار رو کرده باشه،
-              فرصت جلوگیری باشه.
+              <ShieldCheck
+                size={14}
+                className="mt-0.5 shrink-0 text-blue-600"
+              />
+              تیم مالی مالکیت حساب رو استعلام می‌کنه. بعد از تأیید، اولین تسویه
+              به حساب جدید {toPersianDigits(SHEBA_HOLD_HOURS)} ساعت صبر می‌کنه —
+              برای اینکه اگه کسی به‌جای تو این کار رو کرده باشه، فرصت جلوگیری
+              باشه.
             </p>
             <FormActions>
               <Button type="submit" size="md">
                 ارسال درخواست
               </Button>
-              <Button type="button" size="md" variant="secondary" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                size="md"
+                variant="secondary"
+                onClick={() => setOpen(false)}
+              >
                 انصراف
               </Button>
             </FormActions>
           </form>
         ) : (
-          <Button size="md" variant="secondary" className="mt-3" onClick={() => setOpen(true)}>
+          <Button
+            size="md"
+            variant="secondary"
+            className="mt-3"
+            onClick={() => setOpen(true)}
+          >
             درخواست تغییر شبا
           </Button>
         )}

@@ -47,7 +47,8 @@ function MeetingForm({
     const next: typeof errors = {};
     if (!MEETING_PROVIDERS[provider].pattern.test(cleanUrl))
       next.url = `لینک معتبر ${MEETING_PROVIDERS[provider].label} نیست — شکلش باید این‌طوری باشه: ${MEETING_PROVIDERS[provider].example}`;
-    if (!/^09\d{9}$/.test(digits)) next.phone = "شماره‌ی موبایل ۱۱ رقمی که با ۰۹ شروع بشه.";
+    if (!/^09\d{9}$/.test(digits))
+      next.phone = "شماره‌ی موبایل ۱۱ رقمی که با ۰۹ شروع بشه.";
     setErrors(next);
     if (Object.keys(next).length > 0) return;
     saveMeetingSetup({ provider, url: cleanUrl, fallbackPhone: phone.trim() });
@@ -62,8 +63,9 @@ function MeetingForm({
           <h2 className="text-sm font-bold text-text-900">لینک جلسه‌هات</h2>
         </div>
         <p className="mb-4 text-xs leading-[1.8] text-text-500">
-          جلسه‌ها روی پلتفرمی برگزار می‌شن که خودت باهاش راحتی. دانش‌آموز موقع جلسه با یه دکمه وارد همین لینک می‌شه.
-          اسکای‌روم موقع قطعی اینترنت بین‌الملل هم کار می‌کنه.
+          جلسه‌ها روی پلتفرمی برگزار می‌شن که خودت باهاش راحتی. دانش‌آموز موقع
+          جلسه با یه دکمه وارد همین لینک می‌شه. اسکای‌روم موقع قطعی اینترنت
+          بین‌الملل هم کار می‌کنه.
         </p>
 
         <form onSubmit={submit} noValidate className="space-y-3">
@@ -81,7 +83,7 @@ function MeetingForm({
                   "rounded-x-md border-2 px-2 py-2 text-sm font-medium transition-colors",
                   provider === p
                     ? "border-blue-600 bg-blue-100 text-text-900"
-                    : "border-border bg-surface text-text-700"
+                    : "border-border bg-surface text-text-700",
                 )}
               >
                 {MEETING_PROVIDERS[p].label}
@@ -90,7 +92,10 @@ function MeetingForm({
           </div>
 
           <div>
-            <label htmlFor="meeting-url" className="mb-1 block text-xs text-text-700">
+            <label
+              htmlFor="meeting-url"
+              className="mb-1 block text-xs text-text-700"
+            >
               لینک ثابت اتاقت
             </label>
             <input
@@ -105,12 +110,18 @@ function MeetingForm({
               placeholder={MEETING_PROVIDERS[provider].example}
               className="h-10 w-full rounded-x-sm border border-border bg-surface px-3 text-left text-sm text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600"
             />
-            {errors.url && <p className="mt-1 text-xs text-red-500">{errors.url}</p>}
+            {errors.url && (
+              <p className="mt-1 text-xs text-red-500">{errors.url}</p>
+            )}
           </div>
 
           <div>
-            <label htmlFor="fallback-phone" className="mb-1 flex items-center gap-1 text-xs text-text-700">
-              <Phone size={12} /> شماره‌ی جایگزین (اگه لینک باز نشد، با این شماره تماس می‌گیری)
+            <label
+              htmlFor="fallback-phone"
+              className="mb-1 flex items-center gap-1 text-xs text-text-700"
+            >
+              <Phone size={12} /> شماره‌ی جایگزین (اگه لینک باز نشد، با این
+              شماره تماس می‌گیری)
             </label>
             <input
               id="fallback-phone"
@@ -125,7 +136,9 @@ function MeetingForm({
               placeholder="۰۹۱۲ ۰۰۰ ۰۰۰۰"
               className="tnum h-10 w-full rounded-x-sm border border-border bg-surface px-3 text-left text-sm text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600"
             />
-            {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
+            {errors.phone && (
+              <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
+            )}
           </div>
 
           <div className="flex items-center gap-3">

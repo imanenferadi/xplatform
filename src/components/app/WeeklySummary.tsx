@@ -2,8 +2,18 @@
 
 import { useState } from "react";
 import { Clock, ListChecks, CalendarCheck, BedDouble } from "lucide-react";
-import { CURRENT_DAY_NAME, WEEK_DAYS, WEEK_LABELS, type NightlyCheckIn } from "@/lib/mock-data";
-import { SHORT_SLEEP_MINUTES, aggregateWeek, formatClockTime, formatStudyTime } from "@/lib/checkins";
+import {
+  CURRENT_DAY_NAME,
+  WEEK_DAYS,
+  WEEK_LABELS,
+  type NightlyCheckIn,
+} from "@/lib/mock-data";
+import {
+  SHORT_SLEEP_MINUTES,
+  aggregateWeek,
+  formatClockTime,
+  formatStudyTime,
+} from "@/lib/checkins";
 import { cn, toPersianDigits } from "@/lib/utils";
 
 type Week = NightlyCheckIn["week"];
@@ -36,7 +46,9 @@ export function WeeklySummary({
               onClick={() => setWeek(w)}
               className={cn(
                 "rounded-x-pill border px-3.5 py-1.5 text-xs font-medium transition-colors",
-                week === w ? "border-blue-600 bg-blue-100 text-text-900" : "border-border bg-surface text-text-700"
+                week === w
+                  ? "border-blue-600 bg-blue-100 text-text-900"
+                  : "border-border bg-surface text-text-700",
               )}
             >
               {w === "this" ? "این هفته (تا امروز)" : "هفته‌ی قبل"}
@@ -47,8 +59,16 @@ export function WeeklySummary({
       </div>
 
       <div className="grid grid-cols-3 gap-2">
-        <Stat icon={Clock} label="ساعت مطالعه" value={formatStudyTime(summary.totalMinutes)} />
-        <Stat icon={ListChecks} label="تست زده‌شده" value={toPersianDigits(summary.totalTests)} />
+        <Stat
+          icon={Clock}
+          label="ساعت مطالعه"
+          value={formatStudyTime(summary.totalMinutes)}
+        />
+        <Stat
+          icon={ListChecks}
+          label="تست زده‌شده"
+          value={toPersianDigits(summary.totalTests)}
+        />
         <Stat
           icon={CalendarCheck}
           label="شب‌های با گزارش"
@@ -67,16 +87,28 @@ export function WeeklySummary({
               <div
                 className={cn(
                   "mx-auto h-2 rounded-x-pill",
-                  done ? "bg-mint-500" : future ? "bg-surface-2" : "bg-red-500/40"
+                  done
+                    ? "bg-mint-500"
+                    : future
+                      ? "bg-surface-2"
+                      : "bg-red-500/40",
                 )}
               />
               <div className="mt-1 text-xs text-text-500">{d.slice(0, 2)}</div>
               {showSleep && slept != null && (
                 <div
-                  className={cn("text-xs", slept < SHORT_SLEEP_MINUTES ? "font-bold text-orange-500" : "text-text-500")}
+                  className={cn(
+                    "text-xs",
+                    slept < SHORT_SLEEP_MINUTES
+                      ? "font-bold text-orange-500"
+                      : "text-text-500",
+                  )}
                   title={`خواب: ${formatStudyTime(slept)}`}
                 >
-                  <span className="tnum">{toPersianDigits(Math.round((slept / 60) * 10) / 10)}</span>س
+                  <span className="tnum">
+                    {toPersianDigits(Math.round((slept / 60) * 10) / 10)}
+                  </span>
+                  س
                 </div>
               )}
             </div>
@@ -91,17 +123,24 @@ export function WeeklySummary({
           </span>
           <span>میانگین {formatStudyTime(summary.sleep.avgMinutes)}</span>
           <span>
-            بیداری حدود <span className="tnum">{formatClockTime(summary.sleep.avgWake)}</span>
+            بیداری حدود{" "}
+            <span className="tnum">
+              {formatClockTime(summary.sleep.avgWake)}
+            </span>
           </span>
           {summary.sleep.shortNights > 0 && (
-            <span className="text-orange-500">{toPersianDigits(summary.sleep.shortNights)} شب زیر ۶ ساعت</span>
+            <span className="text-orange-500">
+              {toPersianDigits(summary.sleep.shortNights)} شب زیر ۶ ساعت
+            </span>
           )}
         </div>
       )}
 
       {summary.subjects.length === 0 ? (
         <p className="py-8 text-center text-sm text-text-500">
-          {audience === "student" ? "این هفته هنوز گزارش کاری نفرستادی." : "این هفته هنوز گزارش کاری ثبت نشده."}
+          {audience === "student"
+            ? "این هفته هنوز گزارش کاری نفرستادی."
+            : "این هفته هنوز گزارش کاری ثبت نشده."}
         </p>
       ) : (
         <div className="mt-4 overflow-x-auto">
@@ -116,10 +155,17 @@ export function WeeklySummary({
             </thead>
             <tbody>
               {summary.subjects.map((s) => (
-                <tr key={s.subject} className="border-b border-border/60 last:border-0">
-                  <td className="py-2.5 font-medium text-text-900">{s.subject}</td>
+                <tr
+                  key={s.subject}
+                  className="border-b border-border/60 last:border-0"
+                >
+                  <td className="py-2.5 font-medium text-text-900">
+                    {s.subject}
+                  </td>
                   <td className="py-2.5">
-                    <div className="text-text-700">{formatStudyTime(s.minutes)}</div>
+                    <div className="text-text-700">
+                      {formatStudyTime(s.minutes)}
+                    </div>
                     <div className="mt-1 h-1.5 w-full max-w-40 overflow-hidden rounded-x-pill bg-surface-2">
                       <div
                         className="h-full rounded-x-pill bg-blue-600"
@@ -127,16 +173,24 @@ export function WeeklySummary({
                       />
                     </div>
                   </td>
-                  <td className="tnum py-2.5 text-center text-text-700">{toPersianDigits(s.tests)}</td>
-                  <td className="tnum py-2.5 text-center text-text-500">{toPersianDigits(s.days)}</td>
+                  <td className="tnum py-2.5 text-center text-text-700">
+                    {toPersianDigits(s.tests)}
+                  </td>
+                  <td className="tnum py-2.5 text-center text-text-500">
+                    {toPersianDigits(s.days)}
+                  </td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t border-border font-bold text-text-900">
                 <td className="py-2.5">جمع</td>
-                <td className="py-2.5">{formatStudyTime(summary.totalMinutes)}</td>
-                <td className="tnum py-2.5 text-center">{toPersianDigits(summary.totalTests)}</td>
+                <td className="py-2.5">
+                  {formatStudyTime(summary.totalMinutes)}
+                </td>
+                <td className="tnum py-2.5 text-center">
+                  {toPersianDigits(summary.totalTests)}
+                </td>
                 <td />
               </tr>
             </tfoot>

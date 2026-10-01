@@ -46,13 +46,28 @@ export function KarnamehFiles({
     const file = e.target.files?.[0];
     if (!file) return;
     setBusy(true);
-    const { dataUrl, mime } = await readKarnamehFile(file).catch(() => ({ dataUrl: undefined, mime: file.type }));
+    const { dataUrl, mime } = await readKarnamehFile(file).catch(() => ({
+      dataUrl: undefined,
+      mime: file.type,
+    }));
     const stored = addKarnameh(
-      { studentId, uploadedBy: "mentor", examProvider: "آپلود مشاور", fileName: file.name, note: "", dataUrl, mime },
-      studentName
+      {
+        studentId,
+        uploadedBy: "mentor",
+        examProvider: "آپلود مشاور",
+        fileName: file.name,
+        note: "",
+        dataUrl,
+        mime,
+      },
+      studentName,
     );
     setBusy(false);
-    setNote(stored ? "" : "فایل بیشتر از ۱.۵ مگابایت بود؛ در نسخه‌ی نمایشی فقط اسمش ذخیره شد.");
+    setNote(
+      stored
+        ? ""
+        : "فایل بیشتر از ۱.۵ مگابایت بود؛ در نسخه‌ی نمایشی فقط اسمش ذخیره شد.",
+    );
     e.target.value = "";
   }
 
@@ -63,7 +78,10 @@ export function KarnamehFiles({
       ) : (
         <div className="space-y-2">
           {files.map((k) => (
-            <div key={k.id} className="flex items-center gap-3 rounded-x-md border border-border bg-surface-2 p-3">
+            <div
+              key={k.id}
+              className="flex items-center gap-3 rounded-x-md border border-border bg-surface-2 p-3"
+            >
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100">
                 <FileText size={16} className="text-blue-600" />
               </div>
@@ -73,14 +91,18 @@ export function KarnamehFiles({
                     {k.examProvider} — {k.fileName}
                   </span>
                   {!k.seenByMentor && (
-                    <span className="rounded-x-pill bg-blue-600 px-2 py-0.5 text-xs text-white">جدید</span>
+                    <span className="rounded-x-pill bg-blue-600 px-2 py-0.5 text-xs text-white">
+                      جدید
+                    </span>
                   )}
                 </div>
                 <div className="text-xs text-text-500">
                   {k.date}
                   {k.uploadedBy === "mentor" && " · آپلود خودت"}
                 </div>
-                {k.note && <p className="mt-0.5 text-xs text-text-700">«{k.note}»</p>}
+                {k.note && (
+                  <p className="mt-0.5 text-xs text-text-700">«{k.note}»</p>
+                )}
               </div>
               <Button size="md" variant="secondary" onClick={() => open(k)}>
                 <Eye size={14} /> مشاهده
@@ -90,7 +112,15 @@ export function KarnamehFiles({
         </div>
       )}
 
-      {!readOnly && <input ref={input} type="file" accept="image/*,.pdf" className="hidden" onChange={upload} />}
+      {!readOnly && (
+        <input
+          ref={input}
+          type="file"
+          accept="image/*,.pdf"
+          className="hidden"
+          onChange={upload}
+        />
+      )}
       {!readOnly && (
         <button
           type="button"
@@ -98,7 +128,8 @@ export function KarnamehFiles({
           onClick={() => input.current?.click()}
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-x-md border border-dashed border-border py-2.5 text-sm text-text-500 hover:border-blue-600 hover:text-blue-600 disabled:opacity-50"
         >
-          <Upload size={15} /> {busy ? "در حال آماده‌سازی..." : "آپلود کارنامه برای این دانش‌آموز"}
+          <Upload size={15} />{" "}
+          {busy ? "در حال آماده‌سازی..." : "آپلود کارنامه برای این دانش‌آموز"}
         </button>
       )}
       {note && <p className="mt-2 text-xs text-orange-500">{note}</p>}
@@ -128,17 +159,30 @@ export function KarnamehFiles({
                 <X size={18} />
               </button>
             </div>
-            <div className={cn("flex-1 overflow-auto bg-surface-2", !viewing.dataUrl && "p-10")}>
+            <div
+              className={cn(
+                "flex-1 overflow-auto bg-surface-2",
+                !viewing.dataUrl && "p-10",
+              )}
+            >
               {!viewing.dataUrl ? (
                 <p className="text-center text-sm text-text-500">
-                  فایل این کارنامه در نسخه‌ی نمایشی ذخیره نشده (نمونه‌ی اولیه یا فایل بزرگ‌تر از ۱.۵ مگابایت). با
-                  بک‌اند، همین‌جا باز می‌شه.
+                  فایل این کارنامه در نسخه‌ی نمایشی ذخیره نشده (نمونه‌ی اولیه یا
+                  فایل بزرگ‌تر از ۱.۵ مگابایت). با بک‌اند، همین‌جا باز می‌شه.
                 </p>
               ) : viewing.mime === "application/pdf" ? (
-                <iframe src={viewing.dataUrl} title={viewing.fileName} className="h-[75vh] w-full" />
+                <iframe
+                  src={viewing.dataUrl}
+                  title={viewing.fileName}
+                  className="h-[75vh] w-full"
+                />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element -- a data: URL from storage, not an optimizable asset
-                <img src={viewing.dataUrl} alt={viewing.fileName} className="mx-auto max-w-full" />
+                <img
+                  src={viewing.dataUrl}
+                  alt={viewing.fileName}
+                  className="mx-auto max-w-full"
+                />
               )}
             </div>
           </div>

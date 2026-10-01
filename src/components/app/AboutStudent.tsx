@@ -1,7 +1,11 @@
 "use client";
 
 import { BookOpen } from "lucide-react";
-import { BOOK_STATUS_LABEL, CHECKIN_SUBJECTS, WEEK_DAYS } from "@/lib/mock-data";
+import {
+  BOOK_STATUS_LABEL,
+  CHECKIN_SUBJECTS,
+  WEEK_DAYS,
+} from "@/lib/mock-data";
 import { useStudentSetup } from "@/lib/setup-store";
 import { freeHours } from "@/lib/schedule";
 import { cn, toPersianDigits } from "@/lib/utils";
@@ -28,13 +32,19 @@ export function AboutStudent({ studentId }: { studentId: string }) {
           )}
         </dl>
       ) : (
-        <p className="text-xs text-text-500">هنوز پرسشنامه‌ی شروع رو پر نکرده.</p>
+        <p className="text-xs text-text-500">
+          هنوز پرسشنامه‌ی شروع رو پر نکرده.
+        </p>
       )}
 
       <div>
-        <div className="mb-1.5 text-xs font-bold text-text-900">وقت آزاد تقریبی هر روز (بعد از مدرسه و کلاس)</div>
+        <div className="mb-1.5 text-xs font-bold text-text-900">
+          وقت آزاد تقریبی هر روز (بعد از مدرسه و کلاس)
+        </div>
         {schedule.length === 0 ? (
-          <p className="text-xs text-text-500">ساعت مدرسه و کلاس‌هاش ثبت نشده.</p>
+          <p className="text-xs text-text-500">
+            ساعت مدرسه و کلاس‌هاش ثبت نشده.
+          </p>
         ) : (
           <div className="grid grid-cols-7 gap-1 text-center text-xs">
             {WEEK_DAYS.map((d) => {
@@ -42,7 +52,12 @@ export function AboutStudent({ studentId }: { studentId: string }) {
               return (
                 <div key={d} className="rounded-x-sm bg-surface-2 px-1 py-1.5">
                   <div className="text-text-500">{d.slice(0, 2)}</div>
-                  <div className={cn("font-bold", h < 6 ? "text-orange-500" : "text-text-900")}>
+                  <div
+                    className={cn(
+                      "font-bold",
+                      h < 6 ? "text-orange-500" : "text-text-900",
+                    )}
+                  >
                     <span className="tnum">{toPersianDigits(h)}</span>س
                   </div>
                 </div>
@@ -55,22 +70,32 @@ export function AboutStudent({ studentId }: { studentId: string }) {
             کلاس‌ها:{" "}
             {schedule
               .filter((c) => c.kind === "class")
-              .map((c) => `${c.title} (${c.day} ${toPersianDigits(c.start)}–${toPersianDigits(c.end)})`)
+              .map(
+                (c) =>
+                  `${c.title} (${c.day} ${toPersianDigits(c.start)}–${toPersianDigits(c.end)})`,
+              )
               .join("، ")}
           </p>
         )}
       </div>
 
       <div>
-        <div className="mb-1.5 text-xs font-bold text-text-900">کتاب‌ها و منابع</div>
+        <div className="mb-1.5 text-xs font-bold text-text-900">
+          کتاب‌ها و منابع
+        </div>
         {books.length === 0 ? (
           <p className="text-xs text-text-500">هنوز کتابی ثبت نکرده.</p>
         ) : (
           <div className="flex flex-wrap gap-1.5">
-            {CHECKIN_SUBJECTS.flatMap((s) => books.filter((b) => b.subject === s)).map((b) => (
-              <span key={b.id} className="rounded-x-pill bg-surface-2 px-2.5 py-1 text-xs text-text-700">
-                <span className="font-medium text-text-900">{b.subject}:</span> {b.title} ({b.kind}،{" "}
-                {BOOK_STATUS_LABEL[b.status]})
+            {CHECKIN_SUBJECTS.flatMap((s) =>
+              books.filter((b) => b.subject === s),
+            ).map((b) => (
+              <span
+                key={b.id}
+                className="rounded-x-pill bg-surface-2 px-2.5 py-1 text-xs text-text-700"
+              >
+                <span className="font-medium text-text-900">{b.subject}:</span>{" "}
+                {b.title} ({b.kind}، {BOOK_STATUS_LABEL[b.status]})
               </span>
             ))}
           </div>
@@ -90,13 +115,22 @@ function Item({ label, value }: { label: string; value: string }) {
 }
 
 /** The student's own books for one subject, next to a plan row. */
-export function BooksHint({ studentId, subject }: { studentId: string; subject: string }) {
+export function BooksHint({
+  studentId,
+  subject,
+}: {
+  studentId: string;
+  subject: string;
+}) {
   const { books } = useStudentSetup(studentId);
-  const list = books.filter((b) => b.subject === subject && b.status !== "done");
+  const list = books.filter(
+    (b) => b.subject === subject && b.status !== "done",
+  );
   if (list.length === 0) return null;
   return (
     <div className="mt-1 flex items-center gap-1 text-xs text-text-500">
-      <BookOpen size={11} /> منابعش: {list.map((b) => `${b.title} (${b.kind})`).join("، ")}
+      <BookOpen size={11} /> منابعش:{" "}
+      {list.map((b) => `${b.title} (${b.kind})`).join("، ")}
     </div>
   );
 }

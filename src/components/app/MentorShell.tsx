@@ -38,7 +38,7 @@ export function MentorShell({ children }: { children: React.ReactNode }) {
       </a>
       <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-l border-border bg-navy-900 md:flex">
         <div className="flex items-center justify-between p-4">
-          <span className="text-sm font-bold text-white">X · مشاور</span>
+          <span className="text-sm font-bold text-white">Matriss · مشاور</span>
           <ThemeToggle />
         </div>
 
@@ -52,7 +52,9 @@ export function MentorShell({ children }: { children: React.ReactNode }) {
                 href={l.href}
                 className={cn(
                   "flex items-center gap-2.5 rounded-x-sm px-3 py-2 text-sm font-medium transition-colors",
-                  active ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/5 hover:text-white"
+                  active
+                    ? "bg-white/10 text-white"
+                    : "text-white/60 hover:bg-white/5 hover:text-white",
                 )}
               >
                 <Icon size={16} />
@@ -66,7 +68,9 @@ export function MentorShell({ children }: { children: React.ReactNode }) {
           href="/mentor/guide"
           className={cn(
             "mx-2 mb-2 flex items-center gap-2 rounded-x-sm px-3 py-1.5 text-xs transition-colors",
-            pathname === "/mentor/guide" ? "bg-white/10 text-white" : "text-white/60 hover:text-white"
+            pathname === "/mentor/guide"
+              ? "bg-white/10 text-white"
+              : "text-white/60 hover:text-white",
           )}
         >
           <BookOpenCheck size={14} /> راهنمای مشاور
@@ -76,7 +80,9 @@ export function MentorShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2.5 px-1">
             <Avatar name="سارا" size="sm" />
             <div className="min-w-0">
-              <div className="truncate text-xs font-medium text-white">سارا محمدی</div>
+              <div className="truncate text-xs font-medium text-white">
+                سارا محمدی
+              </div>
               <div className="truncate text-xs text-white/60">
                 <CapacityNote mentor={mentors[0]} />
               </div>
@@ -86,7 +92,7 @@ export function MentorShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-border bg-navy-900 px-4 py-3 md:hidden">
-        <span className="text-sm font-bold text-white">X · مشاور</span>
+        <span className="text-sm font-bold text-white">Matriss · مشاور</span>
         <Avatar name="سارا" size="sm" />
       </div>
 
