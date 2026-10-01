@@ -3,7 +3,16 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Play, Pause, RotateCcw, Timer as TimerIcon, Coffee, Check, X, Target } from "lucide-react";
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Timer as TimerIcon,
+  Coffee,
+  Check,
+  X,
+  Target,
+} from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button, buttonVariants } from "@/components/ui/Button";
@@ -28,8 +37,18 @@ const PRESETS: Record<Mode, { minutes: number; label: string }[]> = {
 };
 
 const MODE_META = {
-  focus: { title: "فوکوس", icon: TimerIcon, ring: "stroke-blue-600", tint: "bg-blue-100 text-blue-600" },
-  rest: { title: "استراحت", icon: Coffee, ring: "stroke-mint-500", tint: "bg-mint-500/15 text-mint-500" },
+  focus: {
+    title: "فوکوس",
+    icon: TimerIcon,
+    ring: "stroke-blue-600",
+    tint: "bg-blue-100 text-blue-600",
+  },
+  rest: {
+    title: "استراحت",
+    icon: Coffee,
+    ring: "stroke-mint-500",
+    tint: "bg-mint-500/15 text-mint-500",
+  },
 };
 
 const MIN_CUSTOM = 1;
@@ -84,7 +103,9 @@ function FocusTimer() {
     e.preventDefault();
     const m = Number(toLatinDigits(customInput));
     if (!Number.isInteger(m) || m < MIN_CUSTOM || m > MAX_CUSTOM) {
-      setCustomError(`یه عدد صحیح بین ${toPersianDigits(MIN_CUSTOM)} تا ${toPersianDigits(MAX_CUSTOM)} دقیقه وارد کن.`);
+      setCustomError(
+        `یه عدد صحیح بین ${toPersianDigits(MIN_CUSTOM)} تا ${toPersianDigits(MAX_CUSTOM)} دقیقه وارد کن.`,
+      );
       return;
     }
     setCustomError("");
@@ -96,7 +117,9 @@ function FocusTimer() {
     <div className="mx-auto max-w-xl px-4 py-6 md:py-10">
       <div className="mb-6 flex items-center gap-2">
         <TimerIcon size={18} className="text-blue-600" />
-        <h1 className="text-xl font-bold text-text-900">تایمر فوکوس و استراحت</h1>
+        <h1 className="text-xl font-bold text-text-900">
+          تایمر فوکوس و استراحت
+        </h1>
       </div>
 
       {task && (
@@ -109,7 +132,11 @@ function FocusTimer() {
               {task.topic && ` — ${task.topic}`}
             </span>
           </div>
-          <Link href="/dashboard/focustimer" className="text-text-500 hover:text-text-900" aria-label="جدا کردن از تسک">
+          <Link
+            href="/dashboard/focustimer"
+            className="text-text-500 hover:text-text-900"
+            aria-label="جدا کردن از تسک"
+          >
             <X size={16} />
           </Link>
         </div>
@@ -127,7 +154,7 @@ function FocusTimer() {
                 "flex items-center justify-center gap-2 rounded-x-md border-2 py-3 text-sm font-medium transition-colors",
                 mode === m
                   ? "border-blue-600 bg-blue-100 text-text-900"
-                  : "border-border bg-surface text-text-700 hover:border-blue-300"
+                  : "border-border bg-surface text-text-700 hover:border-blue-300",
               )}
             >
               <ModeIcon size={16} />
@@ -147,7 +174,7 @@ function FocusTimer() {
               "rounded-x-pill border px-4 py-1.5 text-sm font-medium transition-colors",
               minutes === p.minutes
                 ? "border-blue-600 bg-blue-100 text-text-900"
-                : "border-border bg-surface text-text-700"
+                : "border-border bg-surface text-text-700",
             )}
           >
             {p.label}
@@ -176,11 +203,19 @@ function FocusTimer() {
             className="h-9 w-24 rounded-x-md border border-border bg-surface px-3 text-center text-sm text-text-900 outline-none focus:border-blue-600"
           />
           <span className="text-sm text-text-500">دقیقه</span>
-          <Button type="submit" size="md" variant="secondary" className="h-9 px-4" disabled={!customInput.trim()}>
+          <Button
+            type="submit"
+            size="md"
+            variant="secondary"
+            className="h-9 px-4"
+            disabled={!customInput.trim()}
+          >
             تنظیم
           </Button>
         </div>
-        {customError && <p className="mt-2 text-center text-xs text-red-500">{customError}</p>}
+        {customError && (
+          <p className="mt-2 text-center text-xs text-red-500">{customError}</p>
+        )}
       </form>
 
       {/* Ring */}
@@ -195,7 +230,9 @@ function FocusTimer() {
           >
             <div className="flex flex-col items-center">
               <Icon size={20} className="mb-1 text-text-500" />
-              <span className="tnum text-4xl font-extrabold text-text-900">{formatClock(remaining)}</span>
+              <span className="tnum text-4xl font-extrabold text-text-900">
+                {formatClock(remaining)}
+              </span>
               <span className="mt-1 text-xs text-text-500">{meta.title}</span>
             </div>
           </ProgressCircle>
@@ -203,7 +240,10 @@ function FocusTimer() {
           {justFinished ? (
             <div className="mt-6 flex flex-col items-center gap-3">
               <div
-                className={cn("flex items-center gap-1.5 rounded-x-pill px-3 py-1.5 text-sm font-medium", meta.tint)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-x-pill px-3 py-1.5 text-sm font-medium",
+                  meta.tint,
+                )}
               >
                 <Check size={14} />
                 {mode === "focus"
@@ -213,11 +253,22 @@ function FocusTimer() {
                   : "استراحت تموم شد"}
               </div>
               <div className="flex gap-2">
-                <Button size="lg" onClick={() => switchMode(mode === "focus" ? "rest" : "focus")}>
+                <Button
+                  size="lg"
+                  onClick={() =>
+                    switchMode(mode === "focus" ? "rest" : "focus")
+                  }
+                >
                   {mode === "focus" ? "شروع استراحت" : "برگرد به فوکوس"}
                 </Button>
                 {task && mode === "focus" && (
-                  <Link href="/dashboard" className={buttonVariants({ size: "lg", variant: "secondary" })}>
+                  <Link
+                    href="/dashboard"
+                    className={buttonVariants({
+                      size: "lg",
+                      variant: "secondary",
+                    })}
+                  >
                     برگرد به امروز
                   </Link>
                 )}
@@ -225,7 +276,11 @@ function FocusTimer() {
             </div>
           ) : (
             <div className="mt-6 flex items-center gap-3">
-              <Button size="lg" onClick={() => setRunning((r) => !r)} className="w-32">
+              <Button
+                size="lg"
+                onClick={() => setRunning((r) => !r)}
+                className="w-32"
+              >
                 {running ? (
                   <>
                     <Pause size={16} /> توقف
@@ -236,7 +291,12 @@ function FocusTimer() {
                   </>
                 )}
               </Button>
-              <Button size="lg" variant="secondary" onClick={() => selectDuration(minutes)} aria-label="ریست">
+              <Button
+                size="lg"
+                variant="secondary"
+                onClick={() => selectDuration(minutes)}
+                aria-label="ریست"
+              >
                 <RotateCcw size={16} />
               </Button>
             </div>
@@ -248,13 +308,17 @@ function FocusTimer() {
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Card>
           <CardContent className="text-center">
-            <div className="tnum text-2xl font-extrabold text-text-900">{toPersianDigits(focusSessionsToday)}</div>
+            <div className="tnum text-2xl font-extrabold text-text-900">
+              {toPersianDigits(focusSessionsToday)}
+            </div>
             <div className="mt-1 text-xs text-text-500">جلسه‌ی فوکوس امروز</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="text-center">
-            <div className="tnum text-2xl font-extrabold text-text-900">{toPersianDigits(focusMinutesToday)}</div>
+            <div className="tnum text-2xl font-extrabold text-text-900">
+              {toPersianDigits(focusMinutesToday)}
+            </div>
             <div className="mt-1 text-xs text-text-500">دقیقه فوکوس امروز</div>
           </CardContent>
         </Card>

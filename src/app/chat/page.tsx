@@ -11,7 +11,7 @@ export default function ChatPage() {
 
   return (
     <StudentShell>
-      {/* See the same comment in dashboard/ai/page.tsx — this accounts for the
+      {/* This accounts for the
           shell's fixed top bar + bottom nav height on mobile. */}
       <div className="mx-auto flex h-[calc(100vh-10rem)] max-w-2xl flex-col px-4 py-4 md:h-screen md:py-6">
         <div className="mb-4 flex items-center gap-3 border-b border-border pb-4">

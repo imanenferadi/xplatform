@@ -60,7 +60,7 @@ const navGroups: NavGroup[] = [
     label: "ابزارها",
     icon: Wrench,
     sections: [
-      { href: "/dashboard/ai", label: "معلم AI" },
+      { href: "/dashboard/calculator", label: "ماشین‌حساب درصد" },
       { href: "/dashboard/library", label: "کتابخونه" },
       { href: "/dashboard/mistakes", label: "دفترچه" },
     ],
@@ -177,7 +177,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
           className="min-w-0 flex-1 pb-24 pt-16 md:pb-0 md:pt-0"
         >
           {showSubTabs && (
-            // Fixed height (h-14) on purpose: full-height pages like the AI chat
+            // Fixed height (h-14) on purpose: full-height pages like the chat
             // subtract it in their calc() so the composer stays on screen.
             <div className="mx-auto flex h-14 max-w-3xl items-end gap-1.5 overflow-x-auto px-4">
               {activeGroup.sections.map((s) => (

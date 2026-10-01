@@ -160,7 +160,7 @@ export default function ProfilePage() {
                 <Dot /> اشتراک و پرداخت همیشه برای والدین پیداست — پرداخت‌کننده خودشونن.
               </div>
               <div className="flex items-center gap-1.5">
-                <Lock size={11} /> گفتگوهات با مشاور و معلم AI هیچ‌وقت به والدین نشون داده نمی‌شه.
+                <Lock size={11} /> گفتگوهات با مشاور هیچ‌وقت به والدین نشون داده نمی‌شه.
               </div>
             </div>
           </CardContent>

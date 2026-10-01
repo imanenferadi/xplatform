@@ -15,7 +15,9 @@ const inviteLink = `https://x-platform.ir/r/${referralProgram.code}`;
 
 export default function ReferralPage() {
   const [copied, setCopied] = useState(false);
-  const pendingCount = referralProgram.invited.filter((r) => r.status === "pending_payment").length;
+  const pendingCount = referralProgram.invited.filter(
+    (r) => r.status === "pending_payment",
+  ).length;
   const wallet = useWallet();
 
   async function copyLink() {
@@ -37,15 +39,20 @@ export default function ReferralPage() {
           <h1 className="text-xl font-bold text-text-900">دعوت از دوستان</h1>
         </div>
         <p className="mb-6 text-sm text-text-500">
-          هر دوستی که با لینک تو عضو بشه و اولین پرداختش رو انجام بده، <Toman amount={REFERRAL_CREDIT} /> اعتبار می‌ریزه
-          به کیف پولت و خودش هم{" "}
-          <span className="tnum font-medium text-text-900">{toPersianDigits(referralProgram.discountPercent)}٪</span>{" "}
+          هر دوستی که با لینک تو عضو بشه و اولین پرداختش رو انجام بده،{" "}
+          <Toman amount={REFERRAL_CREDIT} /> اعتبار می‌ریزه به کیف پولت و خودش
+          هم{" "}
+          <span className="tnum font-medium text-text-900">
+            {toPersianDigits(referralProgram.discountPercent)}٪
+          </span>{" "}
           تخفیف ماه اول می‌گیره. اعتبار موقع پرداخت بعدیت خودکار کم می‌شه.
         </p>
 
         <Card>
           <CardContent>
-            <div className="mb-2 text-xs text-text-500">لینک دعوت اختصاصی تو</div>
+            <div className="mb-2 text-xs text-text-500">
+              لینک دعوت اختصاصی تو
+            </div>
             <div className="flex items-center gap-2">
               <div
                 dir="ltr"
@@ -58,10 +65,16 @@ export default function ReferralPage() {
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-x-md border border-border bg-surface text-text-700 transition-colors hover:bg-surface-2"
                 aria-label="کپی لینک"
               >
-                {copied ? <Check size={16} className="text-mint-500" /> : <Copy size={16} />}
+                {copied ? (
+                  <Check size={16} className="text-mint-500" />
+                ) : (
+                  <Copy size={16} />
+                )}
               </button>
             </div>
-            {copied && <div className="mt-2 text-xs text-mint-500">لینک کپی شد!</div>}
+            {copied && (
+              <div className="mt-2 text-xs text-mint-500">لینک کپی شد!</div>
+            )}
           </CardContent>
         </Card>
 
@@ -77,7 +90,8 @@ export default function ReferralPage() {
             </div>
             {pendingCount > 0 && (
               <p className="mt-1 text-xs text-text-500">
-                + <Toman amount={pendingCount * REFERRAL_CREDIT} /> در انتظار اولین پرداخت دوستات
+                + <Toman amount={pendingCount * REFERRAL_CREDIT} /> در انتظار
+                اولین پرداخت دوستات
               </p>
             )}
             {(wallet.credits.length > 0 || wallet.spends.length > 0) && (
@@ -105,14 +119,19 @@ export default function ReferralPage() {
               </ul>
             )}
             {wallet.balance > 0 && (
-              <Link href="/checkout" className="mt-3 inline-block text-xs text-blue-600 hover:underline">
+              <Link
+                href="/checkout"
+                className="mt-3 inline-block text-xs text-blue-600 hover:underline"
+              >
                 استفاده در خرید یا تمدید بعدی
               </Link>
             )}
           </CardContent>
         </Card>
 
-        <h2 className="mb-3 mt-6 text-sm font-bold text-text-900">تاریخچه‌ی دعوت‌ها</h2>
+        <h2 className="mb-3 mt-6 text-sm font-bold text-text-900">
+          تاریخچه‌ی دعوت‌ها
+        </h2>
         <div className="space-y-2">
           {referralProgram.invited.map((r) => (
             <Card key={r.id}>
@@ -121,11 +140,15 @@ export default function ReferralPage() {
                   <UserPlus size={15} className="text-blue-600" />
                 </div>
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-text-900">{r.friendName}</div>
+                  <div className="text-sm font-medium text-text-900">
+                    {r.friendName}
+                  </div>
                   <div className="text-xs text-text-500">{r.date}</div>
                 </div>
                 <Badge tone={r.status === "joined" ? "success" : "warning"}>
-                  {r.status === "joined" ? "اعتبار گرفتی" : "در انتظار اولین پرداختش"}
+                  {r.status === "joined"
+                    ? "اعتبار گرفتی"
+                    : "در انتظار اولین پرداختش"}
                 </Badge>
               </CardContent>
             </Card>

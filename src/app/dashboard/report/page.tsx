@@ -2,7 +2,17 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { Check, Moon, Plus, Trash2, BarChart3, BedDouble, NotebookPen, ArrowRight, X } from "lucide-react";
+import {
+  Check,
+  Moon,
+  Plus,
+  Trash2,
+  BarChart3,
+  BedDouble,
+  NotebookPen,
+  ArrowRight,
+  X,
+} from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -19,15 +29,31 @@ import {
 } from "@/lib/mock-data";
 import { saveCheckIn, useMyCheckIns } from "@/lib/checkin-store";
 import { useFocusMinutesByTask } from "@/lib/focus-log-store";
-import { formatHours, markTasksDone, useDoneIds, useTodayTasks } from "@/lib/plan-store";
+import {
+  formatHours,
+  markTasksDone,
+  useDoneIds,
+  useTodayTasks,
+} from "@/lib/plan-store";
 import { addMistake } from "@/lib/mistakes-store";
 import { formatStudyTime, sleepMinutes } from "@/lib/checkins";
 import { cn, toLatinDigits, toPersianDigits } from "@/lib/utils";
 
 type Mood = NightlyCheckIn["mood"];
-type Row = { key: number; subject: string; topic: string; minutes: string; tests: string };
+type Row = {
+  key: number;
+  subject: string;
+  topic: string;
+  minutes: string;
+  tests: string;
+};
 type PlanRow = { checked: boolean; minutes: string; tests: string };
-type QuickMistake = { key: number; subject: string; reason: MistakeReason; topic: string };
+type QuickMistake = {
+  key: number;
+  subject: string;
+  reason: MistakeReason;
+  topic: string;
+};
 
 const MAX_MINUTES = 600;
 const MAX_TESTS = 500;
@@ -67,7 +93,9 @@ export default function NightlyReportPage() {
   const todayTasks = useTodayTasks();
   const doneIds = useDoneIds();
   const focusMinutes = useFocusMinutesByTask();
-  const alreadyTonight = useMyCheckIns().some((c) => c.week === "this" && c.dayName === CURRENT_DAY_NAME);
+  const alreadyTonight = useMyCheckIns().some(
+    (c) => c.week === "this" && c.dayName === CURRENT_DAY_NAME,
+  );
 
   const [step, setStep] = useState(0);
   const nextKey = useRef(1);
@@ -89,11 +117,17 @@ export default function NightlyReportPage() {
   const [bed, setBed] = useState("");
   const [wake, setWake] = useState("");
   const [sleepError, setSleepError] = useState("");
-  const [result, setResult] = useState<{ entries: number; minutes: number; mistakes: number; ticked: number } | null>(
-    null
-  );
+  const [result, setResult] = useState<{
+    entries: number;
+    minutes: number;
+    mistakes: number;
+    ticked: number;
+  } | null>(null);
   // Parsed step-1 entries, kept for the final save.
-  const [entries, setEntries] = useState<{ list: CheckInEntry[]; taskIds: string[] }>({ list: [], taskIds: [] });
+  const [entries, setEntries] = useState<{
+    list: CheckInEntry[];
+    taskIds: string[];
+  }>({ list: [], taskIds: [] });
 
   // A plan task starts ticked if the timer or the student already marked it done.
   const planRow = (id: string, hours: number): PlanRow =>
@@ -137,7 +171,13 @@ export default function NightlyReportPage() {
       if (!r.subject) errs[`r${r.key}`] = "درس رو انتخاب کن.";
       else if (typeof minutes === "string") errs[`r${r.key}`] = minutes;
       else if (typeof tests === "string") errs[`r${r.key}`] = tests;
-      else list.push({ subject: r.subject, topic: r.topic.trim(), minutes, tests });
+      else
+        list.push({
+          subject: r.subject,
+          topic: r.topic.trim(),
+          minutes,
+          tests,
+        });
     }
 
     setErrors(errs);
@@ -150,7 +190,15 @@ export default function NightlyReportPage() {
   function addQuickMistake() {
     if (!mSubject) return setMError("درس رو انتخاب کن.");
     if (!mReason) return setMError("دلیلش رو انتخاب کن — اصل دفترچه همینه.");
-    setMistakes((m) => [...m, { key: nextKey.current++, subject: mSubject, reason: mReason, topic: mTopic.trim() }]);
+    setMistakes((m) => [
+      ...m,
+      {
+        key: nextKey.current++,
+        subject: mSubject,
+        reason: mReason,
+        topic: mTopic.trim(),
+      },
+    ]);
     setMReason("");
     setMTopic("");
     setMError("");
@@ -158,7 +206,8 @@ export default function NightlyReportPage() {
 
   function submit() {
     let sleepErr = "";
-    if (Boolean(bed) !== Boolean(wake)) sleepErr = "هم ساعت خواب رو بزن هم ساعت بیداری (یا هیچ‌کدوم).";
+    if (Boolean(bed) !== Boolean(wake))
+      sleepErr = "هم ساعت خواب رو بزن هم ساعت بیداری (یا هیچ‌کدوم).";
     else if (bed && wake) {
       const slept = sleepMinutes({ bed, wake });
       if (slept < MIN_SLEEP || slept > MAX_SLEEP)
@@ -194,7 +243,7 @@ export default function NightlyReportPage() {
         date: "امروز",
         resolved: false,
         createdIso: DEMO_TODAY_ISO,
-      })
+      }),
     );
     setResult({
       entries: entries.list.length,
@@ -211,22 +260,38 @@ export default function NightlyReportPage() {
           <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-mint-500/15">
             <Check size={28} className="text-mint-500" />
           </div>
-          <h1 className="text-xl font-bold text-text-900">گزارش کار امشب ثبت شد</h1>
+          <h1 className="text-xl font-bold text-text-900">
+            گزارش کار امشب ثبت شد
+          </h1>
           <ul className="mt-3 space-y-1 text-sm text-text-700">
             <li>
               {result.entries > 0
                 ? `${toPersianDigits(result.entries)} درس، ${formatStudyTime(result.minutes)}`
                 : "امروز درسی ثبت نکردی"}
             </li>
-            {result.ticked > 0 && <li>{toPersianDigits(result.ticked)} کار برنامه‌ی امروز تیک خورد</li>}
-            {result.mistakes > 0 && <li>{toPersianDigits(result.mistakes)} غلط به دفترچه اضافه شد</li>}
+            {result.ticked > 0 && (
+              <li>
+                {toPersianDigits(result.ticked)} کار برنامه‌ی امروز تیک خورد
+              </li>
+            )}
+            {result.mistakes > 0 && (
+              <li>{toPersianDigits(result.mistakes)} غلط به دفترچه اضافه شد</li>
+            )}
           </ul>
-          <p className="mt-3 max-w-xs text-sm text-text-500">{mentor.name} امشب می‌بینه. شب بخیر.</p>
+          <p className="mt-3 max-w-xs text-sm text-text-500">
+            {mentor.name} امشب می‌بینه. شب بخیر.
+          </p>
           <div className="mt-8 flex gap-2">
-            <Link href="/dashboard/weekly" className={buttonVariants({ size: "lg" })}>
+            <Link
+              href="/dashboard/weekly"
+              className={buttonVariants({ size: "lg" })}
+            >
               <BarChart3 size={16} /> جمع هفته
             </Link>
-            <Link href="/dashboard" className={buttonVariants({ size: "lg", variant: "secondary" })}>
+            <Link
+              href="/dashboard"
+              className={buttonVariants({ size: "lg", variant: "secondary" })}
+            >
               داشبورد
             </Link>
           </div>
@@ -243,14 +308,25 @@ export default function NightlyReportPage() {
           <h1 className="text-xl font-bold text-text-900">گزارش کار امشب</h1>
         </div>
         <p className="mb-4 text-sm text-text-500">
-          سه قدم کوتاه — مستقیم می‌ره برای {mentor.name} و توی جمع هفته حساب می‌شه.
+          سه قدم کوتاه — مستقیم می‌ره برای {mentor.name} و توی جمع هفته حساب
+          می‌شه.
         </p>
 
         <div className="mb-5 flex gap-1.5">
           {STEPS.map((label, i) => (
             <div key={label} className="flex-1">
-              <div className={cn("h-1.5 rounded-x-pill", i <= step ? "bg-blue-600" : "bg-surface-2")} />
-              <div className={cn("mt-1 text-xs", i === step ? "font-bold text-text-900" : "text-text-500")}>
+              <div
+                className={cn(
+                  "h-1.5 rounded-x-pill",
+                  i <= step ? "bg-blue-600" : "bg-surface-2",
+                )}
+              />
+              <div
+                className={cn(
+                  "mt-1 text-xs",
+                  i === step ? "font-bold text-text-900" : "text-text-500",
+                )}
+              >
                 {toPersianDigits(i + 1)}. {label}
               </div>
             </div>
@@ -266,11 +342,15 @@ export default function NightlyReportPage() {
         {step === 0 && (
           <Card>
             <CardContent>
-              <h2 className="mb-3 text-sm font-bold text-text-900">امروز چی خوندی؟</h2>
+              <h2 className="mb-3 text-sm font-bold text-text-900">
+                امروز چی خوندی؟
+              </h2>
 
               {todayTasks.length > 0 && (
                 <div className="mb-4 space-y-2">
-                  <div className="text-xs text-text-500">از برنامه‌ی امروز — هر کدوم رو خوندی تیک بزن:</div>
+                  <div className="text-xs text-text-500">
+                    از برنامه‌ی امروز — هر کدوم رو خوندی تیک بزن:
+                  </div>
                   {todayTasks.map((t) => {
                     const r = planRow(t.id, t.hours);
                     return (
@@ -278,19 +358,28 @@ export default function NightlyReportPage() {
                         key={t.id}
                         className={cn(
                           "rounded-x-md border p-3 transition-colors",
-                          r.checked ? "border-mint-500/40 bg-mint-500/5" : "border-border bg-surface-2"
+                          r.checked
+                            ? "border-mint-500/40 bg-mint-500/5"
+                            : "border-border bg-surface-2",
                         )}
                       >
                         <label className="flex cursor-pointer items-center gap-2.5">
                           <input
                             type="checkbox"
                             checked={r.checked}
-                            onChange={(e) => setPlan(t.id, t.hours, { checked: e.target.checked })}
+                            onChange={(e) =>
+                              setPlan(t.id, t.hours, {
+                                checked: e.target.checked,
+                              })
+                            }
                             className="h-4 w-4 accent-[var(--x-mint-500)]"
                           />
-                          <span className="text-sm font-medium text-text-900">{t.subject}</span>
+                          <span className="text-sm font-medium text-text-900">
+                            {t.subject}
+                          </span>
                           <span className="text-xs text-text-500">
-                            {t.topic && `${t.topic} · `}برنامه: {formatHours(t.hours)} ساعت
+                            {t.topic && `${t.topic} · `}برنامه:{" "}
+                            {formatHours(t.hours)} ساعت
                             {focusMinutes.get(t.id)
                               ? ` · تایمر: ${toPersianDigits(focusMinutes.get(t.id)!)} دقیقه`
                               : ""}
@@ -301,30 +390,47 @@ export default function NightlyReportPage() {
                             <NumberField
                               label="دقیقه"
                               value={r.minutes}
-                              onChange={(v) => setPlan(t.id, t.hours, { minutes: v })}
+                              onChange={(v) =>
+                                setPlan(t.id, t.hours, { minutes: v })
+                              }
                             />
                             <NumberField
                               label="تست"
                               value={r.tests}
-                              onChange={(v) => setPlan(t.id, t.hours, { tests: v })}
+                              onChange={(v) =>
+                                setPlan(t.id, t.hours, { tests: v })
+                              }
                             />
                           </div>
                         )}
-                        {errors[t.id] && <p className="mt-2 text-xs text-red-500">{errors[t.id]}</p>}
+                        {errors[t.id] && (
+                          <p className="mt-2 text-xs text-red-500">
+                            {errors[t.id]}
+                          </p>
+                        )}
                       </div>
                     );
                   })}
                 </div>
               )}
 
-              {rows.length > 0 && <div className="mb-2 text-xs text-text-500">خارج از برنامه:</div>}
+              {rows.length > 0 && (
+                <div className="mb-2 text-xs text-text-500">
+                  خارج از برنامه:
+                </div>
+              )}
               <div className="space-y-3">
                 {rows.map((r) => (
-                  <div key={r.key} className="rounded-x-md border border-border bg-surface-2 p-3">
+                  <div
+                    key={r.key}
+                    className="rounded-x-md border border-border bg-surface-2 p-3"
+                  >
                     <div className="mb-2 flex justify-end">
                       <button
                         type="button"
-                        onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))}
+                        onClick={() =>
+                          setRows((rs) => rs.filter((x) => x.key !== r.key))
+                        }
                         className="text-text-500 hover:text-red-500"
                         aria-label="حذف درس"
                       >
@@ -334,7 +440,9 @@ export default function NightlyReportPage() {
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1.4fr]">
                       <select
                         value={r.subject}
-                        onChange={(e) => updateRow(r.key, { subject: e.target.value })}
+                        onChange={(e) =>
+                          updateRow(r.key, { subject: e.target.value })
+                        }
                         aria-label="درس"
                         className="h-10 rounded-x-sm border border-border bg-surface px-2 text-sm text-text-900 outline-none focus:border-blue-600"
                       >
@@ -347,22 +455,38 @@ export default function NightlyReportPage() {
                       </select>
                       <input
                         value={r.topic}
-                        onChange={(e) => updateRow(r.key, { topic: e.target.value })}
+                        onChange={(e) =>
+                          updateRow(r.key, { topic: e.target.value })
+                        }
                         placeholder="مبحث"
                         aria-label="مبحث"
                         className="h-10 rounded-x-sm border border-border bg-surface px-3 text-sm text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600"
                       />
-                      <NumberField label="دقیقه" value={r.minutes} onChange={(v) => updateRow(r.key, { minutes: v })} />
-                      <NumberField label="تست" value={r.tests} onChange={(v) => updateRow(r.key, { tests: v })} />
+                      <NumberField
+                        label="دقیقه"
+                        value={r.minutes}
+                        onChange={(v) => updateRow(r.key, { minutes: v })}
+                      />
+                      <NumberField
+                        label="تست"
+                        value={r.tests}
+                        onChange={(v) => updateRow(r.key, { tests: v })}
+                      />
                     </div>
-                    {errors[`r${r.key}`] && <p className="mt-2 text-xs text-red-500">{errors[`r${r.key}`]}</p>}
+                    {errors[`r${r.key}`] && (
+                      <p className="mt-2 text-xs text-red-500">
+                        {errors[`r${r.key}`]}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
 
               <button
                 type="button"
-                onClick={() => setRows((rs) => [...rs, emptyRow(nextKey.current++)])}
+                onClick={() =>
+                  setRows((rs) => [...rs, emptyRow(nextKey.current++)])
+                }
                 className="mt-3 flex items-center gap-1 text-sm text-blue-600 hover:underline"
               >
                 <Plus size={15} /> درس خارج از برنامه
@@ -379,11 +503,13 @@ export default function NightlyReportPage() {
           <Card>
             <CardContent>
               <h2 className="mb-1 flex items-center gap-1.5 text-sm font-bold text-text-900">
-                <NotebookPen size={15} className="text-blue-600" /> امروز کجا غلط زدی؟
+                <NotebookPen size={15} className="text-blue-600" /> امروز کجا
+                غلط زدی؟
                 <span className="font-normal text-text-500">(اختیاری)</span>
               </h2>
               <p className="mb-3 text-xs text-text-500">
-                درس و دلیلش کافیه — مستقیم می‌ره توی دفترچه‌ی غلط‌ها. جزئیات بیشتر رو بعداً همون‌جا اضافه کن.
+                درس و دلیلش کافیه — مستقیم می‌ره توی دفترچه‌ی غلط‌ها. جزئیات
+                بیشتر رو بعداً همون‌جا اضافه کن.
               </p>
 
               <div className="grid grid-cols-2 gap-2">
@@ -425,7 +551,7 @@ export default function NightlyReportPage() {
                       "rounded-x-pill border px-3 py-1.5 text-xs transition-colors",
                       mReason === r
                         ? "border-blue-600 bg-blue-100 font-medium text-text-900"
-                        : "border-border bg-surface text-text-700 hover:border-blue-300"
+                        : "border-border bg-surface text-text-700 hover:border-blue-300",
                     )}
                   >
                     {MISTAKE_REASONS[r].label}
@@ -433,7 +559,12 @@ export default function NightlyReportPage() {
                 ))}
               </div>
               {mError && <p className="mt-2 text-xs text-red-500">{mError}</p>}
-              <Button size="md" variant="secondary" className="mt-3" onClick={addQuickMistake}>
+              <Button
+                size="md"
+                variant="secondary"
+                className="mt-3"
+                onClick={addQuickMistake}
+              >
                 <Plus size={14} /> افزودن غلط
               </Button>
 
@@ -445,10 +576,13 @@ export default function NightlyReportPage() {
                       className="flex items-center gap-1 rounded-x-pill bg-surface-2 px-3 py-1 text-xs text-text-700"
                     >
                       {m.subject}
-                      {m.topic && ` (${m.topic})`} — {MISTAKE_REASONS[m.reason].label}
+                      {m.topic && ` (${m.topic})`} —{" "}
+                      {MISTAKE_REASONS[m.reason].label}
                       <button
                         type="button"
-                        onClick={() => setMistakes((ms) => ms.filter((x) => x.key !== m.key))}
+                        onClick={() =>
+                          setMistakes((ms) => ms.filter((x) => x.key !== m.key))
+                        }
                         aria-label="حذف"
                         className="text-text-500 hover:text-red-500"
                       >
@@ -460,7 +594,12 @@ export default function NightlyReportPage() {
               )}
 
               <div className="mt-5 flex gap-2">
-                <Button size="lg" variant="secondary" onClick={() => setStep(0)} aria-label="قدم قبل">
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  onClick={() => setStep(0)}
+                  aria-label="قدم قبل"
+                >
                   <ArrowRight size={16} />
                 </Button>
                 <Button size="lg" className="flex-1" onClick={() => setStep(2)}>
@@ -481,7 +620,8 @@ export default function NightlyReportPage() {
                 <span className="font-normal text-text-500">(اختیاری)</span>
               </h2>
               <p className="mb-3 text-xs text-text-500">
-                ساعت خواب ثابت، مخصوصاً بیدار شدن صبح زود، روی تمرکز و روز کنکور اثر مستقیم داره.
+                ساعت خواب ثابت، مخصوصاً بیدار شدن صبح زود، روی تمرکز و روز کنکور
+                اثر مستقیم داره.
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <TimeField
@@ -506,9 +646,13 @@ export default function NightlyReportPage() {
                   یعنی حدود {formatStudyTime(sleepMinutes({ bed, wake }))} خواب
                 </p>
               )}
-              {sleepError && <p className="mt-2 text-xs text-red-500">{sleepError}</p>}
+              {sleepError && (
+                <p className="mt-2 text-xs text-red-500">{sleepError}</p>
+              )}
 
-              <h2 className="mb-3 mt-5 text-sm font-bold text-text-900">امروز حالت چطور بود؟</h2>
+              <h2 className="mb-3 mt-5 text-sm font-bold text-text-900">
+                امروز حالت چطور بود؟
+              </h2>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {(Object.keys(moodLabels) as Mood[]).map((m) => (
                   <button
@@ -522,17 +666,22 @@ export default function NightlyReportPage() {
                       "rounded-x-md border-2 px-3 py-3 text-sm font-medium transition-colors",
                       mood === m
                         ? "border-blue-600 bg-blue-100 text-text-900"
-                        : "border-border bg-surface text-text-700 hover:border-blue-300"
+                        : "border-border bg-surface text-text-700 hover:border-blue-300",
                     )}
                   >
                     {moodLabels[m]}
                   </button>
                 ))}
               </div>
-              {moodError && <p className="mt-2 text-xs text-red-500">حال‌وهوای امروز رو انتخاب کن.</p>}
+              {moodError && (
+                <p className="mt-2 text-xs text-red-500">
+                  حال‌وهوای امروز رو انتخاب کن.
+                </p>
+              )}
 
               <h2 className="mb-2 mt-5 text-sm font-bold text-text-900">
-                یه خط برای مشاورت <span className="font-normal text-text-500">(اختیاری)</span>
+                یه خط برای مشاورت{" "}
+                <span className="font-normal text-text-500">(اختیاری)</span>
               </h2>
               <textarea
                 value={note}
@@ -543,7 +692,12 @@ export default function NightlyReportPage() {
               />
 
               <div className="mt-5 flex gap-2">
-                <Button size="lg" variant="secondary" onClick={() => setStep(1)} aria-label="قدم قبل">
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  onClick={() => setStep(1)}
+                  aria-label="قدم قبل"
+                >
                   <ArrowRight size={16} />
                 </Button>
                 <Button size="lg" className="flex-1" onClick={submit}>
@@ -558,7 +712,15 @@ export default function NightlyReportPage() {
   );
 }
 
-function NumberField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function NumberField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <label className="flex h-10 items-center gap-2 rounded-x-sm border border-border bg-surface px-3 focus-within:border-blue-600">
       <input
@@ -574,7 +736,15 @@ function NumberField({ label, value, onChange }: { label: string; value: string;
   );
 }
 
-function TimeField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function TimeField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <label className="block">
       <span className="mb-1 block text-xs text-text-700">{label}</span>

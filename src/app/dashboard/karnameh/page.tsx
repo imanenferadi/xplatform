@@ -1,13 +1,17 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Link from "next/link";
 import { FileUp, FileText, Check, Eye } from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { PercentCalculator } from "@/components/app/PercentCalculator";
-import { addKarnameh, readKarnamehFile, useKarnamehs } from "@/lib/karnameh-store";
+import {
+  addKarnameh,
+  readKarnamehFile,
+  useKarnamehs,
+} from "@/lib/karnameh-store";
 
 export default function KarnamehUploadPage() {
   const uploads = useKarnamehs("me");
@@ -33,7 +37,10 @@ export default function KarnamehUploadPage() {
     e.preventDefault();
     if (!file) return;
     setBusy(true);
-    const { dataUrl, mime } = await readKarnamehFile(file).catch(() => ({ dataUrl: undefined, mime: file.type }));
+    const { dataUrl, mime } = await readKarnamehFile(file).catch(() => ({
+      dataUrl: undefined,
+      mime: file.type,
+    }));
     const stored = addKarnameh(
       {
         studentId: "me",
@@ -44,7 +51,7 @@ export default function KarnamehUploadPage() {
         dataUrl,
         mime,
       },
-      "ایمان"
+      "ایمان",
     );
     setBusy(false);
     setNameOnly(!stored);
@@ -60,18 +67,22 @@ export default function KarnamehUploadPage() {
       <div className="mx-auto max-w-2xl px-4 py-6 md:py-10">
         <div className="mb-1 flex items-center gap-2">
           <FileText size={18} className="text-blue-600" />
-          <h1 className="text-xl font-bold text-text-900">آپلود کارنامه‌ی آزمون</h1>
+          <h1 className="text-xl font-bold text-text-900">
+            آپلود کارنامه‌ی آزمون
+          </h1>
         </div>
         <p className="mb-6 text-sm text-text-500">
-          همین که نتیجه‌ی آزمونت از قلمچی/گاج اومد، عکس یا فایلش رو اینجا بذار — مستقیم می‌ره برای سارا محمدی، دیگه
-          نیازی به تلگرام نیست.
+          همین که نتیجه‌ی آزمونت از قلمچی/گاج اومد، عکس یا فایلش رو اینجا بذار —
+          مستقیم می‌ره برای سارا محمدی، دیگه نیازی به تلگرام نیست.
         </p>
 
         <Card>
           <CardContent>
             <form onSubmit={submit} className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-text-700">فایل کارنامه</label>
+                <label className="mb-1.5 block text-sm font-medium text-text-700">
+                  فایل کارنامه
+                </label>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -102,7 +113,8 @@ export default function KarnamehUploadPage() {
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-text-700">
-                  یادداشت برای مشاور <span className="font-normal text-text-500">(اختیاری)</span>
+                  یادداشت برای مشاور{" "}
+                  <span className="font-normal text-text-500">(اختیاری)</span>
                 </label>
                 <textarea
                   value={note}
@@ -113,7 +125,12 @@ export default function KarnamehUploadPage() {
                 />
               </div>
 
-              <Button type="submit" size="lg" className="w-full" disabled={!fileName || busy}>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={!fileName || busy}
+              >
                 {busy ? "در حال آماده‌سازی فایل..." : "ارسال برای مشاور"}
               </Button>
 
@@ -129,7 +146,9 @@ export default function KarnamehUploadPage() {
           </CardContent>
         </Card>
 
-        <h2 className="mb-3 mt-6 text-sm font-bold text-text-900">تاریخچه‌ی ارسال‌ها</h2>
+        <h2 className="mb-3 mt-6 text-sm font-bold text-text-900">
+          تاریخچه‌ی ارسال‌ها
+        </h2>
         <div className="space-y-2">
           {uploads.map((u) => (
             <Card key={u.id}>
@@ -142,7 +161,9 @@ export default function KarnamehUploadPage() {
                     {u.examProvider} — {u.fileName}
                   </div>
                   <div className="text-xs text-text-500">{u.date}</div>
-                  {u.note && <p className="mt-1 text-xs text-text-700">{u.note}</p>}
+                  {u.note && (
+                    <p className="mt-1 text-xs text-text-700">{u.note}</p>
+                  )}
                 </div>
                 <div
                   className={`flex items-center gap-1 text-xs ${u.seenByMentor ? "text-mint-500" : "text-text-500"}`}
@@ -154,13 +175,18 @@ export default function KarnamehUploadPage() {
             </Card>
           ))}
           {uploads.length === 0 && (
-            <p className="py-6 text-center text-sm text-text-500">هنوز کارنامه‌ای آپلود نکردی.</p>
+            <p className="py-6 text-center text-sm text-text-500">
+              هنوز کارنامه‌ای آپلود نکردی.
+            </p>
           )}
         </div>
 
-        <div className="mt-10 border-t border-border pt-8">
-          <PercentCalculator />
-        </div>
+        <Link
+          href="/dashboard/calculator"
+          className="mt-8 inline-block text-sm text-blue-600 hover:underline"
+        >
+          درصدت رو حساب نکردی؟ ماشین‌حساب درصد
+        </Link>
       </div>
     </StudentShell>
   );

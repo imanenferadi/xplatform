@@ -270,7 +270,7 @@ export default function ParentPage() {
         </Card>
 
         <p className="mt-6 text-center text-xs text-text-500">
-          این پنل فقط خلاصه‌ی وضعیت را نشان می‌دهد — گفتگوهای {report.studentName} با مشاور یا معلم هوشمند خصوصی
+          این پنل فقط خلاصه‌ی وضعیت را نشان می‌دهد — گفتگوهای {report.studentName} با مشاور خصوصی
           می‌ماند.
         </p>
 

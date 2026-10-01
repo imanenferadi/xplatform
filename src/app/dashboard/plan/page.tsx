@@ -15,7 +15,12 @@ import {
   mentors,
   type PlanWeek,
 } from "@/lib/mock-data";
-import { formatHours, useDoneIds, usePublishedWeek, weekHours } from "@/lib/plan-store";
+import {
+  formatHours,
+  useDoneIds,
+  usePublishedWeek,
+  weekHours,
+} from "@/lib/plan-store";
 import { cn } from "@/lib/utils";
 
 type View = "day" | "week";
@@ -35,7 +40,9 @@ export default function PlanPage() {
 
 function Plan() {
   const mentor = mentors[0];
-  const [view, setView] = useState<View>(useSearchParams().get("view") === "week" ? "week" : "day");
+  const [view, setView] = useState<View>(
+    useSearchParams().get("view") === "week" ? "week" : "day",
+  );
   const [week, setWeek] = useState<PlanWeek>("this");
   const [selected, setSelected] = useState(CURRENT_DAY_NAME);
   const plan = usePublishedWeek("me", week);
@@ -53,7 +60,12 @@ function Plan() {
   }
 
   return (
-    <div className={cn("mx-auto px-4 py-6 md:py-10", view === "week" ? "max-w-5xl" : "max-w-2xl")}>
+    <div
+      className={cn(
+        "mx-auto px-4 py-6 md:py-10",
+        view === "week" ? "max-w-5xl" : "max-w-2xl",
+      )}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-text-900">برنامه</h1>
@@ -61,7 +73,10 @@ function Plan() {
             {plan ? (
               <>
                 نوشته‌ی {mentor.name} · ارسال: {plan.sentAt} · جمعاً{" "}
-                <span className="tnum">{formatHours(weekHours(plan.days))}</span> ساعت
+                <span className="tnum">
+                  {formatHours(weekHours(plan.days))}
+                </span>{" "}
+                ساعت
               </>
             ) : (
               PLAN_WEEK_LABELS[week]
@@ -82,7 +97,9 @@ function Plan() {
               onClick={() => setView(v)}
               className={cn(
                 "rounded-x-pill px-4 py-1.5 text-sm font-medium transition-colors",
-                view === v ? "bg-blue-600 text-white" : "text-text-700 hover:bg-surface-2"
+                view === v
+                  ? "bg-blue-600 text-white"
+                  : "text-text-700 hover:bg-surface-2",
               )}
             >
               {v === "day" ? "روز" : "هفته"}
@@ -106,7 +123,9 @@ function Plan() {
                 aria-pressed={week === w}
                 className={cn(
                   "rounded-x-pill border px-3.5 py-1.5 text-xs font-medium transition-colors",
-                  week === w ? "border-blue-600 bg-blue-100 text-text-900" : "border-border bg-surface text-text-700"
+                  week === w
+                    ? "border-blue-600 bg-blue-100 text-text-900"
+                    : "border-border bg-surface text-text-700",
                 )}
               >
                 {w === "this" ? "این هفته" : "هفته‌ی بعد"}
@@ -118,11 +137,16 @@ function Plan() {
             <Card>
               <CardContent className="py-10 text-center">
                 <p className="font-medium text-text-900">
-                  {mentor.name} هنوز برنامه‌ی {PLAN_WEEK_LABELS[week]} رو نفرستاده
+                  {mentor.name} هنوز برنامه‌ی {PLAN_WEEK_LABELS[week]} رو
+                  نفرستاده
                 </p>
                 <p className="mt-1 text-sm text-text-500">
-                  برنامه‌ی هر هفته تا {PLAN_DEADLINE_DAY} شب می‌رسه. اگه ساعت مدرسه یا کتاب‌هات عوض شده،{" "}
-                  <Link href="/dashboard/setup" className="text-blue-600 hover:underline">
+                  برنامه‌ی هر هفته تا {PLAN_DEADLINE_DAY} شب می‌رسه. اگه ساعت
+                  مدرسه یا کتاب‌هات عوض شده،{" "}
+                  <Link
+                    href="/dashboard/setup"
+                    className="text-blue-600 hover:underline"
+                  >
                     اطلاعات شروع
                   </Link>{" "}
                   رو به‌روز کن تا روی وقت واقعی‌ات بچینه.
@@ -130,7 +154,13 @@ function Plan() {
               </CardContent>
             </Card>
           ) : (
-            <PlanDayView plan={plan} week={week} selected={selected} onSelect={setSelected} doneIds={doneIds} />
+            <PlanDayView
+              plan={plan}
+              week={week}
+              selected={selected}
+              onSelect={setSelected}
+              doneIds={doneIds}
+            />
           )}
         </>
       )}

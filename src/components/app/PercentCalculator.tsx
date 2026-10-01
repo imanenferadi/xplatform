@@ -28,7 +28,7 @@ function computePercentage(
   return Math.max(0, (raw / total) * 100);
 }
 
-/** Konkur percentage with negative marking — lives on the «کارنامه» page. */
+/** Konkur percentage with negative marking — lives under «ابزارها». */
 export function PercentCalculator() {
   const [rows, setRows] = useState<Row[]>(initialRows);
 

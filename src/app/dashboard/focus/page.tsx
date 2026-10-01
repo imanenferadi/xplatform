@@ -22,7 +22,11 @@ export default function FocusModePage() {
   const completed = useDoneIds();
   const logged = useFocusMinutesByTask();
   const [skipped, setSkipped] = useState<string[]>([]);
-  const [finished, setFinished] = useState<{ task: Task; minutes: number; blockDone: boolean } | null>(null);
+  const [finished, setFinished] = useState<{
+    task: Task;
+    minutes: number;
+    blockDone: boolean;
+  } | null>(null);
 
   const remaining = todayTasks.filter((t) => !completed.has(t.id));
   const queue = remaining.filter((t) => !skipped.includes(t.id));
@@ -32,14 +36,22 @@ export default function FocusModePage() {
   function complete(task: Task, minutes: number, early: boolean) {
     const block = task.hours * 60;
     logFocus(task.id, minutes, block, early);
-    setFinished({ task, minutes, blockDone: early || (logged.get(task.id) ?? 0) + minutes >= block });
+    setFinished({
+      task,
+      minutes,
+      blockDone: early || (logged.get(task.id) ?? 0) + minutes >= block,
+    });
   }
 
   return (
     <div className="flex min-h-screen flex-col bg-background px-4 py-5">
       <div className="mx-auto flex w-full max-w-md items-center justify-between">
         <span className="text-xs text-text-500">حالت «فقط الان»</span>
-        <Link href="/dashboard" className="rounded-x-sm p-1.5 text-text-500 hover:bg-surface-2" aria-label="خروج">
+        <Link
+          href="/dashboard"
+          className="rounded-x-sm p-1.5 text-text-500 hover:bg-surface-2"
+          aria-label="خروج"
+        >
           <X size={20} />
         </Link>
       </div>
@@ -60,28 +72,51 @@ export default function FocusModePage() {
                 ? "توی برنامه‌ی امروز تیک خورد. یه نفس بکش."
                 : `از ${formatHours(finished.task.hours)} ساعتش. ۱۰ دقیقه استراحت کن، بعد دور بعدی.`}
             </p>
-            <Button size="lg" className="mt-6" onClick={() => setFinished(null)}>
-              {finished.blockDone ? (current ? "برو سراغ کار بعدی" : "تمام") : "دور بعدی"}
+            <Button
+              size="lg"
+              className="mt-6"
+              onClick={() => setFinished(null)}
+            >
+              {finished.blockDone
+                ? current
+                  ? "برو سراغ کار بعدی"
+                  : "تمام"
+                : "دور بعدی"}
             </Button>
           </>
         ) : current ? (
           <FocusSession
             key={`${current.id}-${logged.get(current.id) ?? 0}`}
             task={current}
-            roundMinutes={Math.min(ROUND_MINUTES, Math.max(1, current.hours * 60 - (logged.get(current.id) ?? 0)))}
+            roundMinutes={Math.min(
+              ROUND_MINUTES,
+              Math.max(1, current.hours * 60 - (logged.get(current.id) ?? 0)),
+            )}
             loggedMinutes={logged.get(current.id) ?? 0}
             position={todayTasks.length - remaining.length + 1}
             total={todayTasks.length}
             canSkip={remaining.length > 1}
             onComplete={(minutes, early) => complete(current, minutes, early)}
-            onSkip={() => setSkipped((s) => [...s.filter((id) => id !== current.id), current.id])}
+            onSkip={() =>
+              setSkipped((s) => [
+                ...s.filter((id) => id !== current.id),
+                current.id,
+              ])
+            }
           />
         ) : (
           <>
             <PartyPopper size={40} className="mb-4 text-mint-500" />
-            <h1 className="text-lg font-bold text-text-900">همه‌ی کارهای امروز انجام شد</h1>
-            <p className="mt-1 text-sm text-text-500">امشب گزارش کارت رو یادت نره.</p>
-            <Link href="/dashboard/report" className={buttonVariants({ size: "lg", className: "mt-6" })}>
+            <h1 className="text-lg font-bold text-text-900">
+              همه‌ی کارهای امروز انجام شد
+            </h1>
+            <p className="mt-1 text-sm text-text-500">
+              امشب گزارش کارت رو یادت نره.
+            </p>
+            <Link
+              href="/dashboard/report"
+              className={buttonVariants({ size: "lg", className: "mt-6" })}
+            >
               گزارش کار امشب
             </Link>
           </>
@@ -111,7 +146,9 @@ function FocusSession({
   onSkip: () => void;
 }) {
   const totalSeconds = roundMinutes * 60;
-  const { remaining, running, setRunning } = useCountdown(totalSeconds, () => onComplete(roundMinutes, false));
+  const { remaining, running, setRunning } = useCountdown(totalSeconds, () =>
+    onComplete(roundMinutes, false),
+  );
   const elapsed = totalSeconds - remaining;
 
   return (
@@ -119,13 +156,18 @@ function FocusSession({
       <div className="tnum mb-2 text-xs text-text-500">
         کار {toPersianDigits(position)} از {toPersianDigits(total)}
       </div>
-      <h1 className="text-2xl font-bold text-text-900">{task.topic || task.subject}</h1>
+      <h1 className="text-2xl font-bold text-text-900">
+        {task.topic || task.subject}
+      </h1>
       <p className="mt-1 text-sm text-text-500">
         {task.subject} · {formatHours(task.hours)} ساعت
         {loggedMinutes > 0 && (
           <>
             {" "}
-            · <span className="tnum">{toPersianDigits(loggedMinutes)}</span> دقیقه‌اش رو خوندی
+            · <span className="tnum">
+              {toPersianDigits(loggedMinutes)}
+            </span>{" "}
+            دقیقه‌اش رو خوندی
           </>
         )}
       </p>
@@ -138,7 +180,9 @@ function FocusSession({
           ringClassName="stroke-blue-600"
           transitionMs={950}
         >
-          <span className="tnum text-5xl font-extrabold text-text-900">{formatClock(remaining)}</span>
+          <span className="tnum text-5xl font-extrabold text-text-900">
+            {formatClock(remaining)}
+          </span>
         </ProgressCircle>
       </div>
 
@@ -163,7 +207,10 @@ function FocusSession({
           <Check size={15} /> زودتر تموم شد
         </button>
         {canSkip && (
-          <button onClick={onSkip} className="flex items-center gap-1 text-text-500 hover:text-text-900">
+          <button
+            onClick={onSkip}
+            className="flex items-center gap-1 text-text-500 hover:text-text-900"
+          >
             <SkipForward size={15} /> بعداً
           </button>
         )}

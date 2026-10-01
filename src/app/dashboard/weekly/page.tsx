@@ -8,10 +8,19 @@ import { CopyWeeklyReport } from "@/components/app/CopyWeeklyReport";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/Progress";
 import { TrendChart } from "@/components/ui/TrendChart";
-import { CURRENT_DAY_NAME, levelProfile, studentWeeklyHistory } from "@/lib/mock-data";
+import {
+  CURRENT_DAY_NAME,
+  levelProfile,
+  studentWeeklyHistory,
+} from "@/lib/mock-data";
 import { useMyCheckIns } from "@/lib/checkin-store";
 import { aggregateWeek, formatStudyTime } from "@/lib/checkins";
-import { formatHours, planProgress, useDoneIds, usePublishedWeek } from "@/lib/plan-store";
+import {
+  formatHours,
+  planProgress,
+  useDoneIds,
+  usePublishedWeek,
+} from "@/lib/plan-store";
 import { cn, toPersianDigits } from "@/lib/utils";
 
 // «جمع هفته» and «روند پیشرفت» were two tabs showing halves of the same
@@ -34,7 +43,8 @@ export default function WeeklyPage() {
           <h1 className="text-xl font-bold text-text-900">جمع هفته و روند</h1>
         </div>
         <p className="mb-5 text-sm text-text-500">
-          این هفته چطور پیش رفته و نسبت به قبل بهتر شدی یا نه — همین عددها رو مشاورت هم می‌بینه.
+          این هفته چطور پیش رفته و نسبت به قبل بهتر شدی یا نه — همین عددها رو
+          مشاورت هم می‌بینه.
         </p>
 
         <div className="grid grid-cols-3 gap-2">
@@ -61,7 +71,9 @@ export default function WeeklyPage() {
           <CardContent>
             <WeeklySummary checkIns={checkIns} audience="student" />
             <div className="mt-4 border-t border-border pt-3">
-              <p className="mb-2 text-xs text-text-500">می‌خوای برای خانواده بفرستی؟ متن آماده‌ی واتساپ و بله:</p>
+              <p className="mb-2 text-xs text-text-500">
+                می‌خوای برای خانواده بفرستی؟ متن آماده‌ی واتساپ و بله:
+              </p>
               <CopyWeeklyReport studentId="me" name="ایمان" includeSleep />
             </div>
           </CardContent>
@@ -71,25 +83,43 @@ export default function WeeklyPage() {
           <CardContent>
             <div className="mb-3 flex items-center gap-2">
               <LineChart size={16} className="text-blue-600" />
-              <h2 className="text-sm font-bold text-text-900">روند اجرای برنامه — ۵ هفته‌ی اخیر</h2>
+              <h2 className="text-sm font-bold text-text-900">
+                روند اجرای برنامه — ۵ هفته‌ی اخیر
+              </h2>
             </div>
             <TrendChart
-              points={studentWeeklyHistory.map((w) => ({ label: w.weekLabel, value: w.planCompletionPercent }))}
+              points={studentWeeklyHistory.map((w) => ({
+                label: w.weekLabel,
+                value: w.planCompletionPercent,
+              }))}
             />
           </CardContent>
         </Card>
 
         <Card className="mt-4">
           <CardContent>
-            <h2 className="mb-4 text-sm font-bold text-text-900">تسلط بر مباحث (از تعیین سطح)</h2>
+            <h2 className="mb-4 text-sm font-bold text-text-900">
+              تسلط بر مباحث (از تعیین سطح)
+            </h2>
             <div className="space-y-4">
               {levelProfile.subjects.map((s) => (
                 <div key={s.name}>
                   <div className="mb-1.5 flex items-center justify-between text-sm">
                     <span className="text-text-700">{s.name}</span>
-                    <span className="tnum text-text-500">{toPersianDigits(s.value)}٪</span>
+                    <span className="tnum text-text-500">
+                      {toPersianDigits(s.value)}٪
+                    </span>
                   </div>
-                  <ProgressBar value={s.value} tone={s.value >= 75 ? "success" : s.value >= 55 ? "brand" : "warning"} />
+                  <ProgressBar
+                    value={s.value}
+                    tone={
+                      s.value >= 75
+                        ? "success"
+                        : s.value >= 55
+                          ? "brand"
+                          : "warning"
+                    }
+                  />
                 </div>
               ))}
             </div>
@@ -101,7 +131,9 @@ export default function WeeklyPage() {
           className="mt-4 flex items-center gap-3 rounded-x-lg border border-border bg-surface p-4 text-sm transition-colors hover:bg-surface-2"
         >
           <Moon size={16} className="text-blue-600" />
-          <span className="flex-1 text-text-900">گزارش کار امشب رو فرستادی؟</span>
+          <span className="flex-1 text-text-900">
+            گزارش کار امشب رو فرستادی؟
+          </span>
           <ArrowLeft size={16} className="text-text-500" />
         </Link>
       </div>
@@ -129,7 +161,12 @@ function Metric({
         <div className="tnum mt-1 text-lg font-bold text-text-900">{value}</div>
         <div className="mt-0.5 text-xs text-text-500">{sub}</div>
         {delta !== undefined && delta !== 0 && (
-          <div className={cn("mt-0.5 text-xs", delta > 0 ? "text-mint-500" : "text-orange-500")}>
+          <div
+            className={cn(
+              "mt-0.5 text-xs",
+              delta > 0 ? "text-mint-500" : "text-orange-500",
+            )}
+          >
             <span dir="ltr" className="tnum">
               {delta > 0 ? "+" : "−"}
               {toPersianDigits(Math.abs(delta))}

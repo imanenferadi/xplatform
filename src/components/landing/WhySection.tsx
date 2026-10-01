@@ -1,4 +1,4 @@
-import { Bot, Check, X as XIcon } from "lucide-react";
+import { Check, X as XIcon } from "lucide-react";
 
 const traditional = [
   "یک اپ برای تست، یک دفتر برای برنامه، یک نفر برای رفع اشکال",
@@ -11,10 +11,10 @@ const withX = [
   "یک مشاور با اسم و رتبه، که پاسخگوی مسیر توئه",
   "برنامه‌ای که مشاورت هر هفته با نتیجه‌ی واقعیت از نو می‌نویسه",
   "گزارش کار شبانه، جلسه‌ی هفتگی و چت — همه یکجا",
-  "معلم هوشمند ۲۴ ساعته برای لحظه‌ای که گیر می‌کنی",
+  "دفترچه‌ی غلط‌ها که خودش مرورت می‌ده تا یادت نره",
 ];
 
-/** «چرا ماتریس» — the old «AI ابزار مشاوره» section folded in as one closing line. */
+/** «چرا ماتریس» — a real person at the center, plus the tools around them. */
 export function WhySection() {
   return (
     <section
@@ -66,12 +66,6 @@ export function WhySection() {
             </ul>
           </div>
         </div>
-
-        <p className="mt-6 flex items-start gap-2 text-sm leading-[1.8] text-text-500">
-          <Bot size={16} className="mt-0.5 shrink-0 text-blue-600" />
-          هوش مصنوعی فقط برای رفع اشکال کنارته و هر سؤالی که ازش می‌پرسی، مشاورت
-          هم می‌بینه. برنامه‌ت رو همیشه خود مشاور می‌نویسه، نه AI.
-        </p>
       </div>
     </section>
   );

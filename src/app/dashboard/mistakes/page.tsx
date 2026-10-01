@@ -3,7 +3,17 @@
 import { toast } from "@/components/ui/Toaster";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { NotebookPen, Plus, Trash2, RotateCcw, CheckCircle2, X, Repeat, Eye, ThumbsUp } from "lucide-react";
+import {
+  NotebookPen,
+  Plus,
+  Trash2,
+  RotateCcw,
+  CheckCircle2,
+  X,
+  Repeat,
+  Eye,
+  ThumbsUp,
+} from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { NotesPanel } from "@/components/app/NotesPanel";
 import { MistakePattern } from "@/components/app/MistakePattern";
@@ -29,7 +39,14 @@ import {
 import { cn, toPersianDigits } from "@/lib/utils";
 
 const REASONS = Object.keys(MISTAKE_REASONS) as MistakeReason[];
-const EMPTY_FORM = { subject: "", topic: "", source: "", questionNo: "", reason: "" as MistakeReason | "", fix: "" };
+const EMPTY_FORM = {
+  subject: "",
+  topic: "",
+  source: "",
+  questionNo: "",
+  reason: "" as MistakeReason | "",
+  fix: "",
+};
 
 const fieldClass =
   "h-10 w-full rounded-x-sm border border-border bg-surface px-3 text-sm text-text-900 outline-none placeholder:text-text-500 focus:border-blue-600";
@@ -49,24 +66,36 @@ function MistakesPage() {
   const due = useDueMistakes();
   const params = useSearchParams();
   const [reviewing, setReviewing] = useState(params.get("review") === "1");
-  const [tab, setTab] = useState<"mistakes" | "notes">(params.get("tab") === "notes" ? "notes" : "mistakes");
+  const [tab, setTab] = useState<"mistakes" | "notes">(
+    params.get("tab") === "notes" ? "notes" : "mistakes",
+  );
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
-  const [errors, setErrors] = useState<Partial<Record<"subject" | "source" | "reason", string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<"subject" | "source" | "reason", string>>
+  >({});
   const [subjectFilter, setSubjectFilter] = useState("همه");
-  const [reasonFilter, setReasonFilter] = useState<MistakeReason | "همه">("همه");
+  const [reasonFilter, setReasonFilter] = useState<MistakeReason | "همه">(
+    "همه",
+  );
   const [hideResolved, setHideResolved] = useState(false);
 
   const open = mistakes.filter((m) => !m.resolved);
-  const subjects = ["همه", ...CHECKIN_SUBJECTS.filter((s) => mistakes.some((m) => m.subject === s))];
+  const subjects = [
+    "همه",
+    ...CHECKIN_SUBJECTS.filter((s) => mistakes.some((m) => m.subject === s)),
+  ];
   const visible = mistakes.filter(
     (m) =>
       (subjectFilter === "همه" || m.subject === subjectFilter) &&
       (reasonFilter === "همه" || m.reason === reasonFilter) &&
-      !(hideResolved && m.resolved)
+      !(hideResolved && m.resolved),
   );
 
-  function update<K extends keyof typeof EMPTY_FORM>(key: K, value: (typeof EMPTY_FORM)[K]) {
+  function update<K extends keyof typeof EMPTY_FORM>(
+    key: K,
+    value: (typeof EMPTY_FORM)[K],
+  ) {
     setForm((f) => ({ ...f, [key]: value }));
     setErrors((e) => ({ ...e, [key]: undefined }));
   }
@@ -76,7 +105,8 @@ function MistakesPage() {
     const next: typeof errors = {};
     if (!form.subject) next.subject = "درس رو انتخاب کن.";
     if (!form.source.trim()) next.source = "بنویس از کجا بود — آزمون یا کتاب.";
-    if (!form.reason) next.reason = "دلیل غلط رو انتخاب کن — اصل این دفترچه همینه.";
+    if (!form.reason)
+      next.reason = "دلیل غلط رو انتخاب کن — اصل این دفترچه همینه.";
     setErrors(next);
     if (Object.keys(next).length > 0 || !form.reason) return;
 
@@ -105,7 +135,11 @@ function MistakesPage() {
           <NotebookPen size={18} className="text-blue-600" />
           <h1 className="text-xl font-bold text-text-900">دفترچه</h1>
         </div>
-        <div role="tablist" aria-label="بخش‌های دفترچه" className="mb-5 flex gap-1.5">
+        <div
+          role="tablist"
+          aria-label="بخش‌های دفترچه"
+          className="mb-5 flex gap-1.5"
+        >
           {(["mistakes", "notes"] as const).map((t) => (
             <button
               key={t}
@@ -115,10 +149,14 @@ function MistakesPage() {
               onClick={() => setTab(t)}
               className={cn(
                 "rounded-x-pill border px-4 py-1.5 text-sm font-medium transition-colors",
-                tab === t ? "border-blue-600 bg-blue-100 text-text-900" : "border-border bg-surface text-text-700"
+                tab === t
+                  ? "border-blue-600 bg-blue-100 text-text-900"
+                  : "border-border bg-surface text-text-700",
               )}
             >
-              {t === "mistakes" ? `غلط‌ها (${toPersianDigits(open.length)})` : "یادداشت‌ها"}
+              {t === "mistakes"
+                ? `غلط‌ها (${toPersianDigits(open.length)})`
+                : "یادداشت‌ها"}
             </button>
           ))}
         </div>
@@ -128,8 +166,10 @@ function MistakesPage() {
         ) : (
           <>
             <p className="mb-5 text-sm text-text-500">
-              هر تستی که غلط زدی رو با <span className="font-medium text-text-700">دلیلش</span> ثبت کن. مهم‌تر از تعداد
-              غلط، اینه که بدونی چرا غلط می‌زنی — مشاورت هم همین الگو رو می‌بینه.
+              هر تستی که غلط زدی رو با{" "}
+              <span className="font-medium text-text-700">دلیلش</span> ثبت کن.
+              مهم‌تر از تعداد غلط، اینه که بدونی چرا غلط می‌زنی — مشاورت هم همین
+              الگو رو می‌بینه.
             </p>
 
             {reviewing ? (
@@ -144,7 +184,11 @@ function MistakesPage() {
                   <Repeat size={18} className="shrink-0 text-blue-600" />
                   <span className="flex-1">
                     <span className="block text-sm font-medium text-text-900">
-                      مرور امروز: <span className="tnum">{toPersianDigits(due.length)}</span> تست رو دوباره حل کن
+                      مرور امروز:{" "}
+                      <span className="tnum">
+                        {toPersianDigits(due.length)}
+                      </span>{" "}
+                      تست رو دوباره حل کن
                     </span>
                     <span className="text-xs text-text-500">
                       حل دوباره بعد از چند روز، بهترین راه برای تکرار نشدن غلطه.
@@ -157,10 +201,15 @@ function MistakesPage() {
             <Card>
               <CardContent>
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-sm font-bold text-text-900">چرا غلط می‌زنم؟</h2>
+                  <h2 className="text-sm font-bold text-text-900">
+                    چرا غلط می‌زنم؟
+                  </h2>
                   <span className="text-xs text-text-500">
-                    <span className="tnum">{toPersianDigits(open.length)}</span> غلط حل‌نشده از{" "}
-                    <span className="tnum">{toPersianDigits(mistakes.length)}</span>
+                    <span className="tnum">{toPersianDigits(open.length)}</span>{" "}
+                    غلط حل‌نشده از{" "}
+                    <span className="tnum">
+                      {toPersianDigits(mistakes.length)}
+                    </span>
                   </span>
                 </div>
                 <MistakePattern entries={mistakes} audience="student" />
@@ -171,7 +220,9 @@ function MistakesPage() {
               <Card className="mt-4">
                 <CardContent>
                   <div className="mb-3 flex items-center justify-between">
-                    <h2 className="text-sm font-bold text-text-900">ثبت غلط جدید</h2>
+                    <h2 className="text-sm font-bold text-text-900">
+                      ثبت غلط جدید
+                    </h2>
                     <button
                       type="button"
                       onClick={() => setFormOpen(false)}
@@ -235,7 +286,9 @@ function MistakesPage() {
                     </div>
 
                     <div>
-                      <div className="mb-2 text-xs font-medium text-text-700">دلیل غلط</div>
+                      <div className="mb-2 text-xs font-medium text-text-700">
+                        دلیل غلط
+                      </div>
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                         {REASONS.map((r) => (
                           <button
@@ -247,11 +300,15 @@ function MistakesPage() {
                               "rounded-x-md border-2 px-2.5 py-2 text-right transition-colors",
                               form.reason === r
                                 ? "border-blue-600 bg-blue-100"
-                                : "border-border bg-surface hover:border-blue-300"
+                                : "border-border bg-surface hover:border-blue-300",
                             )}
                           >
-                            <div className="text-xs font-medium text-text-900">{MISTAKE_REASONS[r].label}</div>
-                            <div className="mt-0.5 text-xs leading-snug text-text-500">{MISTAKE_REASONS[r].hint}</div>
+                            <div className="text-xs font-medium text-text-900">
+                              {MISTAKE_REASONS[r].label}
+                            </div>
+                            <div className="mt-0.5 text-xs leading-snug text-text-500">
+                              {MISTAKE_REASONS[r].hint}
+                            </div>
                           </button>
                         ))}
                       </div>
@@ -276,7 +333,11 @@ function MistakesPage() {
                 </CardContent>
               </Card>
             ) : (
-              <Button size="lg" className="mt-4 w-full" onClick={() => setFormOpen(true)}>
+              <Button
+                size="lg"
+                className="mt-4 w-full"
+                onClick={() => setFormOpen(true)}
+              >
                 <Plus size={16} /> ثبت غلط جدید
               </Button>
             )}
@@ -297,7 +358,9 @@ function MistakesPage() {
               </select>
               <select
                 value={reasonFilter}
-                onChange={(e) => setReasonFilter(e.target.value as MistakeReason | "همه")}
+                onChange={(e) =>
+                  setReasonFilter(e.target.value as MistakeReason | "همه")
+                }
                 aria-label="فیلتر دلیل"
                 className="h-9 rounded-x-pill border border-border bg-surface px-3 text-xs text-text-900"
               >
@@ -309,7 +372,11 @@ function MistakesPage() {
                 ))}
               </select>
               <label className="flex items-center gap-1.5 text-xs text-text-700">
-                <input type="checkbox" checked={hideResolved} onChange={(e) => setHideResolved(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={hideResolved}
+                  onChange={(e) => setHideResolved(e.target.checked)}
+                />
                 فقط حل‌نشده‌ها
               </label>
             </div>
@@ -321,38 +388,81 @@ function MistakesPage() {
                     <div className="flex items-start gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="text-sm font-medium text-text-900">{m.subject}</span>
-                          {m.topic && <span className="text-sm text-text-700">— {m.topic}</span>}
-                          <Badge tone={m.reason === "careless" || m.reason === "calculation" ? "warning" : "neutral"}>
+                          <span className="text-sm font-medium text-text-900">
+                            {m.subject}
+                          </span>
+                          {m.topic && (
+                            <span className="text-sm text-text-700">
+                              — {m.topic}
+                            </span>
+                          )}
+                          <Badge
+                            tone={
+                              m.reason === "careless" ||
+                              m.reason === "calculation"
+                                ? "warning"
+                                : "neutral"
+                            }
+                          >
                             {MISTAKE_REASONS[m.reason].label}
                           </Badge>
-                          {m.resolved ? <Badge tone="success">دوباره حلش کردم</Badge> : <ReviewBadge m={m} />}
+                          {m.resolved ? (
+                            <Badge tone="success">دوباره حلش کردم</Badge>
+                          ) : (
+                            <ReviewBadge m={m} />
+                          )}
                         </div>
                         <div className="mt-1 text-xs text-text-500">
                           {m.source}
                           {m.questionNo && (
                             <>
                               {" "}
-                              · سؤال <span className="tnum">{toPersianDigits(m.questionNo)}</span>
+                              · سؤال{" "}
+                              <span className="tnum">
+                                {toPersianDigits(m.questionNo)}
+                              </span>
                             </>
                           )}{" "}
                           · {m.date}
                         </div>
-                        {m.fix && <p className="mt-1.5 text-xs leading-[1.8] text-text-700">💡 {m.fix}</p>}
+                        {m.fix && (
+                          <p className="mt-1.5 text-xs leading-[1.8] text-text-700">
+                            💡 {m.fix}
+                          </p>
+                        )}
                       </div>
                       <div className="flex shrink-0 items-center gap-1">
                         <button
                           type="button"
-                          onClick={() => toast(m.resolved ? "برگشت به حل‌نشده‌ها" : "حل شد 👏", toggleResolved(m.id))}
+                          onClick={() =>
+                            toast(
+                              m.resolved ? "برگشت به حل‌نشده‌ها" : "حل شد 👏",
+                              toggleResolved(m.id),
+                            )
+                          }
                           className="rounded-x-sm p-1.5 text-text-500 hover:bg-surface-2 hover:text-mint-500"
-                          aria-label={m.resolved ? "برگردوندن به حل‌نشده" : "دوباره حلش کردم"}
-                          title={m.resolved ? "برگردوندن به حل‌نشده" : "دوباره حلش کردم"}
+                          aria-label={
+                            m.resolved
+                              ? "برگردوندن به حل‌نشده"
+                              : "دوباره حلش کردم"
+                          }
+                          title={
+                            m.resolved
+                              ? "برگردوندن به حل‌نشده"
+                              : "دوباره حلش کردم"
+                          }
                         >
-                          {m.resolved ? <RotateCcw size={15} /> : <CheckCircle2 size={15} />}
+                          {m.resolved ? (
+                            <RotateCcw size={15} />
+                          ) : (
+                            <CheckCircle2 size={15} />
+                          )}
                         </button>
                         <button
                           type="button"
-                          onClick={() => toast("غلط حذف شد", deleteMistake(m.id))}
+                          onClick={() =>
+                            toast("غلط حذف شد", deleteMistake(m.id))
+                          }
                           className="rounded-x-sm p-1.5 text-text-500 hover:bg-surface-2 hover:text-red-500"
                           aria-label="حذف"
                         >
@@ -364,7 +474,9 @@ function MistakesPage() {
                 </Card>
               ))}
               {visible.length === 0 && (
-                <p className="py-8 text-center text-sm text-text-500">با این فیلترها غلطی پیدا نشد.</p>
+                <p className="py-8 text-center text-sm text-text-500">
+                  با این فیلترها غلطی پیدا نشد.
+                </p>
               )}
             </div>
           </>
@@ -386,7 +498,13 @@ function ReviewBadge({ m }: { m: MistakeEntry }) {
 }
 
 // One due mistake at a time: re-solve the original question, then say how it went.
-function ReviewSession({ due, onClose }: { due: MistakeEntry[]; onClose: () => void }) {
+function ReviewSession({
+  due,
+  onClose,
+}: {
+  due: MistakeEntry[];
+  onClose: () => void;
+}) {
   const [total] = useState(due.length);
   const [results, setResults] = useState({ right: 0, wrong: 0 });
   const [showFix, setShowFix] = useState(false);
@@ -395,7 +513,9 @@ function ReviewSession({ due, onClose }: { due: MistakeEntry[]; onClose: () => v
 
   function answer(correct: boolean) {
     reviewMistake(current.id, correct);
-    setResults((r) => (correct ? { ...r, right: r.right + 1 } : { ...r, wrong: r.wrong + 1 }));
+    setResults((r) =>
+      correct ? { ...r, right: r.right + 1 } : { ...r, wrong: r.wrong + 1 },
+    );
     setShowFix(false);
   }
 
@@ -406,7 +526,12 @@ function ReviewSession({ due, onClose }: { due: MistakeEntry[]; onClose: () => v
           <h2 className="flex items-center gap-1.5 text-sm font-bold text-text-900">
             <Repeat size={15} className="text-blue-600" /> مرور امروز
           </h2>
-          <button type="button" onClick={onClose} aria-label="بستن مرور" className="text-text-500 hover:text-text-900">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="بستن مرور"
+            className="text-text-500 hover:text-text-900"
+          >
             <X size={16} />
           </button>
         </div>
@@ -414,10 +539,13 @@ function ReviewSession({ due, onClose }: { due: MistakeEntry[]; onClose: () => v
         {!current ? (
           <div className="py-4 text-center">
             <CheckCircle2 size={28} className="mx-auto text-mint-500" />
-            <p className="mt-2 text-sm font-medium text-text-900">مرور امروز تموم شد</p>
+            <p className="mt-2 text-sm font-medium text-text-900">
+              مرور امروز تموم شد
+            </p>
             {doneCount > 0 && (
               <p className="mt-1 text-xs text-text-500">
-                {toPersianDigits(results.right)} درست · {toPersianDigits(results.wrong)} دوباره غلط (سه روز دیگه
+                {toPersianDigits(results.right)} درست ·{" "}
+                {toPersianDigits(results.wrong)} دوباره غلط (سه روز دیگه
                 برمی‌گردن)
               </p>
             )}
@@ -437,15 +565,22 @@ function ReviewSession({ due, onClose }: { due: MistakeEntry[]; onClose: () => v
                 {current.questionNo && (
                   <>
                     {" "}
-                    · سؤال <span className="tnum">{toPersianDigits(current.questionNo)}</span>
+                    · سؤال{" "}
+                    <span className="tnum">
+                      {toPersianDigits(current.questionNo)}
+                    </span>
                   </>
                 )}{" "}
                 · دفعه‌ی قبل: {MISTAKE_REASONS[current.reason].label}
               </div>
-              <p className="mt-3 text-sm text-text-700">همین سؤال رو بدون نگاه به جواب دوباره حل کن.</p>
+              <p className="mt-3 text-sm text-text-700">
+                همین سؤال رو بدون نگاه به جواب دوباره حل کن.
+              </p>
               {current.fix &&
                 (showFix ? (
-                  <p className="mt-2 text-xs leading-[1.8] text-text-700">💡 {current.fix}</p>
+                  <p className="mt-2 text-xs leading-[1.8] text-text-700">
+                    💡 {current.fix}
+                  </p>
                 ) : (
                   <button
                     type="button"
@@ -460,7 +595,11 @@ function ReviewSession({ due, onClose }: { due: MistakeEntry[]; onClose: () => v
               <Button size="md" onClick={() => answer(true)}>
                 <ThumbsUp size={14} /> این بار درست زدم
               </Button>
-              <Button size="md" variant="secondary" onClick={() => answer(false)}>
+              <Button
+                size="md"
+                variant="secondary"
+                onClick={() => answer(false)}
+              >
                 <RotateCcw size={14} /> باز غلط زدم
               </Button>
             </div>

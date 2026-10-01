@@ -2,7 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ClipboardList, Play, Pause, SkipForward, Flag, Calculator, NotebookPen, AlertTriangle } from "lucide-react";
+import {
+  ClipboardList,
+  Play,
+  Pause,
+  SkipForward,
+  Flag,
+  Calculator,
+  NotebookPen,
+  AlertTriangle,
+} from "lucide-react";
 import { StudentShell } from "@/components/app/StudentShell";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -36,14 +45,26 @@ const KONKUR: Record<Template, { label: string; sections: Section[] }> = {
   ensani: {
     label: "کنکور انسانی",
     sections: [
-      { name: "ریاضی، ادبیات، علوم اجتماعی و روان‌شناسی", questions: 80, minutes: 85 },
-      { name: "عربی، تاریخ و جغرافیا، فلسفه و منطق و اقتصاد", questions: 80, minutes: 75 },
+      {
+        name: "ریاضی، ادبیات، علوم اجتماعی و روان‌شناسی",
+        questions: 80,
+        minutes: 85,
+      },
+      {
+        name: "عربی، تاریخ و جغرافیا، فلسفه و منطق و اقتصاد",
+        questions: 80,
+        minutes: 75,
+      },
     ],
   },
 };
 
 // Third انسانی booklet — only for applicants to معارف اسلامی majors.
-const MAAREF: Section = { name: "علوم و معارف اسلامی", questions: 80, minutes: 75 };
+const MAAREF: Section = {
+  name: "علوم و معارف اسلامی",
+  questions: 80,
+  minutes: 75,
+};
 
 const CUSTOM_SUBJECTS = [
   ...CHECKIN_SUBJECTS,
@@ -72,36 +93,50 @@ function formatSpent(seconds: number) {
 }
 
 function templateSections(t: Template, withMaaref: boolean): Section[] {
-  return t === "ensani" && withMaaref ? [...KONKUR.ensani.sections, MAAREF] : KONKUR[t].sections;
+  return t === "ensani" && withMaaref
+    ? [...KONKUR.ensani.sections, MAAREF]
+    : KONKUR[t].sections;
 }
 
 export default function ExamSimPage() {
   const [phase, setPhase] = useState<Phase>("setup");
   const [template, setTemplate] = useState<Template | "custom">("tajrobi");
   const [withMaaref, setWithMaaref] = useState(false);
-  const [custom, setCustom] = useState({ subject: "", questions: "", minutes: "" });
+  const [custom, setCustom] = useState({
+    subject: "",
+    questions: "",
+    minutes: "",
+  });
   const [customError, setCustomError] = useState("");
   const [sections, setSections] = useState<Section[]>(KONKUR.tajrobi.sections);
   const [current, setCurrent] = useState(0);
   const [sectionStart, setSectionStart] = useState(0); // countdown value when this section began
   const [spent, setSpent] = useState<number[]>([]); // seconds used per finished section
 
-  const { remaining, running, setRunning, reset } = useCountdown(totalMinutes(KONKUR.tajrobi.sections) * 60, () => {
-    // Time's up: whatever section we're in ends here; later ones were never reached.
-    setSpent((s) => [...s, sectionStart]);
-    setPhase("done");
-  });
+  const { remaining, running, setRunning, reset } = useCountdown(
+    totalMinutes(KONKUR.tajrobi.sections) * 60,
+    () => {
+      // Time's up: whatever section we're in ends here; later ones were never reached.
+      setSpent((s) => [...s, sectionStart]);
+      setPhase("done");
+    },
+  );
 
   function start() {
-    let chosen = template === "custom" ? [] : templateSections(template, withMaaref);
+    let chosen =
+      template === "custom" ? [] : templateSections(template, withMaaref);
     if (template === "custom") {
       const q = Number(toLatinDigits(custom.questions.trim()));
       const m = Number(toLatinDigits(custom.minutes.trim()));
       if (!custom.subject) return setCustomError("درس رو انتخاب کن.");
       if (!Number.isInteger(q) || q < 1 || q > MAX_QUESTIONS)
-        return setCustomError(`تعداد سؤال باید بین ۱ تا ${toPersianDigits(MAX_QUESTIONS)} باشه.`);
+        return setCustomError(
+          `تعداد سؤال باید بین ۱ تا ${toPersianDigits(MAX_QUESTIONS)} باشه.`,
+        );
       if (!Number.isInteger(m) || m < 1 || m > MAX_MINUTES)
-        return setCustomError(`زمان باید بین ۱ تا ${toPersianDigits(MAX_MINUTES)} دقیقه باشه.`);
+        return setCustomError(
+          `زمان باید بین ۱ تا ${toPersianDigits(MAX_MINUTES)} دقیقه باشه.`,
+        );
       chosen = [{ name: custom.subject, questions: q, minutes: m }];
     }
     const total = totalMinutes(chosen) * 60;
@@ -140,7 +175,8 @@ export default function ExamSimPage() {
           <h1 className="text-xl font-bold text-text-900">شبیه‌ساز آزمون</h1>
         </div>
         <p className="mb-6 text-sm text-text-500">
-          آزمون رو با همون زمان‌بندی جلسه‌ی واقعی تمرین کن و ببین کدوم بخش وقتت رو می‌خوره.
+          آزمون رو با همون زمان‌بندی جلسه‌ی واقعی تمرین کن و ببین کدوم بخش وقتت
+          رو می‌خوره.
         </p>
 
         {phase === "setup" && (
@@ -154,7 +190,7 @@ export default function ExamSimPage() {
                     "rounded-x-md border-2 px-3 py-3 text-sm font-medium transition-colors",
                     template === t
                       ? "border-blue-600 bg-blue-100 text-text-900"
-                      : "border-border bg-surface text-text-700 hover:border-blue-300"
+                      : "border-border bg-surface text-text-700 hover:border-blue-300",
                   )}
                 >
                   {t === "custom" ? "آزمون تک‌درس" : KONKUR[t].label}
@@ -169,18 +205,28 @@ export default function ExamSimPage() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-border text-xs text-text-500">
-                          <th className="py-2 text-right font-normal">دفترچه</th>
+                          <th className="py-2 text-right font-normal">
+                            دفترچه
+                          </th>
                           <th className="py-2 text-center font-normal">سؤال</th>
                           <th className="py-2 text-center font-normal">زمان</th>
                         </tr>
                       </thead>
                       <tbody>
                         {templateSections(template, withMaaref).map((s) => (
-                          <tr key={s.name} className="border-b border-border/60">
+                          <tr
+                            key={s.name}
+                            className="border-b border-border/60"
+                          >
                             <td className="py-2.5 text-text-900">{s.name}</td>
-                            <td className="tnum py-2.5 text-center text-text-700">{toPersianDigits(s.questions)}</td>
+                            <td className="tnum py-2.5 text-center text-text-700">
+                              {toPersianDigits(s.questions)}
+                            </td>
                             <td className="py-2.5 text-center text-text-700">
-                              <span className="tnum">{toPersianDigits(s.minutes)}</span> دقیقه
+                              <span className="tnum">
+                                {toPersianDigits(s.minutes)}
+                              </span>{" "}
+                              دقیقه
                             </td>
                           </tr>
                         ))}
@@ -190,12 +236,19 @@ export default function ExamSimPage() {
                           <td className="py-2.5">جمع</td>
                           <td className="tnum py-2.5 text-center">
                             {toPersianDigits(
-                              templateSections(template, withMaaref).reduce((s, x) => s + x.questions, 0)
+                              templateSections(template, withMaaref).reduce(
+                                (s, x) => s + x.questions,
+                                0,
+                              ),
                             )}
                           </td>
                           <td className="py-2.5 text-center">
                             <span className="tnum">
-                              {toPersianDigits(totalMinutes(templateSections(template, withMaaref)))}
+                              {toPersianDigits(
+                                totalMinutes(
+                                  templateSections(template, withMaaref),
+                                ),
+                              )}
                             </span>{" "}
                             دقیقه
                           </td>
@@ -211,12 +264,15 @@ export default function ExamSimPage() {
                           className="mt-0.5"
                         />
                         <span>
-                          دفترچه‌ی سوم (علوم و معارف اسلامی، ۸۰ سؤال در ۷۵ دقیقه) رو هم اضافه کن — فقط برای متقاضیان
-                          رشته‌های معارف.
+                          دفترچه‌ی سوم (علوم و معارف اسلامی، ۸۰ سؤال در ۷۵
+                          دقیقه) رو هم اضافه کن — فقط برای متقاضیان رشته‌های
+                          معارف.
                         </span>
                       </label>
                     )}
-                    <p className="mt-2 text-xs text-text-500">طبق اطلاعیه‌ی سنجش برای کنکور ۱۴۰۵.</p>
+                    <p className="mt-2 text-xs text-text-500">
+                      طبق اطلاعیه‌ی سنجش برای کنکور ۱۴۰۵.
+                    </p>
                   </>
                 ) : (
                   <div className="space-y-3">
@@ -250,14 +306,20 @@ export default function ExamSimPage() {
                               setCustomError("");
                             }}
                             placeholder={k === "questions" ? "۲۰" : "۲۵"}
-                            aria-label={k === "questions" ? "تعداد سؤال" : "زمان به دقیقه"}
+                            aria-label={
+                              k === "questions" ? "تعداد سؤال" : "زمان به دقیقه"
+                            }
                             className="tnum w-full min-w-0 bg-transparent text-sm text-text-900 outline-none placeholder:text-text-500"
                           />
-                          <span className="shrink-0 text-xs text-text-500">{k === "questions" ? "سؤال" : "دقیقه"}</span>
+                          <span className="shrink-0 text-xs text-text-500">
+                            {k === "questions" ? "سؤال" : "دقیقه"}
+                          </span>
                         </label>
                       ))}
                     </div>
-                    {customError && <p className="text-xs text-red-500">{customError}</p>}
+                    {customError && (
+                      <p className="text-xs text-red-500">{customError}</p>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -274,29 +336,45 @@ export default function ExamSimPage() {
             <CardContent className="py-6">
               <div className="flex items-center justify-between text-xs text-text-500">
                 <span>
-                  بخش {toPersianDigits(current + 1)} از {toPersianDigits(sections.length)}
+                  بخش {toPersianDigits(current + 1)} از{" "}
+                  {toPersianDigits(sections.length)}
                 </span>
                 <span>
-                  زمان کل باقی‌مانده: <span className="tnum font-medium text-text-900">{formatClock(remaining)}</span>
+                  زمان کل باقی‌مانده:{" "}
+                  <span className="tnum font-medium text-text-900">
+                    {formatClock(remaining)}
+                  </span>
                 </span>
               </div>
 
               <div className="mt-5 text-center">
-                <div className="text-lg font-bold text-text-900">{section.name}</div>
+                <div className="text-lg font-bold text-text-900">
+                  {section.name}
+                </div>
                 <div className="mt-1 text-xs text-text-500">
                   {toPersianDigits(section.questions)} سؤال · حدود{" "}
-                  {toPersianDigits(Math.round(sectionBudget / section.questions))} ثانیه برای هر سؤال
+                  {toPersianDigits(
+                    Math.round(sectionBudget / section.questions),
+                  )}{" "}
+                  ثانیه برای هر سؤال
                 </div>
                 <div
-                  className={cn("tnum mt-5 text-5xl font-extrabold", overBudget ? "text-orange-500" : "text-text-900")}
+                  className={cn(
+                    "tnum mt-5 text-5xl font-extrabold",
+                    overBudget ? "text-orange-500" : "text-text-900",
+                  )}
                 >
                   {formatClock(sectionUsed)}
                 </div>
-                <div className="mt-1 text-xs text-text-500">از {toPersianDigits(section.minutes)} دقیقه‌ی این بخش</div>
+                <div className="mt-1 text-xs text-text-500">
+                  از {toPersianDigits(section.minutes)} دقیقه‌ی این بخش
+                </div>
               </div>
 
               <div className="mt-4">
-                <ProgressBar value={Math.min(100, (sectionUsed / sectionBudget) * 100)} />
+                <ProgressBar
+                  value={Math.min(100, (sectionUsed / sectionBudget) * 100)}
+                />
               </div>
 
               {overBudget && (
@@ -318,24 +396,45 @@ export default function ExamSimPage() {
                     </>
                   )}
                 </Button>
-                <Button size="lg" variant="secondary" onClick={() => setRunning((r) => !r)} aria-label="توقف">
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  onClick={() => setRunning((r) => !r)}
+                  aria-label="توقف"
+                >
                   {running ? <Pause size={16} /> : <Play size={16} />}
                 </Button>
               </div>
               {!running && (
-                <p className="mt-2 text-center text-xs text-text-500">متوقف شده — سر جلسه‌ی واقعی توقف نداری!</p>
+                <p className="mt-2 text-center text-xs text-text-500">
+                  متوقف شده — سر جلسه‌ی واقعی توقف نداری!
+                </p>
               )}
             </CardContent>
           </Card>
         )}
 
-        {phase === "done" && <Results sections={sections} spent={spent} onRestart={() => setPhase("setup")} />}
+        {phase === "done" && (
+          <Results
+            sections={sections}
+            spent={spent}
+            onRestart={() => setPhase("setup")}
+          />
+        )}
       </div>
     </StudentShell>
   );
 }
 
-function Results({ sections, spent, onRestart }: { sections: Section[]; spent: number[]; onRestart: () => void }) {
+function Results({
+  sections,
+  spent,
+  onRestart,
+}: {
+  sections: Section[];
+  spent: number[];
+  onRestart: () => void;
+}) {
   const worst = sections
     .map((s, i) => ({ name: s.name, over: (spent[i] ?? 0) - s.minutes * 60 }))
     .filter((x) => x.over > 0)
@@ -361,14 +460,25 @@ function Results({ sections, spent, onRestart }: { sections: Section[]; spent: n
                 const used = spent[i];
                 const diff = used == null ? null : used - s.minutes * 60;
                 return (
-                  <tr key={s.name} className="border-b border-border/60 last:border-0">
+                  <tr
+                    key={s.name}
+                    className="border-b border-border/60 last:border-0"
+                  >
                     <td className="py-2.5 text-text-900">{s.name}</td>
-                    <td className="tnum py-2.5 text-center text-text-500">{formatSpent(s.minutes * 60)}</td>
-                    <td className="tnum py-2.5 text-center text-text-700">{used == null ? "—" : formatSpent(used)}</td>
+                    <td className="tnum py-2.5 text-center text-text-500">
+                      {formatSpent(s.minutes * 60)}
+                    </td>
+                    <td className="tnum py-2.5 text-center text-text-700">
+                      {used == null ? "—" : formatSpent(used)}
+                    </td>
                     <td
                       className={cn(
                         "tnum py-2.5 text-center",
-                        diff == null ? "text-text-500" : diff > 0 ? "text-orange-500" : "text-mint-500"
+                        diff == null
+                          ? "text-text-500"
+                          : diff > 0
+                            ? "text-orange-500"
+                            : "text-mint-500",
                       )}
                     >
                       {diff == null ? (
@@ -387,21 +497,33 @@ function Results({ sections, spent, onRestart }: { sections: Section[]; spent: n
             <div className="mt-3 rounded-x-md bg-surface-2 p-3 text-xs leading-[1.8] text-text-700">
               {worst && (
                 <p>
-                  بیشترین زمان اضافه رو توی <span className="font-medium text-text-900">{worst.name}</span> گذاشتی.
-                  دفعه‌ی بعد سؤال‌های سخت این بخش رو برای دور دوم نگه دار.
+                  بیشترین زمان اضافه رو توی{" "}
+                  <span className="font-medium text-text-900">
+                    {worst.name}
+                  </span>{" "}
+                  گذاشتی. دفعه‌ی بعد سؤال‌های سخت این بخش رو برای دور دوم نگه
+                  دار.
                 </p>
               )}
-              {unreached.length > 0 && <p>وقت تموم شد و به {unreached.join("، ")} نرسیدی.</p>}
+              {unreached.length > 0 && (
+                <p>وقت تموم شد و به {unreached.join("، ")} نرسیدی.</p>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
-        <Link href="/dashboard/karnameh#calculator" className={buttonVariants({ size: "lg", variant: "secondary" })}>
+        <Link
+          href="/dashboard/calculator"
+          className={buttonVariants({ size: "lg", variant: "secondary" })}
+        >
           <Calculator size={16} /> درصدت رو حساب کن
         </Link>
-        <Link href="/dashboard/mistakes" className={buttonVariants({ size: "lg", variant: "secondary" })}>
+        <Link
+          href="/dashboard/mistakes"
+          className={buttonVariants({ size: "lg", variant: "secondary" })}
+        >
           <NotebookPen size={16} /> غلط‌ها رو ثبت کن
         </Link>
       </div>

@@ -12,11 +12,15 @@ import {
   mentorPrivateNotes,
   getRiskInfo,
 } from "@/lib/mock-data";
-import { Sparkles, EyeOff, LineChart, GitCompare } from "lucide-react";
+import { EyeOff, LineChart, GitCompare } from "lucide-react";
 import { TrendChart } from "@/components/ui/TrendChart";
 import { PeriodComparison } from "@/components/app/PeriodComparison";
 import { PrivateNotes } from "@/components/app/PrivateNotes";
-import { StudentMistakes, StudentNightlyReports, StudentWeekly } from "@/components/app/StudentReports";
+import {
+  StudentMistakes,
+  StudentNightlyReports,
+  StudentWeekly,
+} from "@/components/app/StudentReports";
 import { AboutStudent } from "@/components/app/AboutStudent";
 import { PlanEditor } from "@/components/app/PlanEditor";
 import { FixedSessionCard } from "@/components/app/FixedSession";
@@ -30,7 +34,11 @@ export function generateStaticParams() {
   return mentorStudents.map((s) => ({ id: s.id }));
 }
 
-export default async function StudentCaseFilePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function StudentCaseFilePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const student = mentorStudents.find((s) => s.id === id);
   if (!student) notFound();
@@ -48,7 +56,9 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
           </div>
           <div className="mr-auto text-left">
             <Badge tone={risk.level}>{risk.label}</Badge>
-            {risk.reason && <p className="mt-1 text-xs text-text-500">{risk.reason}</p>}
+            {risk.reason && (
+              <p className="mt-1 text-xs text-text-500">{risk.reason}</p>
+            )}
           </div>
         </div>
 
@@ -108,7 +118,9 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
                         <div key={s.name}>
                           <div className="mb-1 flex items-center justify-between text-sm">
                             <span className="text-text-700">{s.name}</span>
-                            <span className="tnum text-text-500">{toPersianDigits(s.value)}٪</span>
+                            <span className="tnum text-text-500">
+                              {toPersianDigits(s.value)}٪
+                            </span>
                           </div>
                           <ProgressBar value={s.value} />
                         </div>
@@ -129,9 +141,12 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
                   >
                     <p className="text-sm leading-[1.9] text-text-700">
                       بیشترین اثر منفی روی رتبه از{" "}
-                      <span className="font-medium text-text-900">{rootCause.subject}</span> می‌آید (درصد{" "}
-                      {toPersianDigits(rootCause.percentage)}٪ × ضریب {toPersianDigits(rootCause.coefficient)}). با توجه
-                      به نیمرخ سطح، ریشه‌ش احتمالاً این مباحث‌اند:
+                      <span className="font-medium text-text-900">
+                        {rootCause.subject}
+                      </span>{" "}
+                      می‌آید (درصد {toPersianDigits(rootCause.percentage)}٪ ×
+                      ضریب {toPersianDigits(rootCause.coefficient)}). با توجه به
+                      نیمرخ سطح، ریشه‌ش احتمالاً این مباحث‌اند:
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {rootCause.likelyTopics.map((t) => (
@@ -151,11 +166,18 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
                 <>
                   {/* The week's plan — written entirely by the mentor, no system suggestions */}
                   <Section title="برنامه‌ی هفته" id="plan">
-                    <PlanEditor studentId={student.id} studentName={student.name} />
+                    <PlanEditor
+                      studentId={student.id}
+                      studentName={student.name}
+                    />
                   </Section>
 
                   <Section title="جلسه‌ی ثابت هفتگی">
-                    <FixedSessionCard studentId={student.id} by="mentor" className="border-0 p-0" />
+                    <FixedSessionCard
+                      studentId={student.id}
+                      by="mentor"
+                      className="border-0 p-0"
+                    />
                   </Section>
                 </>
               ),
@@ -169,7 +191,11 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
                   <Section title="جمع هفته از گزارش کارها">
                     <StudentWeekly studentId={student.id} />
                     <div className="mt-4 border-t border-border pt-3">
-                      <CopyWeeklyReport studentId={student.id} name={student.name} includeSleep={false} />
+                      <CopyWeeklyReport
+                        studentId={student.id}
+                        name={student.name}
+                        includeSleep={false}
+                      />
                     </div>
                   </Section>
 
@@ -182,14 +208,6 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
                   <Section title="گزارش کارهای اخیر" id="reports">
                     <StudentNightlyReports studentId={student.id} />
                   </Section>
-
-                  {/* AI questions */}
-                  <Section title="سؤالات اخیر از معلم AI">
-                    <div className="flex items-start gap-2 rounded-x-md bg-surface-2 p-3 text-sm text-text-700">
-                      <Sparkles size={14} className="mt-0.5 shrink-0 text-blue-600" />
-                      «چرا گزینه‌ی ۳ درست نیست؟» — فیزیک، حرکت‌شناسی — دیروز
-                    </div>
-                  </Section>
                 </>
               ),
             },
@@ -201,17 +219,23 @@ export default async function StudentCaseFilePage({ params }: { params: Promise<
                   {/* Karnameh files the student (or mentor) attached — shown as-is, never re-analysed. */}
                   <Section title="کارنامه‌ها" id="karnameh">
                     <p className="tnum mb-3 text-xs text-text-500">
-                      آخرین نتیجه‌ی ثبت‌شده: {examResults[0].examProvider} — {examResults[0].examName} (
-                      {examResults[0].date}) · درصد کل {toPersianDigits(examResults[0].overallPercentage)}٪
+                      آخرین نتیجه‌ی ثبت‌شده: {examResults[0].examProvider} —{" "}
+                      {examResults[0].examName} ({examResults[0].date}) · درصد
+                      کل {toPersianDigits(examResults[0].overallPercentage)}٪
                     </p>
-                    <KarnamehFiles studentId={student.id} studentName={student.name} />
+                    <KarnamehFiles
+                      studentId={student.id}
+                      studentName={student.name}
+                    />
                   </Section>
 
                   {/* Private notes */}
                   <Section title="یادداشت‌های خصوصی">
                     <PrivateNotes
                       studentId={student.id}
-                      initialNotes={mentorPrivateNotes.filter((n) => n.studentId === student.id)}
+                      initialNotes={mentorPrivateNotes.filter(
+                        (n) => n.studentId === student.id,
+                      )}
                     />
                   </Section>
                 </>
