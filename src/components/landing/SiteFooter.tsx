@@ -6,7 +6,7 @@ const columns = [
     title: "محصول",
     links: [
       { label: "چرا ماتریس", href: "/#features" },
-      { label: "تعرفه‌ها", href: "/#pricing" },
+      { label: "تعرفه‌ها", href: "/pricing" },
       { label: "مشاوران", href: "/mentors" },
     ],
   },

@@ -8,6 +8,7 @@ import {
   type SessionFeedback,
 } from "@/lib/mock-data";
 import { toPersianDigits } from "@/lib/utils";
+import { ShareButton } from "@/components/ui/ShareButton";
 import {
   BookOrWaitlist,
   CapacityNote,
@@ -73,6 +74,13 @@ export function MentorProfileView({
             {" · "}
             <CapacityNote mentor={mentor} />
           </div>
+          {!preview && (
+            <ShareButton
+              title={`${mentor.name} — مشاور ماتریس`}
+              text={`${mentor.name}، ${mentor.rank} کنکور، ${mentor.school}`}
+              label="اشتراک‌گذاری پروفایل"
+            />
+          )}
 
           {!preview && (
             <BookOrWaitlist mentor={mentor} className="mt-2 w-full max-w-xs" />

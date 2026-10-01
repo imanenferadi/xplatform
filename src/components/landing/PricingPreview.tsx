@@ -16,24 +16,31 @@ const maxInstallments = Math.max(
 const discounts = PACKAGE_DURATIONS.filter((d) => d.discountPercent > 0);
 
 // Same plans and prices as /checkout — one source (pricingPlans).
-export function PricingPreview() {
+export function PricingPreview({
+  standalone = false,
+}: {
+  standalone?: boolean;
+}) {
   return (
     <section
       id="pricing"
-      className="mx-auto max-w-[1200px] scroll-mt-20 px-4 py-16 md:px-8 md:py-24"
+      className={`mx-auto max-w-[1200px] scroll-mt-20 px-4 md:px-8 ${standalone ? "py-8 md:py-12" : "py-12 md:py-24"}`}
     >
-      <div className="mb-6 max-w-2xl md:mb-10">
-        <h2 className="text-2xl font-bold text-text-900 md:text-[32px]">
-          تعرفه‌ها
-        </h2>
-        <p className="mt-3 text-text-500">
-          دیدن مشاورها و جلسه‌ی آشنایی همیشه رایگانه. پکیج‌های بلندتر ارزون‌ترن:{" "}
-          {discounts
-            .map((d) => `${d.label} ${toPersianDigits(d.discountPercent)}٪`)
-            .join("، ")}{" "}
-          تخفیف.
-        </p>
-      </div>
+      {!standalone && (
+        <div className="mb-6 max-w-2xl md:mb-10">
+          <h2 className="text-2xl font-bold text-text-900 md:text-[32px]">
+            تعرفه‌ها
+          </h2>
+          <p className="mt-3 text-text-500">
+            دیدن مشاورها و جلسه‌ی آشنایی همیشه رایگانه. پکیج‌های بلندتر
+            ارزون‌ترن:{" "}
+            {discounts
+              .map((d) => `${d.label} ${toPersianDigits(d.discountPercent)}٪`)
+              .join("، ")}{" "}
+            تخفیف.
+          </p>
+        </div>
+      )}
 
       <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 pt-3 sm:grid-cols-2 sm:pt-0 lg:grid-cols-4">
         {pricingPlans.map((p) => {
@@ -90,6 +97,17 @@ export function PricingPreview() {
           );
         })}
       </div>
+
+      {!standalone && (
+        <div className="mt-6 text-center">
+          <Link
+            href="/pricing"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            مقایسه‌ی کامل پلن‌ها، مدت پکیج و اقساط
+          </Link>
+        </div>
+      )}
 
       {/* What makes paying safe — each backed by a real flow in the app. */}
       <div className="mt-8 grid gap-4 md:grid-cols-3">

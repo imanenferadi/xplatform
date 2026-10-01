@@ -1,7 +1,14 @@
 "use client";
 
 import { createLocalStore } from "./local-store";
-import { GUARANTEE_DAYS, INSTALLMENT_DUE_LABELS, type PackageDuration } from "./mock-data";
+import {
+  GUARANTEE_DAYS,
+  INSTALLMENT_DUE_LABELS,
+  type PackageDuration,
+} from "./mock-data";
+import { round1000 } from "./package-pricing";
+
+export { packageTotal } from "./package-pricing";
 
 // The package bought on /checkout (demo bridge in localStorage). Read by the
 // student's profile (guarantee + refund), the parent panel (installments)
@@ -17,7 +24,11 @@ export type Subscription = {
   total: number;
   installments: Installment[];
   purchasedDaysAgo: number; // demo time doesn't move, so this stays 0
-  refund: null | { status: "pending" | "approved" | "rejected"; amount: number; reason: string };
+  refund: null | {
+    status: "pending" | "approved" | "rejected";
+    amount: number;
+    reason: string;
+  };
   discountCode?: string;
   paidBy?: "student" | "parent";
 };
@@ -33,7 +44,9 @@ export function saveSubscription(sub: Subscription) {
 export function requestRefund(reason: string) {
   const sub = store.get();
   if (!sub || sub.refund) return;
-  const paid = sub.installments.filter((i) => i.paid).reduce((s, i) => s + i.amount, 0);
+  const paid = sub.installments
+    .filter((i) => i.paid)
+    .reduce((s, i) => s + i.amount, 0);
   store.set({ ...sub, refund: { status: "pending", amount: paid, reason } });
 }
 
@@ -45,15 +58,6 @@ export function decideRefund(status: "approved" | "rejected") {
 
 export function guaranteeDaysLeft(sub: Subscription) {
   return Math.max(0, GUARANTEE_DAYS - sub.purchasedDaysAgo);
-}
-
-// Rounded to the nearest 1,000 toman — nobody pays ۱,۳۴۱,۰۰۷.
-function round1000(n: number) {
-  return Math.round(n / 1000) * 1000;
-}
-
-export function packageTotal(monthlyPrice: number, d: PackageDuration) {
-  return round1000(monthlyPrice * d.months * (1 - d.discountPercent / 100));
 }
 
 /** Equal monthly parts; the last one absorbs rounding so the sum is exact. */

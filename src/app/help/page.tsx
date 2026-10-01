@@ -3,10 +3,29 @@ import { LifeBuoy } from "lucide-react";
 import { BackLink } from "@/components/ui/BackLink";
 import { Logo } from "@/components/brand/Logo";
 import { FAQ } from "@/lib/faq";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata(
+  "راهنما و سؤالات متداول",
+  "جواب سریع سؤال‌های تازه‌واردها: شروع کار، انتخاب و تعویض مشاور، پرداخت و بازگشت وجه، قسط و مسائل فنی.",
+  "/help",
+);
 
 export default function HelpPage() {
   return (
     <div className="min-h-screen bg-background px-4 py-10 md:py-16">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQ.flatMap((c) => c.items).map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }}
+      />
       <div className="mx-auto max-w-2xl">
         <div className="mb-8 flex items-center justify-between">
           <Logo />

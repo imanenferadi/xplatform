@@ -1,36 +1,50 @@
 import { cn } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
+import {
+  LOCKUP_WIDTH,
+  MARK_STROKE_PATH,
+  WORDMARK_BASELINE,
+  WORDMARK_PATH,
+  WORDMARK_SCALE,
+  WORDMARK_X,
+} from "./logo-data";
 
 /**
- * Wordmark for Matriss. Deliberately not a graduation cap / book /
- * lightbulb (design doc §2.1 explicitly rules those out). A small star +
- * a minimal path/arrow.
+ * The Matriss lockup: an M that climbs to a goal dot, then the wordmark
+ * (Outfit 600, drawn as outlines so it needs no font). Colors follow the
+ * theme: the M and the word use the text color, the dot is the brand yellow.
+ * Regenerate the data with `npm run brand`.
  */
-export function Logo({ className }: { className?: string }) {
+export function Logo({
+  className,
+  markOnly = false,
+}: {
+  className?: string;
+  markOnly?: boolean;
+}) {
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-2 font-extrabold text-text-900",
-        className,
-      )}
+    <svg
+      role="img"
+      aria-label={BRAND}
+      viewBox={`0 0 ${markOnly ? 64 : LOCKUP_WIDTH} 64`}
+      className={cn("h-7 w-auto text-text-900", className)}
     >
-      <svg
-        width="26"
-        height="26"
-        viewBox="0 0 26 26"
+      <path
+        d={MARK_STROKE_PATH}
         fill="none"
-        aria-hidden="true"
-      >
+        stroke="currentColor"
+        strokeWidth="7.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="54" cy="12" r="6.2" fill="var(--x-yellow-400)" />
+      {!markOnly && (
         <path
-          d="M4 20 L11 8 L15 14 L22 4"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          transform={`translate(${WORDMARK_X},${WORDMARK_BASELINE}) scale(${WORDMARK_SCALE})`}
+          d={WORDMARK_PATH}
+          fill="currentColor"
         />
-        <circle cx="22" cy="4" r="2" fill="var(--x-yellow-400)" />
-      </svg>
-      <span className="text-xl tracking-tight">{BRAND}</span>
-    </span>
+      )}
+    </svg>
   );
 }

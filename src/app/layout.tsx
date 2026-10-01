@@ -4,6 +4,8 @@ import Script from "next/script";
 import "./globals.css";
 import { ViewAsBoot } from "@/components/app/SupportView";
 import { Toaster } from "@/components/ui/Toaster";
+import { BRAND } from "@/lib/brand";
+import { SITE_DESCRIPTION, SITE_TAGLINE, SITE_URL } from "@/lib/seo";
 
 const vazirmatn = Vazirmatn({
   variable: "--font-vazirmatn",
@@ -12,12 +14,26 @@ const vazirmatn = Vazirmatn({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  applicationName: BRAND,
   title: {
-    default: "Matriss — همراه هوشمند کنکور",
-    template: "%s | Matriss",
+    default: `${BRAND} — ${SITE_TAGLINE}`,
+    template: `%s | ${BRAND}`,
   },
-  description:
-    "اول بفهم کجایی، بعد برس به کسی که این مسیر رو رفته. تعیین سطح هوشمند، تطبیق با مشاور رتبه‌برتر، و ابزارهای مطالعه در یک پلتفرم.",
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    locale: "fa_IR",
+    siteName: BRAND,
+    title: `${BRAND} — ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${BRAND} — ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+  },
+  appleWebApp: { title: BRAND, capable: true },
 };
 
 export const viewport: Viewport = {

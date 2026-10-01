@@ -7,7 +7,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 const links = [
   { href: "/#mentors", label: "مشاوران" },
   { href: "/#how", label: "چطور کار می‌کنه" },
-  { href: "/#pricing", label: "تعرفه‌ها" },
+  { href: "/pricing", label: "تعرفه‌ها" },
   { href: "/news", label: "اخبار کنکور" },
   { href: "/mentor/apply", label: "مشاور شو" },
 ];
