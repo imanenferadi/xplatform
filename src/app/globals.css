@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------- */
-/* X — Design Tokens                                                      */
+/* Matriss — Design Tokens                                                 */
 /* Source of truth: visual kit palette, filled out with the design doc's  */
 /* semantic colors where the kit didn't specify one.                      */
 /* ---------------------------------------------------------------------- */
@@ -31,6 +31,11 @@
   --x-text-900: #0f2d58;
   --x-text-700: #344054;
   --x-text-500: #5b6478;
+  /* The primary button: navy on light surfaces. Dark mode flips it to the
+     light blue with dark text — a navy button on a navy surface was ~1.3:1
+     and white on the light blue was 3.2:1 (fails AA). */
+  --x-primary: #0f2d58;
+  --x-primary-hover: #1d5fd6;
   --x-text-on-primary: #ffffff;
 
   /* Radius */
@@ -57,7 +62,9 @@
   --x-text-900: #f7faff;
   --x-text-700: #dbe3ee;
   --x-text-500: #aab7c9;
-  --x-text-on-primary: #ffffff;
+  --x-primary: #5c8ef7;
+  --x-primary-hover: #7ba3ff;
+  --x-text-on-primary: #07122a;
 
   --x-blue-600: #5c8ef7;
   --x-blue-300: #3a5a8c;
@@ -85,9 +92,12 @@
     --x-text-900: #f7faff;
     --x-text-700: #dbe3ee;
     --x-text-500: #aab7c9;
-    --x-text-on-primary: #ffffff;
+    --x-primary: #5c8ef7;
+    --x-primary-hover: #7ba3ff;
+    --x-text-on-primary: #07122a;
 
     --x-blue-600: #5c8ef7;
+    --x-blue-300: #3a5a8c;
     --x-blue-100: #17253f;
     --x-cyan-500: #45c2d0;
     --x-mint-500: #4ac49a;
@@ -119,6 +129,8 @@
   --color-text-900: var(--x-text-900);
   --color-text-700: var(--x-text-700);
   --color-text-500: var(--x-text-500);
+  --color-primary: var(--x-primary);
+  --color-primary-hover: var(--x-primary-hover);
   --color-text-on-primary: var(--x-text-on-primary);
 
   --radius-x-sm: var(--x-radius-sm);

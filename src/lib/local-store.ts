@@ -1,11 +1,12 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { pushLocal, registerStore } from "./server-sync";
 
-// Demo-only persistence: a JSON value in localStorage exposed as a React
-// external store. Server render and hydration see `fallback`; the client
-// then swaps to the stored value. Replace with API calls once there's a
-// backend.
+// Persistence: a JSON value in localStorage exposed as a React external store.
+// Server render and hydration see `fallback`; the client then swaps to the
+// stored value. localStorage is the working copy; ./server-sync mirrors it to
+// the server (/api/state) so the data is shared and survives a cleared browser.
 export const VIEW_AS_TAB_KEY = "x-viewas-tab"; // sessionStorage: this tab is a support view
 export const VIEW_AS_STORE_KEY = "x-viewas";
 export const READ_ONLY_EVENT = "x-readonly-blocked";
@@ -24,6 +25,17 @@ export function createLocalStore<T>(key: string, fallback: T) {
   const listeners = new Set<() => void>();
   let cachedRaw: string | null = null;
   let cached: T = fallback;
+
+  // A value that arrived from the server: store it as-is (no push back) and re-render.
+  registerStore(key, (raw) => {
+    try {
+      if (localStorage.getItem(key) === raw) return;
+      localStorage.setItem(key, raw);
+    } catch {
+      return;
+    }
+    listeners.forEach((l) => l());
+  });
 
   function get(): T {
     let raw: string | null;
@@ -49,14 +61,16 @@ export function createLocalStore<T>(key: string, fallback: T) {
       window.dispatchEvent(new CustomEvent(READ_ONLY_EVENT));
       return;
     }
+    const raw = JSON.stringify(value);
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      localStorage.setItem(key, raw);
     } catch {
       // Storage blocked — keep the in-memory copy so this tab stays consistent.
       cachedRaw = null;
       cached = value;
     }
     listeners.forEach((l) => l());
+    pushLocal(key, raw);
   }
 
   function subscribe(listener: () => void) {
@@ -85,6 +99,6 @@ export function useHydrated(): boolean {
   return useSyncExternalStore(
     noop,
     () => true,
-    () => false
+    () => false,
   );
 }

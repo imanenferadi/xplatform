@@ -25,6 +25,7 @@ import { useInboxCounts } from "@/lib/admin-inbox";
 import { AdminSearch } from "@/components/admin/AdminSearch";
 import { PAGE_PERM, ROLE_HOME, ROLE_META, can } from "@/lib/permissions";
 import { signInAs, useMe, useStaff } from "@/lib/staff-store";
+import { useSyncStatus } from "@/lib/server-sync";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
 
@@ -60,6 +61,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const counts = useInboxCounts();
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   const me = useMe();
+  const sync = useSyncStatus();
   const staff = useStaff();
   // Deny by default: a page with no rule, or one this role lacks, isn't shown.
   const pagePerm = PAGE_PERM[pathname];
@@ -156,6 +158,27 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="border-t border-white/10 p-3">
+          <div
+            className="mb-2 flex items-center gap-1.5 px-1 text-xs text-white/60"
+            role="status"
+          >
+            <span
+              aria-hidden
+              className={cn(
+                "h-1.5 w-1.5 rounded-full",
+                sync === "online"
+                  ? "bg-mint-500"
+                  : sync === "offline"
+                    ? "bg-orange-500"
+                    : "bg-white/30",
+              )}
+            />
+            {sync === "online"
+              ? "هم‌گام با سرور"
+              : sync === "offline"
+                ? "سرور در دسترس نیست — فقط روی این مرورگر"
+                : "در حال اتصال…"}
+          </div>
           <div className="flex items-center gap-2.5 px-1">
             <Avatar name={me.name} size="sm" />
             <div className="min-w-0">
